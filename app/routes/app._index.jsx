@@ -66,6 +66,8 @@ export default function Index() {
 
   // Local state for fetched data
   const [instaData, setInstaData] = useState(null);
+  const [isInfiniteLoading, setIsInfiniteLoading] = useState(false);
+  const [visibleMediaCount, setVisibleMediaCount] = useState(12);
 
   // Central Dynamic State
   const [config, setConfig] = useState({
@@ -92,12 +94,18 @@ export default function Index() {
     }
   });
 
-  // State update helpers
+  // State update helpers with automation
   const updateConfig = (section, key, value) => {
     setConfig(prev => ({
       ...prev,
       [section]: { ...prev[section], [key]: value }
     }));
+
+    // Automation: Auto-switch preview device or tab context
+    if (key === "mobileColumns") setPreviewDevice("mobile");
+    if (key === "desktopColumns") setPreviewDevice("desktop");
+    if (section === "stories") setActiveTab("story");
+    if (section === "postFeed") setActiveTab("post");
   };
 
   const updateNestedConfig = (section, subSection, key, value) => {
@@ -108,6 +116,9 @@ export default function Index() {
         [subSection]: { ...prev[section][subSection], [key]: value }
       }
     }));
+    
+    // Automation: Switch context for nested changes
+    if (section === "stories") setActiveTab("story");
   };
 
   // Persistence Logic: Load from localStorage on mount
@@ -144,6 +155,10 @@ export default function Index() {
   useEffect(() => {
     localStorage.setItem("insta_config", JSON.stringify(config));
   }, [config]);
+
+  // Helper to genuinely simulate infinite scroll when running out of initial items
+  const baseMedia = instaData?.media?.data || [1,2,3,4,5,6,7,8,9,10,11,12];
+  const simulatedInfiniteMedia = Array.from({ length: visibleMediaCount }).map((_, i) => baseMedia[i % baseMedia.length]);
 
   return (
     <div className="premium-dashboard">
@@ -367,159 +382,196 @@ export default function Index() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <h2 style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: "#64748b" }}>LIVE RENDERING</h2>
                 <div style={{ display: "flex", gap: "6px", background: "white", padding: "4px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                  <button onClick={() => setPreviewDevice("mobile")} className={`premium-button ${previewDevice === "mobile" ? "button-primary" : ""}`} style={{ padding: "8px 12px", borderRadius: "8px", background: previewDevice === "mobile" ? "" : "transparent", color: previewDevice === "mobile" ? "" : "#64748b" }}>📱</button>
-                  <button onClick={() => setPreviewDevice("desktop")} className={`premium-button ${previewDevice === "desktop" ? "button-primary" : ""}`} style={{ padding: "8px 12px", borderRadius: "8px", background: previewDevice === "desktop" ? "" : "transparent", color: previewDevice === "desktop" ? "" : "#64748b" }}>💻</button>
+                  <button onClick={() => setPreviewDevice("mobile")} className={`premium-button ${previewDevice === "mobile" ? "button-primary" : ""}`} style={{ padding: "8px 12px", borderRadius: "8px", background: previewDevice === "mobile" ? "var(--premium-accent)" : "transparent", color: previewDevice === "mobile" ? "white" : "#64748b" }}>📱</button>
+                  <button onClick={() => setPreviewDevice("desktop")} className={`premium-button ${previewDevice === "desktop" ? "button-primary" : ""}`} style={{ padding: "8px 12px", borderRadius: "8px", background: previewDevice === "desktop" ? "var(--premium-accent)" : "transparent", color: previewDevice === "desktop" ? "white" : "#64748b" }}>💻</button>
                 </div>
-            </div>
+              </div>
 
-            <div className="preview-container" style={{ background: "transparent", border: "none" }}>
+              <div className="preview-container" style={{ background: "transparent", border: "none" }}>
                 {previewDevice === "mobile" ? (
-                   <div style={{ animation: "fadeInBlur 0.4s ease-out" }}>
-                     <div style={{
-                       width: "280px",
-                       height: "560px",
-                       background: "white",
-                       borderRadius: "44px",
-                       border: "12px solid #1e293b",
-                       boxShadow: "0 35px 60px -15px rgba(0, 0, 0, 0.3)",
-                       position: "relative",
-                       overflow: "hidden"
-                     }}>
-                        {/* Status bar */}
-                        <div style={{ height: "40px", padding: "14px 20px 0", display: "flex", justifyContent: "space-between", fontSize: "10px", fontWeight: "700" }}>
-                           <span>9:41</span>
-                           <div style={{ display: "flex", gap: "4px" }}>📶 🔋</div>
-                        </div>
+                  <div style={{ animation: "fadeInBlur 0.4s ease-out", display: "flex", justifyContent: "center" }}>
+                    <div style={{
+                      width: "280px",
+                      height: "560px",
+                      background: "white",
+                      borderRadius: "44px",
+                      border: "12px solid #1e293b",
+                      boxShadow: "0 35px 60px -15px rgba(0, 0, 0, 0.3)",
+                      position: "relative",
+                      overflow: "hidden"
+                    }}>
+                      <div style={{ height: "40px", padding: "14px 20px 0", display: "flex", justifyContent: "space-between", fontSize: "10px", fontWeight: "700" }}>
+                        <span>9:41</span>
+                        <div style={{ display: "flex", gap: "4px" }}>📶 🔋</div>
+                      </div>
 
-                        <div style={{ height: "calc(100% - 40px)", overflowY: "auto", paddingBottom: "20px" }}>
-                          {activeTab === "post" ? (
-                            <>
-                              {/* Store Header Mockup */}
-                              {config.postFeed.header && (
-                                 <div style={{ padding: "20px 16px", background: "#fff", display: "flex", gap: "12px", alignItems: "center", borderBottom: "1px solid #f1f5f9" }}>
-                                    <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #e2e8f0", overflow: "hidden" }}>
-                                      {instaData?.profile_picture_url ? <img src={instaData.profile_picture_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="profile" /> : "📸"}
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                       <div style={{ fontSize: "13px", fontWeight: "800" }}>@{instaData?.username || config.instagramHandle}</div>
-                                       <div style={{ fontSize: "10px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{instaData?.biography || "Premium Collection"}</div>
-                                    </div>
-                                 </div>
-                              )}
-
-                              <div style={{ padding: `${config.postFeed.gap}px`, display: "grid", gridTemplateColumns: `repeat(${config.postFeed.mobileColumns}, 1fr)`, gap: `${config.postFeed.gap}px` }}>
-                                 {(instaData?.media?.data || [1,2,3,4,5,6]).map((item, i) => (
-                                    <div key={i} style={{ aspectRatio: "1/1", background: "#f1f5f9", borderRadius: "4px", overflow: "hidden", position: "relative" }}>
-                                       {item.media_url || item.thumbnail_url ? (
-                                         <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="insta post" />
-                                       ) : (
-                                         <div style={{ width: "100%", height: "100%", background: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.1))`, display: "flex", alignItems: "center", justifyContent: "center" }} />
-                                       )}
-                                       {item.media_type === "VIDEO" && <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px" }}>📹</div>}
-                                       {config.postFeed.metrics && <div style={{ position: "absolute", bottom: "4px", left: "4px", fontSize: "8px", color: "white", textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>❤️ {item.like_count || "0"}</div>}
-                                    </div>
-                                 ))}
+                      <div 
+                        style={{ height: "calc(100% - 40px)", overflowY: "auto", paddingBottom: "20px" }}
+                        onScroll={(e) => {
+                          if (!config.postFeed.load || isInfiniteLoading) return;
+                          const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+                          if (scrollHeight - Math.ceil(scrollTop) <= clientHeight + 50) {
+                            setIsInfiniteLoading(true);
+                            setTimeout(() => {
+                              setIsInfiniteLoading(false);
+                              setVisibleMediaCount(prev => prev + 6);
+                            }, 1500);
+                          }
+                        }}
+                      >
+                        {activeTab === "post" ? (
+                          <>
+                            {config.postFeed.header && (
+                              <div style={{ padding: "20px 16px", background: "#fff", display: "flex", gap: "12px", alignItems: "center", borderBottom: "1px solid #f1f5f9" }}>
+                                <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #e2e8f0", overflow: "hidden" }}>
+                                  {instaData?.profile_picture_url ? <img src={instaData.profile_picture_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="profile" /> : "📸"}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: "13px", fontWeight: "800" }}>@{instaData?.username || config.instagramHandle}</div>
+                                  <div style={{ fontSize: "10px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{instaData?.biography || "Premium Collection"}</div>
+                                </div>
                               </div>
-                            </>
-                          ) : (
-                            <div style={{ padding: "20px 16px" }}>
-                              {/* Story Heading & Text */}
-                              <div style={{ textAlign: "center", marginBottom: "30px" }}>
-                                <h4 style={{ fontSize: `${Math.min(config.stories.typography.heading.size, 24)}px`, fontWeight: "800", margin: "0 0 8px 0", lineHeight: 1.2 }}>{config.stories.heading}</h4>
-                                <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>{config.stories.subheading}</p>
+                            )}
+                            <div style={{ padding: `${config.postFeed.gap}px`, display: "grid", gridTemplateColumns: `repeat(${config.postFeed.mobileColumns}, 1fr)`, gap: `${config.postFeed.gap}px` }}>
+                              {simulatedInfiniteMedia.map((item, i) => (
+                                <div key={i} style={{ aspectRatio: "1/1", background: "#f1f5f9", borderRadius: "4px", overflow: "hidden", position: "relative" }}>
+                                  {(item.media_url || item.thumbnail_url) ? (
+                                    <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
+                                  ) : null}
+                                  {item.media_type === "VIDEO" && <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px" }}>📹</div>}
+                                  {config.postFeed.metrics && (
+                                    <div style={{ position: "absolute", bottom: "0", left: "0", right: "0", padding: "4px 8px", background: "rgba(0,0,0,0.6)", display: "flex", gap: "8px", fontSize: "8px", color: "white", backdropFilter: "blur(4px)" }}>
+                                      <span>❤️ {item.like_count || "0"}</span>
+                                      <span>💬 {item.comments_count || "0"}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            {config.postFeed.load && isInfiniteLoading && (
+                              <div style={{ padding: "20px", display: "flex", justifyContent: "center" }}>
+                                <div className="spinner" style={{ width: "20px", height: "20px", border: "2px solid #e2e8f0", borderTop: "2px solid var(--premium-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
                               </div>
-
-                              {/* Highlights bar (Using Real Media as mock stories) */}
-                              {config.stories.enable && (
-                                <div style={{ display: "flex", gap: "12px", overflowX: "auto", paddingBottom: "10px", scrollbarWidth: "none" }}>
-                                  {(instaData?.media?.data || [1,2,3,4,5]).slice(0, 6).map((item, i) => (
-                                    <div key={i} style={{ flexShrink: 0, width: "60px" }}>
-                                      <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: "2px solid var(--premium-accent)", background: "white", overflow: "hidden" }}>
-                                        <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden" }}>
-                                          {item.media_url || item.thumbnail_url ? (
-                                            <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="story" />
-                                          ) : null}
+                            )}
+                          </>
+                        ) : (
+                          <div style={{ padding: "20px 16px" }}>
+                            <div style={{ textAlign: "center", marginBottom: "30px" }}>
+                              <h4 style={{ fontSize: `${Math.min(config.stories.typography.heading.size, 24)}px`, fontWeight: "800", margin: "0 0 8px 0", lineHeight: 1.2 }}>{config.stories.heading}</h4>
+                              <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>{config.stories.subheading}</p>
+                            </div>
+                            {config.stories.enable && (
+                              <div style={{ display: "flex", gap: "12px", overflowX: "auto", paddingBottom: "10px", scrollbarWidth: "none" }}>
+                                {(instaData?.media?.data || [1,2,3,4,5,6]).slice(0, 8).map((item, i) => (
+                                  <div key={i} style={{ flexShrink: 0, width: "60px" }}>
+                                    <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: "2px solid var(--premium-accent)", background: "white", overflow: "hidden" }}>
+                                      <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden" }}>
+                                        {(item.media_url || item.thumbnail_url) && (
+                                          <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="story" />
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div style={{ fontSize: "9px", textAlign: "center", marginTop: "4px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                      {item.caption ? item.caption.split(" ")[0] : `Story ${i+1}`}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ animation: "fadeInBlur 0.4s ease-out", width: "100%" }}>
+                    <div style={{ width: "100%", maxWidth: "580px", margin: "0 auto" }}>
+                      <div style={{ width: "100%", aspectRatio: "1.6/1", background: "#1e293b", borderRadius: "16px", padding: "10px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
+                        <div style={{ width: "100%", height: "100%", background: "white", borderRadius: "8px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                          <div style={{ height: "30px", background: "#f1f5f9", display: "flex", alignItems: "center", padding: "0 10px", gap: "6px" }}>
+                            <div style={{ width: "6px", height: "6px", background: "#ff5f56", borderRadius: "50%" }}></div>
+                            <div style={{ width: "6px", height: "6px", background: "#ffbd2e", borderRadius: "50%" }}></div>
+                            <div style={{ width: "6px", height: "6px", background: "#27c93f", borderRadius: "50%" }}></div>
+                          </div>
+                          <div 
+                            style={{ padding: "24px", flex: 1, overflowY: "auto" }}
+                            onScroll={(e) => {
+                              if (!config.postFeed.load || isInfiniteLoading) return;
+                              const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+                              if (scrollHeight - Math.ceil(scrollTop) <= clientHeight + 50) {
+                                setIsInfiniteLoading(true);
+                                setTimeout(() => {
+                                  setIsInfiniteLoading(false);
+                                  setVisibleMediaCount(prev => prev + 12);
+                                }, 1500);
+                              }
+                            }}
+                          >
+                            {activeTab === "story" ? (
+                              <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                                <div style={{ textAlign: "center", marginBottom: "40px" }}>
+                                  <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: "800", margin: "0 0 12px 0", color: "#0f172a" }}>{config.stories.heading}</h4>
+                                  <p style={{ fontSize: "14px", color: "#64748b", maxWidth: "400px", margin: "0 auto" }}>{config.stories.subheading}</p>
+                                </div>
+                                {config.stories.enable && (
+                                  <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
+                                    {(instaData?.media?.data || [1,2,3,4,5,6]).slice(0, 6).map((item, i) => (
+                                      <div key={i} style={{ textAlign: "center", width: "80px" }}>
+                                        <div style={{ width: "72px", height: "72px", borderRadius: "50%", padding: "3px", border: "2px solid var(--premium-accent)", background: "white", marginBottom: "8px", overflow: "hidden" }}>
+                                          <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden" }}>
+                                            {(item.media_url || item.thumbnail_url) && (
+                                              <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="story" />
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div style={{ fontSize: "11px", color: "#64748b", fontWeight: "600", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                          {item.caption ? item.caption.split(" ")[0] : `Story ${i+1}`}
                                         </div>
                                       </div>
-                                      <div style={{ fontSize: "9px", textAlign: "center", marginTop: "4px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                        {item.caption ? item.caption.split(" ")[0].substring(0, 8) : `Story ${i+1}`}
-                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+                                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                                    <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#6366f1", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                      {instaData?.profile_picture_url ? <img src={instaData.profile_picture_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="profile" /> : "📸"}
+                                    </div>
+                                    <div>
+                                      <div style={{ fontSize: "14px", fontWeight: "800" }}>@{instaData?.username || config.instagramHandle}</div>
+                                      <div style={{ fontSize: "11px", color: "#9ca3af" }}>Official Feed</div>
+                                    </div>
+                                  </div>
+                                  <div style={{ padding: "8px 20px", background: "#0f172a", borderRadius: "100px", color: "white", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>Follow</div>
+                                </div>
+                                <div style={{ display: "grid", gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`, gap: `${config.postFeed.gap}px` }}>
+                                  {simulatedInfiniteMedia.map((item, i) => (
+                                    <div key={i} style={{ aspectRatio: "1/1", background: "#f8fafc", border: "1px solid #f1f5f9", borderRadius: "8px", overflow: "hidden", position: "relative" }}>
+                                      {(item.media_url || item.thumbnail_url) ? (
+                                        <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
+                                      ) : null}
+                                      {config.postFeed.metrics && (
+                                        <div style={{ position: "absolute", bottom: "0", left: "0", right: "0", padding: "6px 8px", background: "rgba(0,0,0,0.6)", display: "flex", gap: "10px", fontSize: "10px", color: "white", backdropFilter: "blur(4px)" }}>
+                                          <span>❤️ {item.like_count || "0"}</span>
+                                          <span>💬 {item.comments_count || "0"}</span>
+                                        </div>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
-                              )}
-                            </div>
-                          )}
+                                {config.postFeed.load && isInfiniteLoading && (
+                                  <div style={{ padding: "30px", display: "flex", justifyContent: "center" }}>
+                                    <div className="spinner" style={{ width: "24px", height: "24px", border: "3px solid #e2e8f0", borderTop: "3px solid var(--premium-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
-                     </div>
-                   </div>
-                ) : (
-                  <div style={{ animation: "fadeInBlur 0.4s ease-out", width: "100%" }}>
-                     <div style={{ width: "100%", maxWidth: "580px", margin: "0 auto" }}>
-                        <div style={{ width: "100%", aspectRatio: "1.6/1", background: "#1e293b", borderRadius: "16px", padding: "10px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
-                           <div style={{ width: "100%", height: "100%", background: "white", borderRadius: "8px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                              <div style={{ height: "30px", background: "#f1f5f9", display: "flex", alignItems: "center", px: "10px", gap: "6px", padding: "0 10px" }}>
-                                 <div style={{ width: "6px", height: "6px", background: "#ff5f56", borderRadius: "50%" }}></div>
-                                 <div style={{ width: "6px", height: "6px", background: "#ffbd2e", borderRadius: "50%" }}></div>
-                                 <div style={{ width: "6px", height: "6px", background: "#27c93f", borderRadius: "50%" }}></div>
-                              </div>
-                              <div style={{ padding: "24px", flex: 1, overflowY: "auto" }}>
-                                 {activeTab === "story" ? (
-                                    <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                                       <div style={{ textAlign: "center", marginBottom: "40px" }}>
-                                          <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: "800", margin: "0 0 12px 0", color: "#0f172a" }}>{config.stories.heading}</h4>
-                                          <p style={{ fontSize: "14px", color: "#64748b", maxWidth: "400px", margin: "0 auto" }}>{config.stories.subheading}</p>
-                                       </div>
-                                       
-                                       {config.stories.enable && (
-                                          <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
-                                            {(instaData?.media?.data || [1,2,3,4,5,6]).slice(0, 6).map((item, i) => (
-                                              <div key={i} style={{ textAlign: "center", width: "80px" }}>
-                                                <div style={{ width: "72px", height: "72px", borderRadius: "50%", padding: "3px", border: "2px solid var(--premium-accent)", background: "white", marginBottom: "8px", overflow: "hidden" }}>
-                                                  <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden" }}>
-                                                    {item.media_url || item.thumbnail_url ? (
-                                                      <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="highlight" />
-                                                    ) : null}
-                                                  </div>
-                                                </div>
-                                                <div style={{ fontSize: "11px", color: "#64748b", fontWeight: "600", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                  {item.caption ? item.caption.split(" ")[0] : `Collection ${i+1}`}
-                                                </div>
-                                              </div>
-                                            ))}
-                                          </div>
-                                       )}
-                                    </div>
-                                 ) : (
-                                    <>
-                                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-                                          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                                             <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#6366f1", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                                {instaData?.profile_picture_url ? <img src={instaData.profile_picture_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="profile" /> : "📸"}
-                                             </div>
-                                             <div>
-                                                <div style={{ fontSize: "14px", fontWeight: "800" }}>@{instaData?.username || config.instagramHandle}</div>
-                                                <div style={{ fontSize: "11px", color: "#9ca3af" }}>Official Dashboard Feed</div>
-                                             </div>
-                                          </div>
-                                          <div style={{ padding: "8px 20px", background: "#0f172a", borderRadius: "100px", color: "white", fontSize: "12px", fontWeight: "700", cursor: "pointer", transition: "all 0.2s" }} className="hover-scale">Follow</div>
-                                       </div>
-                                       <div style={{ display: "grid", gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`, gap: `${config.postFeed.gap}px` }}>
-                                          {(instaData?.media?.data || [1,2,3,4,5,6,7,8]).map((item, i) => (
-                                            <div key={i} style={{ aspectRatio: "1/1", background: "#f8fafc", border: "1px solid #f1f5f9", borderRadius: "8px", overflow: "hidden", position: "relative" }}>
-                                              {item.media_url || item.thumbnail_url ? <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="insta post" /> : null}
-                                              {config.postFeed.metrics && (
-                                                <div style={{ position: "absolute", bottom: "8px", left: "8px", fontSize: "10px", color: "white", background: "rgba(0,0,0,0.5)", padding: "2px 6px", borderRadius: "4px" }}>❤️ {item.like_count || "0"}</div>
-                                              )}
-                                            </div>
-                                          ))}
-                                       </div>
-                                    </>
-                                 )}
-                              </div>
-                           </div>
-                        </div>
-                     </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
