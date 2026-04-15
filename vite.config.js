@@ -49,10 +49,13 @@ export default defineConfig({
     },
   },
   plugins: [reactRouter(), tsconfigPaths()],
+  resolve: {
+    dedupe: ["react", "react-dom", "react-router"]
+  },
   build: {
     assetsInlineLimit: 0,
   },
   optimizeDeps: {
-    include: ["@shopify/app-bridge-react"],
+    include: ["@shopify/app-bridge-react", "@shopify/polaris"],
   },
 });

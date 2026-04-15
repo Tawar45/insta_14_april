@@ -1,0 +1,46 @@
+/* AI Instafeed - Storefront Extension Styles */
+#ai-instafeed-grid-root,
+#ai-instafeed-story-root {
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Hide scrollbars on all tracking containers */
+.ai-fw-track::-webkit-scrollbar { display: none; }
+.ai-fw-track { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Carousel nav buttons - exactly like dashboard ones */
+.ai-fw-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  transition: all 0.2s ease;
+  color: #0f172a;
+  padding: 0;
+}
+
+.ai-fw-nav:hover {
+  background: white;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.ai-fw-prev { left: -16px; }
+.ai-fw-next { right: -16px; }
+
+/* Hover overlay for metrics */
+.ai-metrics {
+  pointer-events: none;
+}
