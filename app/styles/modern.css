@@ -38,32 +38,35 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
+  padding: 16px 24px;
   background: white;
   border-radius: 20px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   margin-bottom: 32px;
   border: var(--premium-border);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .brand-section {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .brand-logo {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   background: var(--premium-accent-gradient);
-  border-radius: 14px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 24px;
+  font-size: 20px;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
   animation: logoPulse 4s infinite ease-in-out;
+  flex-shrink: 0;
 }
 
 @keyframes fadeInBlur {

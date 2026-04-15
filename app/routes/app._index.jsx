@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
@@ -372,15 +372,18 @@ export default function Index() {
   };
 
   // Helper to genuinely simulate infinite scroll when running out of initial items
-  const baseMedia = instaData?.media?.data || [
+  const baseMedia = useMemo(() => instaData?.media?.data || [
     { media_url: "https://images.unsplash.com/photo-1611162147679-aa3c393bc3ec?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 120, comments_count: 8 },
     { media_url: "https://images.unsplash.com/photo-1542435503-956c469947f6?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 85, comments_count: 12 },
     { media_url: "https://images.unsplash.com/photo-1493723843671-1d655e8d717f?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 210, comments_count: 45 },
     { media_url: "https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 110, comments_count: 15 },
     { media_url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", thumbnail_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400", media_type: "VIDEO", like_count: 320, comments_count: 31 },
     { media_url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 95, comments_count: 3 },
-  ];
-  const simulatedInfiniteMedia = Array.from({ length: visibleMediaCount }).map((_, i) => baseMedia[i % baseMedia.length]);
+  ], [instaData?.media?.data]);
+
+  const simulatedInfiniteMedia = useMemo(() => {
+    return Array.from({ length: visibleMediaCount }).map((_, i) => baseMedia[i % baseMedia.length]);
+  }, [baseMedia, visibleMediaCount]);
 
   const isSyncing = fetcher.state !== "idle";
 
@@ -836,7 +839,7 @@ export default function Index() {
                                          {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
                                            <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                          ) : (item.media_url || item.thumbnail_url) ? (
-                                           <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
+                                           <img loading="lazy" src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
                                          ) : null}
                                          {item.media_type === "VIDEO" && <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px", background: "rgba(0,0,0,0.5)", color: "white", padding: "2px 4px", borderRadius: "4px" }}>📹</div>}
                                          {config.postFeed.metrics && (
@@ -864,7 +867,7 @@ export default function Index() {
                                     {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
                                       <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                     ) : (item.media_url || item.thumbnail_url) ? (
-                                      <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
+                                      <img loading="lazy" src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
                                     ) : null}
                                     {item.media_type === "VIDEO" && <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px", background: "rgba(0,0,0,0.5)", color: "white", padding: "2px 4px", borderRadius: "4px" }}>📹</div>}
                                     {config.postFeed.metrics && (
@@ -923,7 +926,7 @@ export default function Index() {
                                           {item.media_type === "VIDEO" && config.stories.autoplay ? (
                                             <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                           ) : (item.media_url || item.thumbnail_url) && (
-                                            <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="story" />
+                                            <img loading="lazy" src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="story" />
                                           )}
                                         </div>
                                       </div>
@@ -997,7 +1000,7 @@ export default function Index() {
                                               {item.media_type === "VIDEO" && config.stories.autoplay ? (
                                                 <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                               ) : (item.media_url || item.thumbnail_url) && (
-                                                <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="story" />
+                                                <img loading="lazy" src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="story" />
                                               )}
                                             </div>
                                           </div>
@@ -1053,7 +1056,7 @@ export default function Index() {
                                             {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
                                               <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                             ) : (item.media_url || item.thumbnail_url) ? (
-                                              <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
+                                              <img loading="lazy" src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
                                             ) : null}
                                             {config.postFeed.metrics && (
                                               <div className="media-metrics">
@@ -1076,7 +1079,7 @@ export default function Index() {
                                         {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
                                           <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (item.media_url || item.thumbnail_url) ? (
-                                          <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
+                                          <img loading="lazy" src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
                                         ) : null}
                                         {config.postFeed.metrics && (
                                           <div className="media-metrics">
