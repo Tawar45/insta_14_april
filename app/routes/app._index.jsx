@@ -73,6 +73,32 @@ export default function Index() {
   const desktopCarouselRef = useRef(null);
   const mobileCarouselRef = useRef(null);
 
+  const handleScroll = (e, orientation = "vertical") => {
+    if (!config.postFeed.load || isInfiniteLoading) return;
+    const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } = e.currentTarget;
+    
+    // threshold of 150px for a more seamless experience
+    const threshold = 150;
+    
+    if (orientation === "vertical") {
+      if (scrollHeight - scrollTop - clientHeight < threshold) {
+        setIsInfiniteLoading(true);
+        setTimeout(() => {
+          setIsInfiniteLoading(false);
+          setVisibleMediaCount(prev => prev + (previewDevice === "mobile" ? 6 : 12));
+        }, 600); // reduced delay for "zero-latency" feel
+      }
+    } else {
+      if (scrollWidth - scrollLeft - clientWidth < threshold) {
+        setIsInfiniteLoading(true);
+        setTimeout(() => {
+          setIsInfiniteLoading(false);
+          setVisibleMediaCount(prev => prev + (previewDevice === "mobile" ? 6 : 12));
+        }, 600);
+      }
+    }
+  };
+
   const scrollCarousel = (ref, direction) => {
     if (ref.current) {
       const scrollAmount = ref.current.clientWidth * 0.8;
@@ -459,17 +485,7 @@ export default function Index() {
 
                       <div 
                         style={{ height: "calc(100% - 40px)", overflowY: "auto", paddingBottom: "20px" }}
-                        onScroll={(e) => {
-                          if (!config.postFeed.load || isInfiniteLoading) return;
-                          const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-                          if (scrollHeight - Math.ceil(scrollTop) <= clientHeight + 50) {
-                            setIsInfiniteLoading(true);
-                            setTimeout(() => {
-                              setIsInfiniteLoading(false);
-                              setVisibleMediaCount(prev => prev + 6);
-                            }, 1500);
-                          }
-                        }}
+                        onScroll={handleScroll}
                       >
                         {activeTab === "post" ? (
                           <>
@@ -502,6 +518,7 @@ export default function Index() {
                                      "--carousel-item-width": `calc((100% - ${(config.postFeed.mobileColumns - 1) * config.postFeed.gap}px) / ${config.postFeed.mobileColumns})`,
                                      zIndex: 1
                                    }}
+                                   onScroll={(e) => handleScroll(e, "horizontal")}
                                  >
                                    {simulatedInfiniteMedia.map((item, i) => (
                                      <div key={i} className="carousel-item">
@@ -539,19 +556,19 @@ export default function Index() {
                                     {config.postFeed.metrics && (
                                       <div className="media-metrics" style={{ fontSize: "10px", padding: "4px 8px" }}>
                                         <span>❤️ {item.like_count || "0"}</span>
-                                        <span>💬 {item.comments_count || "0"}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            {config.postFeed.load && isInfiniteLoading && (
-                              <div style={{ padding: "20px", display: "flex", justifyContent: "center" }}>
-                                <div className="spinner" style={{ width: "20px", height: "20px", border: "2px solid #e2e8f0", borderTop: "2px solid var(--premium-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
-                              </div>
-                            )}
-                          </>
+                                     <span>💬 {item.comments_count || "0"}</span>
+                                   </div>
+                                 )}
+                               </div>
+                             ))}
+                           </div>
+                         )}
+                         {config.postFeed.load && isInfiniteLoading && (
+                           <div style={{ padding: "20px", display: "flex", justifyContent: "center", animation: "fadeInBlur 0.3s ease" }}>
+                             <div className="spinner" style={{ width: "20px", height: "20px", border: "2px solid #e2e8f0", borderTop: "2px solid var(--premium-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
+                           </div>
+                         )}
+                       </>
                         ) : (
                           <div style={{ padding: "20px 16px" }}>
                             <div style={{ textAlign: "center", marginBottom: "30px" }}>
@@ -593,17 +610,7 @@ export default function Index() {
                           </div>
                           <div 
                             style={{ padding: "24px", flex: 1, overflowY: "auto" }}
-                            onScroll={(e) => {
-                              if (!config.postFeed.load || isInfiniteLoading) return;
-                              const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-                              if (scrollHeight - Math.ceil(scrollTop) <= clientHeight + 50) {
-                                setIsInfiniteLoading(true);
-                                setTimeout(() => {
-                                  setIsInfiniteLoading(false);
-                                  setVisibleMediaCount(prev => prev + 12);
-                                }, 1500);
-                              }
-                            }}
+                            onScroll={handleScroll}
                           >
                             {activeTab === "story" ? (
                               <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
@@ -656,6 +663,7 @@ export default function Index() {
                                         "--carousel-gap": `${config.postFeed.gap}px`,
                                         "--carousel-item-width": `calc((100% - ${(config.postFeed.desktopColumns - 1) * config.postFeed.gap}px) / ${config.postFeed.desktopColumns})` 
                                       }}
+                                      onScroll={(e) => handleScroll(e, "horizontal")}
                                     >
                                       {simulatedInfiniteMedia.map((item, i) => (
                                         <div key={i} className="carousel-item">
