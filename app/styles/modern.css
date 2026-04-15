@@ -527,3 +527,38 @@ input:checked + .slider:before {
   position: relative;
   overflow: hidden;
 }
+
+/* Hover Overlays & Logo */
+.media-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
+}
+
+.media-hover-overlay svg {
+  transform: scale(0.8) translateY(10px);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.grid-item:hover .media-hover-overlay,
+.carousel-item:hover .media-hover-overlay,
+.media-item:hover .media-hover-overlay {
+  opacity: 1;
+}
+
+.grid-item:hover .media-hover-overlay svg,
+.carousel-item:hover .media-hover-overlay svg,
+.media-item:hover .media-hover-overlay svg {
+  transform: scale(1) translateY(0);
+}
+
+.media-hover-overlay svg {
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+}
