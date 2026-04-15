@@ -127,6 +127,7 @@ export default function Index() {
     stories: {
       enable: true,
       carousel: true,
+      autoplay: true,
       heading: "SHOP OUR INSTAGRAM",
       subheading: "Tag us @floorlanduk to get featured in our gallery!",
       typography: {
@@ -135,6 +136,9 @@ export default function Index() {
       }
     }
   });
+
+  const [lastSavedConfig, setLastSavedConfig] = useState(null);
+  const hasChanges = lastSavedConfig ? JSON.stringify(config) !== JSON.stringify(lastSavedConfig) : false;
 
   // State update helpers with automation
   const updateConfig = (section, key, value) => {
@@ -178,6 +182,7 @@ export default function Index() {
       try {
         const parsed = JSON.parse(savedConfig);
         setConfig(parsed);
+        setLastSavedConfig(parsed); // Set initial baseline
         
         // If we have saved data, make sure the handle matches it
         if (savedData) {
@@ -185,12 +190,16 @@ export default function Index() {
             const parsedData = JSON.parse(savedData);
             if (parsedData.username && parsedData.username !== parsed.instagramHandle) {
               setConfig(prev => ({ ...prev, instagramHandle: parsedData.username }));
+              setLastSavedConfig(prev => ({ ...prev, instagramHandle: parsedData.username }));
             }
           } catch(e) {}
         }
       } catch (e) {
         console.error("Failed to parse saved config");
       }
+    } else {
+      // If no saved config, the default one is our baseline
+      setLastSavedConfig(config);
     }
   }, []);
 
@@ -212,10 +221,21 @@ export default function Index() {
     }
   }, [fetcher.data, shopify]);
 
-  // Persist config changes
-  useEffect(() => {
+  // Persist config changes (Internal state management)
+  // No longer auto-saving to localStorage here to respect "Apply Changes" logic
+  
+  const applyChanges = () => {
+    setLastSavedConfig(config);
     localStorage.setItem("insta_config", JSON.stringify(config));
-  }, [config]);
+    shopify.toast.show("Configuration applied successfully!");
+  };
+
+  const discardChanges = () => {
+    if (lastSavedConfig) {
+      setConfig(lastSavedConfig);
+      shopify.toast.show("Changes discarded.");
+    }
+  };
 
   // Helper to genuinely simulate infinite scroll when running out of initial items
   const baseMedia = instaData?.media?.data || [
@@ -223,7 +243,7 @@ export default function Index() {
     { media_url: "https://images.unsplash.com/photo-1542435503-956c469947f6?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 85, comments_count: 12 },
     { media_url: "https://images.unsplash.com/photo-1493723843671-1d655e8d717f?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 210, comments_count: 45 },
     { media_url: "https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 110, comments_count: 15 },
-    { media_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 320, comments_count: 31 },
+    { media_url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", thumbnail_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400", media_type: "VIDEO", like_count: 320, comments_count: 31 },
     { media_url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 95, comments_count: 3 },
   ];
   const simulatedInfiniteMedia = Array.from({ length: visibleMediaCount }).map((_, i) => baseMedia[i % baseMedia.length]);
@@ -353,7 +373,12 @@ export default function Index() {
                 <div style={{ width: "8px", height: "8px", background: "var(--premium-accent)", borderRadius: "50%" }}></div>
                 <h2 style={{ margin: 0, fontSize: "15px", fontWeight: "700" }}>DASHBOARD CONFIGURATOR</h2>
               </div>
-              <button className="premium-button button-primary" style={{ padding: "8px 20px" }} onClick={() => shopify.toast.show("Configuration Saved!")}>Save Changes</button>
+              {hasChanges && (
+                <div style={{ display: "flex", gap: "8px", animation: "fadeInBlur 0.3s ease" }}>
+                  <button className="premium-button" style={{ padding: "6px 16px", fontSize: "12px", background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0" }} onClick={discardChanges}>Discard</button>
+                  <button className="premium-button button-success" style={{ padding: "6px 16px", fontSize: "12px" }} onClick={applyChanges}>Apply</button>
+                </div>
+              )}
             </div>
 
             <div className="tab-container">
@@ -370,6 +395,7 @@ export default function Index() {
                     { id: "metrics", label: "Engagement Hub", sub: "Visualize social proof", icon: "📊" },
                     { id: "load", label: "Infinite Paging", sub: "Zero-latency scrolling", icon: "🔄" },
                     { id: "carousel", label: "Smart Carousel", sub: "Auto-swipe logic", icon: "📱" },
+                    { id: "autoplay", label: "Smart Autoplay", sub: "Pre-load video content", icon: "🎬" },
                   ].map((item, idx) => (
                     <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both` }}>
                       <div className="setting-info">
@@ -455,6 +481,7 @@ export default function Index() {
                   {[
                     { id: "enable", label: "Active Highlights", sub: "Render top-bar stories", icon: "🔥" },
                     { id: "carousel", label: "Snap Scrolling", sub: "Touch-optimized motion", icon: "✨" },
+                    { id: "autoplay", label: "Auto Play Stories", sub: "Animate top highlights", icon: "🎞️" },
                   ].map((item, idx) => (
                     <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both` }}>
                       <div className="setting-info">
@@ -490,10 +517,12 @@ export default function Index() {
               )}
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "32px", borderTop: "1px solid #f1f5f9", paddingTop: "24px" }}>
-              <button className="premium-button" style={{ color: "#64748b", background: "transparent" }}>Discard</button>
-              <button className="premium-button button-success">Apply Changes</button>
-            </div>
+            {hasChanges && (
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "32px", borderTop: "1px solid #f1f5f9", paddingTop: "24px", animation: "slideInUp 0.3s ease-out" }}>
+                <button className="premium-button" style={{ color: "#64748b", background: "transparent" }} onClick={discardChanges}>Discard Changes</button>
+                <button className="premium-button button-success" style={{ minWidth: "160px" }} onClick={applyChanges}>Apply Configuration</button>
+              </div>
+            )}
           </div>
 
           {/* Right Column: Preview (Sticky) */}
@@ -571,10 +600,12 @@ export default function Index() {
                                    {simulatedInfiniteMedia.map((item, i) => (
                                      <div key={i} className="carousel-item">
                                        <div style={{ aspectRatio: "1/1", background: "#f1f5f9", borderRadius: "4px", overflow: "hidden", position: "relative" }}>
-                                         {(item.media_url || item.thumbnail_url) ? (
+                                         {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
+                                           <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                         ) : (item.media_url || item.thumbnail_url) ? (
                                            <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
                                          ) : null}
-                                         {item.media_type === "VIDEO" && <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px" }}>📹</div>}
+                                         {item.media_type === "VIDEO" && <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px", background: "rgba(0,0,0,0.5)", color: "white", padding: "2px 4px", borderRadius: "4px" }}>📹</div>}
                                          {config.postFeed.metrics && (
                                            <div className="media-metrics" style={{ fontSize: "10px", padding: "4px 8px" }}>
                                              <span>❤️ {item.like_count || "0"}</span>
@@ -597,20 +628,22 @@ export default function Index() {
                               <div style={{ padding: `${config.postFeed.gap}px`, display: "grid", gridTemplateColumns: `repeat(${config.postFeed.mobileColumns}, 1fr)`, gap: `${config.postFeed.gap}px` }}>
                                 {simulatedInfiniteMedia.map((item, i) => (
                                   <div key={i} className="grid-item" style={{ aspectRatio: "1/1", background: "#f1f5f9", borderRadius: "4px", overflow: "hidden", position: "relative" }}>
-                                    {(item.media_url || item.thumbnail_url) ? (
+                                    {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
+                                      <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                    ) : (item.media_url || item.thumbnail_url) ? (
                                       <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
                                     ) : null}
-                                    {item.media_type === "VIDEO" && <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px" }}>📹</div>}
+                                    {item.media_type === "VIDEO" && <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px", background: "rgba(0,0,0,0.5)", color: "white", padding: "2px 4px", borderRadius: "4px" }}>📹</div>}
                                     {config.postFeed.metrics && (
                                       <div className="media-metrics" style={{ fontSize: "10px", padding: "4px 8px" }}>
                                         <span>❤️ {item.like_count || "0"}</span>
-                                     <span>💬 {item.comments_count || "0"}</span>
-                                   </div>
-                                 )}
-                               </div>
-                             ))}
-                           </div>
-                         )}
+                                        <span>💬 {item.comments_count || "0"}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                             )}
                          {config.postFeed.load && isInfiniteLoading && (
                            <div style={{ padding: "20px", display: "flex", justifyContent: "center", animation: "fadeInBlur 0.3s ease" }}>
                              <div className="spinner" style={{ width: "20px", height: "20px", border: "2px solid #e2e8f0", borderTop: "2px solid var(--premium-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
@@ -641,7 +674,9 @@ export default function Index() {
                                     <div key={i} style={{ flexShrink: 0, width: "60px" }}>
                                       <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: "2px solid var(--premium-accent)", background: "white", overflow: "hidden" }}>
                                         <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden" }}>
-                                          {(item.media_url || item.thumbnail_url) && (
+                                          {item.media_type === "VIDEO" && config.stories.autoplay ? (
+                                            <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                          ) : (item.media_url || item.thumbnail_url) && (
                                             <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="story" />
                                           )}
                                         </div>
@@ -700,7 +735,9 @@ export default function Index() {
                                         <div key={i} style={{ textAlign: "center", width: "80px", flexShrink: 0 }}>
                                           <div style={{ width: "72px", height: "72px", borderRadius: "50%", padding: "3px", border: "2px solid var(--premium-accent)", background: "white", marginBottom: "8px", overflow: "hidden" }}>
                                             <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden" }}>
-                                              {(item.media_url || item.thumbnail_url) && (
+                                              {item.media_type === "VIDEO" && config.stories.autoplay ? (
+                                                <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                              ) : (item.media_url || item.thumbnail_url) && (
                                                 <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="story" />
                                               )}
                                             </div>
@@ -748,7 +785,9 @@ export default function Index() {
                                       {simulatedInfiniteMedia.map((item, i) => (
                                         <div key={i} className="carousel-item">
                                           <div style={{ aspectRatio: "1/1", background: "#f8fafc", border: "1px solid #f1f5f9", borderRadius: "8px", overflow: "hidden", position: "relative" }}>
-                                            {(item.media_url || item.thumbnail_url) ? (
+                                            {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
+                                              <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                            ) : (item.media_url || item.thumbnail_url) ? (
                                               <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
                                             ) : null}
                                             {config.postFeed.metrics && (
@@ -769,7 +808,9 @@ export default function Index() {
                                   <div style={{ display: "grid", gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`, gap: `${config.postFeed.gap}px` }}>
                                     {simulatedInfiniteMedia.map((item, i) => (
                                       <div key={i} className="grid-item" style={{ aspectRatio: "1/1", background: "#f8fafc", border: "1px solid #f1f5f9", borderRadius: "8px", overflow: "hidden", position: "relative" }}>
-                                        {(item.media_url || item.thumbnail_url) ? (
+                                        {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
+                                          <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        ) : (item.media_url || item.thumbnail_url) ? (
                                           <img src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="post" />
                                         ) : null}
                                         {config.postFeed.metrics && (
