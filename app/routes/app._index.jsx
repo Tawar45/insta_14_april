@@ -121,7 +121,7 @@ export default function Index() {
       carousel: true,
       autoplay: true,
       heading: "SHOP OUR INSTAGRAM",
-      subheading: "Tag us @floorlanduk to get featured in our gallery!",
+      subheading: "Tag us @account to get featured in our gallery!",
       typography: {
         heading: { size: 18, weight: "800", color: "#0f172a" },
         subheading: { size: 12, weight: "500", color: "#64748b" }
@@ -136,11 +136,12 @@ export default function Index() {
       carousel: true,
       autoplay: true,
       alignment: "center",
+      showHeader: true,
       heading: "SHOP OUR INSTAGRAM",
-      subheading: "Tag us @floorlanduk to get featured in our gallery!",
+      subheading: "Tag us @account to get featured in our gallery!",
       typography: {
-        heading: { size: 28, color: "#000" },
-        subheading: { size: 14, color: "#666" },
+        heading: { size: 28, weight: "800", color: "#000" },
+        subheading: { size: 14, weight: "400", color: "#666" },
       }
     }
   });
@@ -216,7 +217,18 @@ export default function Index() {
           try {
             const parsedData = JSON.parse(savedData);
             if (parsedData.username) {
-              setConfig(prev => ({ ...prev, instagramHandle: parsedData.username }));
+              setConfig(prev => ({ 
+                ...prev, 
+                instagramHandle: parsedData.username,
+                postFeed: {
+                  ...prev.postFeed,
+                  subheading: prev.postFeed.subheading.replace(/@floorlanduk|@account/g, `@${parsedData.username}`)
+                },
+                stories: {
+                  ...prev.stories,
+                  subheading: prev.stories.subheading.replace(/@floorlanduk|@account/g, `@${parsedData.username}`)
+                }
+              }));
             }
           } catch(e) {}
         }
@@ -240,13 +252,23 @@ export default function Index() {
       setInstaData(fetcher.data.data);
       setVisibleMediaCount(12); // Reset paging on new data
       
-      // Keep input in sync with connected account
-      setConfig(prev => ({ ...prev, instagramHandle: username }));
+      // Update config handle and dynamically replace handles in subheadings
+      setConfig(prev => ({ 
+        ...prev, 
+        instagramHandle: username,
+        postFeed: {
+          ...prev.postFeed,
+          subheading: prev.postFeed.subheading.replace(/@floorlanduk|@account/g, `@${username}`)
+        },
+        stories: {
+          ...prev.stories,
+          subheading: prev.stories.subheading.replace(/@floorlanduk|@account/g, `@${username}`)
+        }
+      }));
       
       localStorage.setItem("insta_feed_data", JSON.stringify(fetcher.data.data));
       shopify.toast.show(`Connected to @${username}`);
     } else if (fetcher.data?.error) {
-      // Clear data if sync fails to avoid showing "anyone's data"
       setInstaData(null);
       shopify.toast.show(fetcher.data.error, { isError: true });
     }
@@ -550,51 +572,41 @@ export default function Index() {
                 </>
               ) : (
                 <>
-                  <div className="visual-architecture" style={{ marginTop: 0, marginBottom: "20px" }}>
-                    <h3 className="input-label">Story Branding</h3>
-                    <div className="input-group">
-                      <label className="input-label" style={{ fontSize: "10px" }}>Heading Text</label>
-                      <input 
-                        type="text" 
-                        className="premium-input" 
-                        value={config.stories.heading}
-                        onChange={(e) => updateConfig("stories", "heading", e.target.value)}
-                      />
-                    </div>
-                    <div className="input-group" style={{ marginTop: "12px" }}>
-                      <label className="input-label" style={{ fontSize: "10px" }}>Sub-description</label>
-                      <textarea 
-                        className="premium-input" 
-                        style={{ height: "60px", resize: "none" }}
-                        value={config.stories.subheading}
-                        onChange={(e) => updateConfig("stories", "subheading", e.target.value)}
-                      />
-                    </div>
+                  <h3 className="input-label" style={{ marginBottom: "12px" }}>Highlight Modules</h3>
+                  <div className="setting-card" style={{ marginBottom: "32px" }}>
+                    {[
+                      { id: "enable", label: "Active Stories", sub: "Render top highlight-bar", icon: "🔥" },
+                      { id: "carousel", label: "Snap Scrolling", sub: "Touch-optimized motion", icon: "✨" },
+                      { id: "autoplay", label: "Auto Play Stories", sub: "Animate top highlights", icon: "🎞️" },
+                      { id: "showHeader", label: "Display Branding", sub: "Show/Hide story title", icon: "📢" },
+                    ].map((item, idx) => (
+                      <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both` }}>
+                        <div className="setting-info">
+                          <div className="setting-icon">{item.icon}</div>
+                          <div>
+                            <div style={{ fontSize: "14px", fontWeight: "600" }}>{item.label}</div>
+                            <div style={{ fontSize: "12px", color: "#9ca3af" }}>{item.sub}</div>
+                          </div>
+                        </div>
+                        <label className="premium-switch">
+                          <input 
+                            type="checkbox" 
+                            checked={config.stories[item.id]} 
+                            onChange={(e) => updateConfig("stories", item.id, e.target.checked)}
+                          />
+                          <span className="slider"></span>
+                        </label>
+                      </div>
+                    ))}
                   </div>
 
-                  <h3 className="input-label">Layout Modules</h3>
-                  {[
-                    { id: "enable", label: "Active Highlights", sub: "Render top-bar stories", icon: "🔥" },
-                    { id: "carousel", label: "Snap Scrolling", sub: "Touch-optimized motion", icon: "✨" },
-                    { id: "autoplay", label: "Auto Play Stories", sub: "Animate top highlights", icon: "🎞️" },
-                  ].map((item, idx) => (
-                    <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both` }}>
-                      <div className="setting-info">
-                        <div className="setting-icon">{item.icon}</div>
-                        <div>
-                          <div style={{ fontSize: "14px", fontWeight: "600" }}>{item.label}</div>
-                          <div style={{ fontSize: "12px", color: "#64748b" }}>{item.sub}</div>
-                        </div>
-                      </div>
-                      <label className="premium-switch">
-                        <input 
-                          type="checkbox" 
-                          checked={config.stories[item.id]} 
-                          onChange={(e) => updateConfig("stories", item.id, e.target.checked)}
-                        />
-                        <span className="slider"></span>
-                      </label>
-                      <div className="input-group" style={{ marginTop: "16px" }}>
+                  <div className="visual-architecture" style={{ marginTop: "32px", animation: "slideInUp 0.3s ease-out 0.2s both" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+                      <span style={{ fontSize: "16px" }}>🎨</span>
+                      <h3 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "#0f172a" }}>STORY BRANDING</h3>
+                    </div>
+
+                    <div className="input-group" style={{ marginBottom: "20px" }}>
                       <label className="input-label" style={{ fontSize: "10px" }}>Header Alignment</label>
                       <select className="premium-input" value={config.stories.alignment} onChange={(e) => updateConfig("stories", "alignment", e.target.value)}>
                         <option value="left">Left Align</option>
@@ -602,19 +614,54 @@ export default function Index() {
                         <option value="right">Right Align</option>
                       </select>
                     </div>
-                  </div>
-                  ))}
-                  <div className="visual-architecture" style={{ marginTop: "24px" }}>
-                     <h3 className="input-label">Heading Typography</h3>
-                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                        <span style={{ fontSize: "13px" }}>Font Size ({config.stories.typography.heading.size}px)</span>
-                        <input 
-                           type="range" min="12" max="48"
-                           value={config.stories.typography.heading.size}
-                           onChange={(e) => updateNestedConfig("stories", "typography", "heading", { ...config.stories.typography.heading, size: parseInt(e.target.value) })}
-                           style={{ width: "100px" }}
-                        />
-                     </div>
+
+                    <div className="setting-card" style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                      <div className="setting-field">
+                        <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px", display: "block" }}>Story Heading</label>
+                        <input className="premium-input" value={config.stories.heading} onChange={(e) => updateConfig("stories", "heading", e.target.value)} />
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "12px" }}>
+                        <div className="setting-field">
+                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px", display: "block" }}>Size</label>
+                          <input type="number" className="premium-input" value={config.stories.typography.heading.size} onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, size: parseInt(e.target.value) } })} />
+                        </div>
+                        <div className="setting-field">
+                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px", display: "block" }}>Weight</label>
+                          <select className="premium-input" value={config.stories.typography.heading.weight} onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, weight: e.target.value } })}>
+                            <option value="400">Normal</option>
+                            <option value="600">Semi-Bold</option>
+                            <option value="800">Extra-Bold</option>
+                          </select>
+                        </div>
+                        <div className="setting-field">
+                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px", display: "block" }}>Color</label>
+                          <input type="color" className="premium-input" style={{ padding: "2px", height: "38px" }} value={config.stories.typography.heading.color} onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, color: e.target.value } })} />
+                        </div>
+                      </div>
+
+                      <div className="setting-field" style={{ marginTop: "20px" }}>
+                        <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px", display: "block" }}>Story Subtext</label>
+                        <input className="premium-input" value={config.stories.subheading} onChange={(e) => updateConfig("stories", "subheading", e.target.value)} />
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "12px" }}>
+                        <div className="setting-field">
+                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px", display: "block" }}>Size</label>
+                          <input type="number" className="premium-input" value={config.stories.typography.subheading.size} onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, size: parseInt(e.target.value) } })} />
+                        </div>
+                        <div className="setting-field">
+                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px", display: "block" }}>Weight</label>
+                          <select className="premium-input" value={config.stories.typography.subheading.weight} onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, weight: e.target.value } })}>
+                            <option value="400">Normal</option>
+                            <option value="500">Medium</option>
+                            <option value="700">Bold</option>
+                          </select>
+                        </div>
+                        <div className="setting-field">
+                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px", display: "block" }}>Color</label>
+                          <input type="color" className="premium-input" style={{ padding: "2px", height: "38px" }} value={config.stories.typography.subheading.color} onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, color: e.target.value } })} />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
@@ -759,10 +806,23 @@ export default function Index() {
                        </div>
                         ) : (
                           <div style={{ padding: "20px 16px" }}>
-                            <div style={{ textAlign: config.stories.alignment, marginBottom: "30px" }}>
-                              <h4 style={{ fontSize: `${Math.min(config.stories.typography.heading.size, 24)}px`, fontWeight: "800", margin: "0 0 8px 0", lineHeight: 1.2 }}>{config.stories.heading}</h4>
-                              <p style={{ fontSize: "11px", color: "#64748b", margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" }}>{config.stories.subheading}</p>
-                            </div>
+                            {config.stories.showHeader && (
+                              <div style={{ textAlign: config.stories.alignment, marginBottom: "30px" }}>
+                                <h4 style={{ 
+                                  fontSize: `${Math.min(config.stories.typography.heading.size, 24)}px`, 
+                                  fontWeight: config.stories.typography.heading.weight, 
+                                  margin: "0 0 8px 0", 
+                                  lineHeight: 1.2,
+                                  color: config.stories.typography.heading.color
+                                }}>{config.stories.heading}</h4>
+                                <p style={{ 
+                                  fontSize: `${config.stories.typography.subheading.size}px`, 
+                                  color: config.stories.typography.subheading.color, 
+                                  fontWeight: config.stories.typography.subheading.weight,
+                                  margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" 
+                                }}>{config.stories.subheading}</p>
+                              </div>
+                            )}
                             {config.stories.enable && (
                               <div className="carousel-wrapper hover-buttons" style={{ position: "relative" }}>
                                 <button 
@@ -823,11 +883,24 @@ export default function Index() {
                             onScroll={handleScroll}
                           >
                             {activeTab === "story" ? (
-                              <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                                <div style={{ textAlign: config.stories.alignment, marginBottom: "40px" }}>
-                                  <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: "800", margin: "0 0 12px 0", color: "#0f172a" }}>{config.stories.heading}</h4>
-                                  <p style={{ fontSize: "14px", color: "#64748b", maxWidth: "400px", margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" }}>{config.stories.subheading}</p>
-                                </div>
+                              <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", maxWidth: "400px", margin: "0 auto" }}>
+                                {config.stories.showHeader && (
+                                  <div style={{ textAlign: config.stories.alignment, marginBottom: "40px" }}>
+                                    <h4 style={{ 
+                                      fontSize: `${config.stories.typography.heading.size}px`, 
+                                      fontWeight: config.stories.typography.heading.weight, 
+                                      margin: "0 0 12px 0", 
+                                      color: config.stories.typography.heading.color 
+                                    }}>{config.stories.heading}</h4>
+                                    <p style={{ 
+                                      fontSize: `${config.stories.typography.subheading.size}px`, 
+                                      color: config.stories.typography.subheading.color,
+                                      fontWeight: config.stories.typography.subheading.weight,
+                                      maxWidth: "400px", 
+                                      margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" 
+                                    }}>{config.stories.subheading}</p>
+                                  </div>
+                                )}
                                 {config.stories.enable && (
                                   <div className="carousel-wrapper hover-buttons" style={{ position: "relative" }}>
                                     <button className="carousel-nav prev" onClick={() => scrollCarousel(desktopStoryRef, "prev")} style={{ width: "30px", height: "30px", left: "-10px", zIndex: 100, background: "rgba(255,255,255,0.9)" }}>
