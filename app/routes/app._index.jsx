@@ -1,17 +1,67 @@
 import { useState, useEffect, useRef } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { useFetcher } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 import axios from "axios";
 
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
-  return null;
+  const { admin } = await authenticate.admin(request);
+  try {
+    const shopRes = await admin.graphql(`{
+      shop {
+        metafield(namespace: "ai_instafeed", key: "config") {
+          value
+        }
+      }
+    }`);
+    const shopJson = await shopRes.json();
+    const config = shopJson.data?.shop?.metafield?.value || null;
+    return { config };
+  } catch (error) {
+    return { config: null };
+  }
 };
 
 export const action = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
+  
+  const intent = formData.get("intent");
+  if (intent === "saveConfig") {
+    const configData = formData.get("config");
+    try {
+      const shopRes = await admin.graphql(`{ shop { id } }`);
+      const shopJson = await shopRes.json();
+      const shopId = shopJson.data.shop.id;
+      
+      const saveRes = await admin.graphql(`
+        mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+          metafieldsSet(metafields: $metafields) {
+            userErrors { message }
+          }
+        }
+      `, {
+        variables: {
+          metafields: [{
+            ownerId: shopId,
+            namespace: "ai_instafeed",
+            key: "config",
+            type: "json",
+            value: configData
+          }]
+        }
+      });
+      
+      const saveJson = await saveRes.json();
+      if (saveJson.data?.metafieldsSet?.userErrors?.length > 0) {
+        return { error: saveJson.data.metafieldsSet.userErrors[0].message };
+      }
+      return { success: true, message: "Settings saved to Shop Metafield" };
+    } catch (e) {
+      return { error: e.message || "Failed to save metafield" };
+    }
+  }
+
   const handle = formData.get("handle");
   const fbToken = process.env.FACEBOOK_ACCESS_TOKEN;
 
@@ -61,6 +111,8 @@ export const action = async ({ request }) => {
 export default function Index() {
   const shopify = useAppBridge();
   const fetcher = useFetcher();
+  const loaderData = useLoaderData() || {};
+  const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState("post");
   const [previewDevice, setPreviewDevice] = useState("mobile");
 
@@ -68,6 +120,10 @@ export default function Index() {
   const [instaData, setInstaData] = useState(null);
   const [isInfiniteLoading, setIsInfiniteLoading] = useState(false);
   const [visibleMediaCount, setVisibleMediaCount] = useState(12);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   // Carousel Refs
   const desktopCarouselRef = useRef(null);
@@ -176,10 +232,24 @@ export default function Index() {
     if (section === "stories") setActiveTab("story");
   };
 
+  const [lastFetchedHandle, setLastFetchedHandle] = useState("");
+
+  useEffect(() => {
+    const handle = config.instagramHandle;
+    if (handle && handle !== lastFetchedHandle) {
+      const timeout = setTimeout(() => {
+        setLastFetchedHandle(handle);
+        const formData = new FormData();
+        formData.append("handle", handle);
+        fetcher.submit(formData, { method: "post" });
+      }, 1500);
+      return () => clearTimeout(timeout);
+    }
+  }, [config.instagramHandle, lastFetchedHandle, fetcher]);
+
   // Persistence Logic: Load from localStorage on mount
   useEffect(() => {
     const savedData = localStorage.getItem("insta_feed_data");
-    const savedConfig = localStorage.getItem("insta_config");
     if (savedData) {
       try {
         setInstaData(JSON.parse(savedData));
@@ -187,9 +257,11 @@ export default function Index() {
         console.error("Failed to parse saved insta data");
       }
     }
-    if (savedConfig) {
+    
+    const configStr = loaderData?.config || localStorage.getItem("insta_config");
+    if (configStr) {
       try {
-        const parsed = JSON.parse(savedConfig);
+        const parsed = JSON.parse(configStr);
         
         // Deep merge saved config with defaults to prevent crashes on new fields
         setConfig(prev => {
@@ -241,12 +313,15 @@ export default function Index() {
     setTimeout(() => {
       setLastSavedConfig(prev => {
         // This timeout ensures setConfig has stabilized
-        return JSON.parse(localStorage.getItem("insta_config")) || config;
+        const initialConfigStr = loaderData?.config || localStorage.getItem("insta_config");
+        return initialConfigStr ? JSON.parse(initialConfigStr) : config;
       });
     }, 100);
   }, []);
 
   useEffect(() => {
+    if (fetcher.data?.success) return;
+    
     if (fetcher.data?.data) {
       const { username } = fetcher.data.data;
       setInstaData(fetcher.data.data);
@@ -280,6 +355,12 @@ export default function Index() {
   const applyChanges = () => {
     setLastSavedConfig(config);
     localStorage.setItem("insta_config", JSON.stringify(config));
+    
+    const formData = new FormData();
+    formData.append("intent", "saveConfig");
+    formData.append("config", JSON.stringify(config));
+    fetcher.submit(formData, { method: "post" });
+    
     shopify.toast.show("Configuration applied successfully!");
   };
 
@@ -302,6 +383,8 @@ export default function Index() {
   const simulatedInfiniteMedia = Array.from({ length: visibleMediaCount }).map((_, i) => baseMedia[i % baseMedia.length]);
 
   const isSyncing = fetcher.state !== "idle";
+
+  if (!isHydrated) return null;
 
   return (
     <div className="premium-dashboard">
