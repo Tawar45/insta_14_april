@@ -186,26 +186,50 @@ export default function Index() {
 
       <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
         {/* Connect Account Card */}
-        <div className="premium-card" style={{ padding: "24px" }}>
-          <div>
-            <h2 style={{ margin: "0 0 4px 0", fontSize: "16px", fontWeight: "600" }}>1 Connect Your Account</h2>
-            <p style={{ margin: "0 0 16px 0", fontSize: "14px", color: "#6b7280" }}>Sync your Instagram feed to your Shopify storefront instantly.</p>
+        <div className="premium-card" style={{ padding: "32px", position: "relative", overflow: "hidden" }}>
+          {/* Background Decoration */}
+          <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", background: "var(--premium-accent)", opacity: 0.05, borderRadius: "50%", filter: "blur(40px)" }}></div>
+          
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "24px", gap: "20px" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                <span style={{ background: "var(--premium-accent)", color: "white", width: "22px", height: "22px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800" }}>1</span>
+                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#0f172a" }}>Connect Your Account</h2>
+              </div>
+              <p style={{ margin: 0, fontSize: "14px", color: "#64748b", lineHeight: "1.5" }}>
+                Seamlessly sync your Instagram feed to your Shopify storefront. <br/>
+                Enter your <span style={{ color: "var(--premium-accent)", fontWeight: "600" }}>@username</span> or profile URL to begin.
+              </p>
+            </div>
+            
+            {instaData && (
+              <div className="status-badge" style={{ animation: "fadeInBlur 0.5s ease" }}>
+                <div className="status-dot"></div>
+                Connected to @{instaData.username}
+              </div>
+            )}
           </div>
           
           <div className="input-group-nested">
-            <div style={{ position: "relative", flex: 1 }}>
-              <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", zIndex: 1 }}>@</span>
+            <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
+              <div style={{ paddingLeft: "16px", color: "var(--premium-accent)", display: "flex", alignItems: "center" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+              </div>
               <input 
                 type="text" 
                 className="premium-input" 
-                style={{ paddingLeft: "36px" }}
+                style={{ paddingLeft: "12px" }}
                 value={config.instagramHandle}
                 onChange={(e) => setConfig({ ...config, instagramHandle: e.target.value })}
                 placeholder="instagram_handle or URL"
               />
             </div>
             <button 
-              className={`premium-button button-primary ${fetcher.state !== "idle" ? "loading" : ""}`}
+              className={`premium-button button-accent ${fetcher.state !== "idle" ? "loading" : ""}`}
               disabled={fetcher.state !== "idle"}
               onClick={() => {
                 let handle = config.instagramHandle.trim();
@@ -218,7 +242,21 @@ export default function Index() {
                 fetcher.submit(formData, { method: "post" });
               }}
             >
-              {fetcher.state !== "idle" ? "Syncing..." : "Update Feed"}
+              {fetcher.state !== "idle" ? (
+                <>
+                  <div className="spinner" style={{ width: "16px", height: "16px", border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
+                  <span>Syncing...</span>
+                </>
+              ) : (
+                <>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                  </svg>
+                  <span>Update & Preview</span>
+                </>
+              )}
             </button>
           </div>
         </div>
