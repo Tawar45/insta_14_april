@@ -311,3 +311,37 @@ export async function fetchShopConfig(admin, shop) {
     CACHE_TTL.CONFIG
   );
 }
+
+/**
+ * Fetch & cache the shop's saved Instagram feed data from metafield.
+ *
+ * @param {object} admin
+ * @param {string} shop
+ * @returns {Promise<object|null>}
+ */
+export async function fetchShopInstaData(admin, shop) {
+  const cacheKey = `shopify:insta_data:${shop}`;
+
+  return cacheGetOrSet(
+    cacheKey,
+    async () => {
+      const res = await admin.graphql(`{
+        shop {
+          metafield(namespace: "ai_instafeed", key: "insta_data") {
+            value
+          }
+        }
+      }`);
+      const json = await res.json();
+      const raw = json.data?.shop?.metafield?.value;
+      if (!raw) return null;
+
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    },
+    CACHE_TTL.INSTAGRAM
+  );
+}

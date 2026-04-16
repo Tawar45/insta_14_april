@@ -4,7 +4,7 @@ import { useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 import axios from "axios";
 // ── Performance layer (cache + rate limiting) ────────────────────────────────
-import { fetchInstagramFeed, fetchShopConfig } from "../instagramApi.server.js";
+import { fetchInstagramFeed, fetchShopConfig, fetchShopInstaData } from "../instagramApi.server.js";
 import { invalidateResource } from "../cache.server.js";
 import { withRateLimit, trackApiResponse } from "../rateLimiter.server.js";
 import {
@@ -28,12 +28,16 @@ export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session?.shop ?? "unknown";
   try {
-    // ── Use cached config (30 min TTL) – avoids a Shopify API call on reload ──
     const config = await withRateLimit(shop, () => fetchShopConfig(admin, shop));
+    const instaData = await fetchShopInstaData(admin, shop);
     trackApiResponse(shop, {});
-    return { config: config ? JSON.stringify(config) : null };
+    
+    return { 
+      config: config ? JSON.stringify(config) : null,
+      instaData: instaData ? JSON.stringify(instaData) : null
+    };
   } catch {
-    return { config: null };
+    return { config: null, instaData: null };
   }
 };
 
@@ -54,25 +58,35 @@ export const action = async ({ request }) => {
       const shopJson = await shopRes.json();
       const shopId = shopJson.data.shop.id;
 
+      const parsedConfig = JSON.parse(configData);
+      const metafields = [
+        {
+          ownerId: shopId,
+          namespace: "ai_instafeed",
+          key: "config",
+          type: "json",
+          value: configData,
+        },
+      ];
+
+      // If handle is empty, also clear the insta_data metafield
+      if (!parsedConfig.instagramHandle) {
+        metafields.push({
+          ownerId: shopId,
+          namespace: "ai_instafeed",
+          key: "insta_data",
+          type: "json",
+          value: "null",
+        });
+      }
+
       const saveRes = await admin.graphql(
         `mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
           metafieldsSet(metafields: $metafields) {
             userErrors { message }
           }
         }`,
-        {
-          variables: {
-            metafields: [
-              {
-                ownerId: shopId,
-                namespace: "ai_instafeed",
-                key: "config",
-                type: "json",
-                value: configData,
-              },
-            ],
-          },
-        }
+        { variables: { metafields } }
       );
 
       const saveJson = await saveRes.json();
@@ -81,7 +95,8 @@ export const action = async ({ request }) => {
       }
       // ── Invalidate config cache so the next loader hit re-fetches fresh data ──
       await invalidateResource(shop, "config");
-      return { success: true, message: "Settings saved to Shop Metafield" };
+      await invalidateResource(shop, "insta_data");
+      return { success: true, message: "Settings updated successfully" };
     } catch (e) {
       return { error: e.message || "Failed to save metafield" };
     }
@@ -94,8 +109,37 @@ export const action = async ({ request }) => {
   if (!process.env.FACEBOOK_ACCESS_TOKEN) return { error: "FACEBOOK_ACCESS_TOKEN is not configured." };
 
   try {
-    // fetchInstagramFeed checks cache first; only hits the Graph API on a miss
     const data = await fetchInstagramFeed(handle, shop);
+    
+    // ── PERSISTENCE: Save JSON data to metafield so it stays until disconnected ──
+    if (data) {
+      const shopRes = await admin.graphql(`{ shop { id } }`);
+      const shopJson = await shopRes.json();
+      const shopId = shopJson.data.shop.id;
+
+      await admin.graphql(
+        `mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+          metafieldsSet(metafields: $metafields) {
+            userErrors { message }
+          }
+        }`,
+        {
+          variables: {
+            metafields: [
+              {
+                ownerId: shopId,
+                namespace: "ai_instafeed",
+                key: "insta_data",
+                type: "json",
+                value: JSON.stringify(data),
+              },
+            ],
+          },
+        }
+      );
+      await invalidateResource(shop, "insta_data");
+    }
+
     return { data };
   } catch (error) {
     return { error: error.response?.data?.error?.message || error.message || "Failed to fetch Instagram data" };
@@ -190,8 +234,12 @@ export default function Index() {
     }
 
     // Restore config (metafield wins over localStorage)
-    const configStr =
-      loaderData?.config || localStorage.getItem("insta_config");
+    const configStr = loaderData?.config || localStorage.getItem("insta_config");
+    const instaDataStr = loaderData?.instaData || localStorage.getItem("insta_feed_data");
+
+    if (instaDataStr) {
+      try { setInstaData(JSON.parse(instaDataStr)); } catch {}
+    }
 
     if (configStr) {
       try {
