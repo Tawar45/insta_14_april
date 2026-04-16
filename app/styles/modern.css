@@ -561,23 +561,44 @@ input[type="color"].premium-input {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 8px;
+  padding: 14px 16px;
   display: flex;
-  gap: 12px;
+  gap: 20px;
   color: white;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 100%);
+  background: transparent;
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(4px);
   transition: all 0.25s ease;
   pointer-events: none;
-  font-weight: 600;
-  font-size: 11px;
+  font-weight: 700;
+  font-size: 14px;
+  z-index: 6;
 }
 
 .carousel-item:hover .media-metrics,
 .grid-item:hover .media-metrics {
   opacity: 1;
   transform: translateY(0);
+}
+
+.ai-ig-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.4);
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.25s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.carousel-item:hover .ai-ig-icon,
+.grid-item:hover .ai-ig-icon {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */

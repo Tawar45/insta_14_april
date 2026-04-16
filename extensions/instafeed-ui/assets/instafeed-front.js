@@ -198,14 +198,39 @@
     const metrics = c.metrics
       ? `<div style="
           position:absolute;bottom:0;left:0;right:0;
-          padding:8px;
-          background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);
-          display:flex;gap:10px;color:white;
-          font-size:11px;font-weight:600;
-          opacity:0;transition:opacity 0.25s;
+          padding:14px 16px;
+          background:transparent;
+          display:flex;gap:20px;color:white;
+          font-size:14px;font-weight:700;
+          opacity:0;transform:translateY(4px);transition:all 0.25s ease;
+          pointer-events:none;z-index:6;
         " class="ai-metrics">
-          <span>❤️ ${item.like_count || 0}</span>
-          <span>💬 ${item.comments_count || 0}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <svg aria-label="Like" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <span>${item.like_count || 0}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <svg aria-label="Comment" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+            <span>${item.comments_count || 0}</span>
+          </div>
+        </div>`
+      : "";
+
+    const instagramLogo = (c.showInstagramIcon !== false)
+      ? `<div style="
+          position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+          background:rgba(0,0,0,0.4);opacity:0;transform:scale(0.95);
+          transition:all 0.25s ease;pointer-events:none;z-index:5;
+        " class="ai-ig-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
         </div>`
       : "";
 
@@ -214,12 +239,13 @@
       <div style="flex-shrink:0;width:${width};box-sizing:border-box;">
         <a href="${esc(href)}" target="${target}" rel="noopener noreferrer"
           style="text-decoration:none;display:block;"
-          onmouseenter="var m=this.querySelector('.ai-metrics');if(m)m.style.opacity='1';"
-          onmouseleave="var m=this.querySelector('.ai-metrics');if(m)m.style.opacity='0';">
+          onmouseenter="var m=this.querySelector('.ai-metrics');if(m)m.style.opacity='1';var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='1';i.style.transform='scale(1)';}"
+          onmouseleave="var m=this.querySelector('.ai-metrics');if(m)m.style.opacity='0';var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='0';i.style.transform='scale(0.95)';}">
           <div style="aspect-ratio:${aspect};background:#f1f5f9;border-radius:6px;overflow:hidden;position:relative;">
             ${inner}
             ${videoIcon}
             ${metrics}
+            ${instagramLogo}
           </div>
         </a>
       </div>`;
