@@ -1157,7 +1157,7 @@ export default function Index() {
                 </div>
               </div>
 
-              <div className="preview-container" style={{ background: "transparent", border: "none", padding: "0", minHeight: "520px" }}>
+              <div className="preview-container" style={{ background: "transparent", border: "none", padding: "0", display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: "center", minHeight: previewDevice === "mobile" ? "580px" : "auto" }}>
                 {/* Sync overlay — uses absolute inside preview-container (position:relative) */}
                 {isSyncing && (
                   <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.82)", zIndex: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)", borderRadius: "16px", animation: "fadeInBlur 0.3s ease" }}>
@@ -1277,7 +1277,7 @@ export default function Index() {
                   </div>
                 ) : (
                   /* ── Desktop Device Frame ── */
-                  <div style={{ animation: "fadeInBlur 0.4s ease-out", width: "100%" }}>
+                  <div style={{ animation: "fadeInBlur 0.4s ease-out", width: "100%", marginTop: "0" }}>
                     <div style={{ width: "100%", maxWidth: "580px", margin: "0 auto" }}>
                       <div style={{ width: "100%", aspectRatio: "1.6/1", background: "#1e293b", borderRadius: "16px", padding: "10px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
                         <div style={{ width: "100%", height: "100%", background: "white", borderRadius: "8px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
