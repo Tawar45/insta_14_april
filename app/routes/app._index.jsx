@@ -165,7 +165,7 @@ export const action = async ({ request }) => {
 // DEFAULT CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
 const DEFAULT_CONFIG = {
-  instagramHandle: "floorlanduk",
+  instagramHandle: "",
   postFeed: {
     header: true,
     metrics: true,
@@ -233,12 +233,18 @@ export default function Index() {
 
   const PLACEHOLDER_MEDIA = useMemo(() => {
     const baseUrls = [
-      "https://images.unsplash.com/photo-1611162147679-aa3c393bc3ec?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1542435503-956c469947f6?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1493723843671-1d655e8d717f?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1485230895905-ec17bd36b5cc?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1475184447565-30060953d611?w=600&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=600&h=600&fit=crop",
     ];
     return Array.from({ length: 24 }).map((_, i) => ({
       id: `placeholder_${i}`,
@@ -370,7 +376,7 @@ export default function Index() {
                 };
             }
           }
-          if (parsed.instagramHandle)
+          if (parsed.instagramHandle !== undefined)
             merged.instagramHandle = parsed.instagramHandle;
           return merged;
         });
@@ -478,6 +484,7 @@ export default function Index() {
     const newConfig = { ...config, instagramHandle: "" };
     setConfig(newConfig);
     setLastSavedConfig(newConfig);
+    localStorage.setItem("insta_config", JSON.stringify(newConfig));
     setLastFetchedHandle("");
 
     // Auto-save the cleared state to Shopify metafield
@@ -726,31 +733,36 @@ export default function Index() {
             <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "700" }}>Ai Highlight Center</h1>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ fontSize: "12px", color: "#6b7280" }}>V2.0 Core</span>
-              <div 
-                onClick={() => navigate("/app/plans")}
-                style={{ 
-                  fontSize: "10px", 
-                  fontWeight: "800", 
-                  padding: "2px 8px", 
-                  borderRadius: "12px", 
-                  background: loaderData?.subscription ? "var(--premium-accent-gradient)" : "rgba(0,0,0,0.05)",
-                  color: loaderData?.subscription ? "white" : "#64748b",
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  marginLeft: "4px"
-                }}
-              >
-                <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: loaderData?.subscription ? "white" : "#94a3b8" }} />
-                {loaderData?.subscription?.name?.toUpperCase() || "STARTER PLAN"}
-              </div>
             </div>
           </div>
           <div className="status-badge" style={{ marginLeft: "16px" }}>
             <div className="status-dot" />
             System Online <span style={{ opacity: 0.6, marginLeft: "4px" }}>Active</span>
           </div>
+        </div>
+
+        {/* Plan Badge on the Right */}
+        <div 
+          onClick={() => navigate("/app/plans")}
+          style={{ 
+            fontSize: "11px", 
+            fontWeight: "800", 
+            padding: "6px 14px", 
+            borderRadius: "14px", 
+            background: loaderData?.subscription ? "var(--premium-accent-gradient)" : "rgba(0,0,0,0.05)",
+            color: loaderData?.subscription ? "white" : "#64748b",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            boxShadow: loaderData?.subscription ? "0 4px 12px rgba(99, 102, 241, 0.2)" : "none",
+            transition: "all 0.2s ease"
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = loaderData?.subscription ? "0 6px 16px rgba(99, 102, 241, 0.3)" : "none"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = loaderData?.subscription ? "0 4px 12px rgba(99, 102, 241, 0.2)" : "none"; }}
+        >
+          <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: loaderData?.subscription ? "white" : "#94a3b8" }} />
+          {loaderData?.subscription?.name?.toUpperCase() || "STARTER PLAN"}
         </div>
       </div>
 
@@ -1045,19 +1057,7 @@ export default function Index() {
                       </select>
                     </div>
 
-                    <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px dashed #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>Hide Specific Posts</div>
-                        <div style={{ fontSize: "12px", color: "#64748b" }}>Select posts in the preview to exclude them</div>
-                      </div>
-                      <button 
-                        className={`premium-button ${isHideMode ? "button-success" : ""}`} 
-                        onClick={() => setIsHideMode(!isHideMode)}
-                        style={{ padding: "8px 16px", minHeight: "unset", background: isHideMode ? "var(--premium-accent)" : "white", color: isHideMode ? "white" : "#0f172a", border: "1px solid #e2e8f0" }}
-                      >
-                        {isHideMode ? "Done Hiding" : "Exclude Posts"}
-                      </button>
-                    </div>
+
                   </div>
 
                   {/* Brand Customisation */}

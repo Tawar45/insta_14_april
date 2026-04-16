@@ -90,12 +90,18 @@
 
   // ── Placeholder images (same as dashboard fallbacks) ─────────────────────
   const PLACEHOLDERS = [
-    "https://images.unsplash.com/photo-1611162147679-aa3c393bc3ec?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1542435503-956c469947f6?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1493723843671-1d655e8d717f?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1519985176271-adb1088fa94c?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1485230895905-ec17bd36b5cc?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1475184447565-30060953d611?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=600&h=600&fit=crop",
   ];
 
   function getMedia(mediaData, count) {
