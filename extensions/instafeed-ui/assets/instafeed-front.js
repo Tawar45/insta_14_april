@@ -360,10 +360,13 @@
         const href     = item.permalink || "#";
         const target   = href === "#" ? "_self" : "_blank";
         const label    = item.caption ? esc(item.caption.split(" ")[0]) : `Story ${i + 1}`;
-        const mediaTpl = src
-          ? `<img loading="lazy" src="${esc(src)}" alt="story"
-              style="width:100%;height:100%;object-fit:cover;display:block;">`
-          : `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`;
+        const mediaTpl = (isVideo && s.autoplay)
+          ? `<video src="${esc(item.media_url)}" autoplay muted loop playsinline
+              style="width:100%;height:100%;object-fit:cover;display:block;"></video>`
+          : (src
+              ? `<img loading="lazy" src="${esc(src)}" alt="story"
+                  style="width:100%;height:100%;object-fit:cover;display:block;">`
+              : `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`);
 
         html += `
           <div style="flex-shrink:0;width:76px;text-align:center;cursor:pointer;">
