@@ -580,21 +580,14 @@ input[type="color"].premium-input {
   transform: translate(-50%, -50%);
 }
 
-.ai-ig-icon {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  opacity: 0;
-  transform: scale(0.8);
-  transition: all 0.25s ease;
-  pointer-events: none;
-  z-index: 7;
+.media-icon-badge {
+  transition: opacity 0.25s ease;
+  opacity: 1;
 }
 
-.carousel-item:hover .ai-ig-icon,
-.grid-item:hover .ai-ig-icon {
-  opacity: 1;
-  transform: scale(1);
+.carousel-item:hover .media-icon-badge,
+.grid-item:hover .media-icon-badge {
+  opacity: 0 !important;
 }
 
 /* Full card overlay for hover effect */

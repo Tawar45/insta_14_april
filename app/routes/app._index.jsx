@@ -644,8 +644,22 @@ export default function Index() {
           />
         ) : null}
         {item.media_type === "VIDEO" && (
-          <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px", background: "rgba(0,0,0,0.55)", color: "white", padding: "2px 5px", borderRadius: "4px" }}>
-            📹
+          <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))" }}>
+            <svg aria-label="Reels" color="white" fill="white" width="18" height="18" role="img" viewBox="0 0 24 24">
+              <line fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" x1="2.049" x2="21.95" y1="7.002" y2="7.002"></line>
+              <line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="13.504" x2="16.362" y1="2.001" y2="7.002"></line>
+              <line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="7.207" x2="10.002" y1="2.11" y2="7.002"></line>
+              <path d="M2.049 2.001h20v20h-20z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+              <path d="M9.763 17.664a.908.908 0 0 1-.454-.787V11.63a.909.909 0 0 1 1.364-.788l4.545 2.624a.909.909 0 0 1 0 1.575l-4.545 2.624a.91.91 0 0 1-.91 0Z"></path>
+            </svg>
+          </div>
+        )}
+        {item.media_type === "CAROUSEL_ALBUM" && (
+          <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))" }}>
+            <svg aria-label="Carousel" fill="white" width="20" height="20" role="img" viewBox="0 0 48 48">
+              <path d="M34.8 29.7V11c0-2.9-2.3-5.2-5.2-5.2H11c-2.9 0-5.2 2.3-5.2 5.2v18.7c0 2.9 2.3 5.2 5.2 5.2h18.6c2.9-.1 5.2-2.4 5.2-5.2zm-23.8 0V11c0-.7.6-1.3 1.3-1.3h18.6c.7 0 1.3.6 1.3 1.3v18.7c0 .7-.6 1.3-1.3 1.3H12.3c-.7 0-1.3-.6-1.3-1.3z"></path>
+              <path d="M38.2 8.6h-.2c-1.1 0-2 .9-2 2s.9 2 2 2h.2c1.8 0 3.2 1.4 3.2 3.2v20c0 1.8-1.4 3.2-3.2 3.2H18.2c-1.8 0-3.2-1.4-3.2-3.2v-.2c0-1.1-.9-2-2-2s-2 .9-2 2v.2c0 4 3.2 7.2 7.2 7.2h20c4 0 7.2-3.2 7.2-7.2v-20c0-4-3.2-7.2-7.2-7.2z"></path>
+            </svg>
           </div>
         )}
         {config.postFeed.metrics && (
