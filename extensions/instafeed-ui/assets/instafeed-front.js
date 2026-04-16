@@ -44,7 +44,11 @@
       if (!config) return;
 
       const newConfigStr = JSON.stringify(config);
-      const mediaData    = instaData?.media?.data || [];
+      let mediaData      = instaData?.media?.data || [];
+      
+      if (config.postFeed?.hiddenPostIds?.length > 0) {
+        mediaData = mediaData.filter(item => !config.postFeed.hiddenPostIds.includes(item.id || item.media_url));
+      }
 
       // Only re-render if config or data changed (prevents flicker)
       const isSame =
@@ -157,6 +161,13 @@
       html += `</div>`;
     }
 
+    if (!c.removeWatermark) {
+      html += `
+        <div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;">
+          Powered by <span style="font-weight:700;color:#64748b;">BOOST STAR Experts</span>
+        </div>`;
+    }
+
     html += `</div>`;
     container.innerHTML = html;
     bindCarouselNav(container);
@@ -198,13 +209,14 @@
         </div>`
       : "";
 
+    const aspect = c.aspectRatio === "auto" ? "auto" : (c.aspectRatio || "1/1");
     return `
       <div style="flex-shrink:0;width:${width};box-sizing:border-box;">
         <a href="${esc(href)}" target="${target}" rel="noopener noreferrer"
           style="text-decoration:none;display:block;"
           onmouseenter="var m=this.querySelector('.ai-metrics');if(m)m.style.opacity='1';"
           onmouseleave="var m=this.querySelector('.ai-metrics');if(m)m.style.opacity='0';">
-          <div style="aspect-ratio:1/1;background:#f1f5f9;border-radius:6px;overflow:hidden;position:relative;">
+          <div style="aspect-ratio:${aspect};background:#f1f5f9;border-radius:6px;overflow:hidden;position:relative;">
             ${inner}
             ${videoIcon}
             ${metrics}
@@ -250,7 +262,7 @@
       html += `
         <div style="position:relative;width:100%;">
           <button class="ai-fw-nav ai-fw-prev" data-track-id="${trackId}" aria-label="Previous"
-            style="left:-16px;">
+            style="left:-16px;top:42px;transform:translateY(-50%);">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <div id="${trackId}" class="ai-fw-track" style="
@@ -298,7 +310,7 @@
       html += `
           </div>
           <button class="ai-fw-nav ai-fw-next" data-track-id="${trackId}" aria-label="Next"
-            style="right:-16px;">
+            style="right:-16px;top:42px;transform:translateY(-50%);">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>`;

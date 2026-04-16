@@ -182,6 +182,9 @@ const DEFAULT_CONFIG = {
     desktopColumns: 4,
     mobileColumns: 2,
     gap: 16,
+    aspectRatio: "auto",
+    removeWatermark: false,
+    hiddenPostIds: [],
   },
   stories: {
     enable: true,
@@ -212,6 +215,8 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState("post");
   const [previewDevice, setPreviewDevice] = useState("mobile");
 
+  const isPaid = !!loaderData.subscription;
+
   const [instaData, setInstaData] = useState(null);
   const [isInfiniteLoading, setIsInfiniteLoading] = useState(false);
   const [visibleMediaCount, setVisibleMediaCount] = useState(12);
@@ -225,10 +230,32 @@ export default function Index() {
     { media_url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 95,  comments_count: 3  },
   ], []);
 
-  const baseMedia = useMemo(
-    () => instaData?.media?.data || PLACEHOLDER_MEDIA,
-    [instaData?.media?.data, PLACEHOLDER_MEDIA]
-  );
+  const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const [lastSavedConfig, setLastSavedConfig] = useState(null);
+  const [isHideMode, setIsHideMode] = useState(false);
+
+  const baseMedia = useMemo(() => {
+    let media = instaData?.media?.data || PLACEHOLDER_MEDIA;
+    if (!isHideMode && config?.postFeed?.hiddenPostIds?.length > 0) {
+      media = media.filter(item => !config.postFeed.hiddenPostIds.includes(item.id || item.media_url));
+    }
+    return media;
+  }, [instaData?.media?.data, PLACEHOLDER_MEDIA, config?.postFeed?.hiddenPostIds, isHideMode]);
+
+  const handleToggleHidePost = (itemIdentifier) => {
+    setConfig(prev => {
+      const isHidden = prev.postFeed.hiddenPostIds.includes(itemIdentifier);
+      return {
+        ...prev,
+        postFeed: {
+          ...prev.postFeed,
+          hiddenPostIds: isHidden 
+            ? prev.postFeed.hiddenPostIds.filter(id => id !== itemIdentifier)
+            : [...prev.postFeed.hiddenPostIds, itemIdentifier]
+        }
+      };
+    });
+  };
 
   const hasMoreToShow = visibleMediaCount < baseMedia.length;
 
@@ -237,8 +264,7 @@ export default function Index() {
     [baseMedia, visibleMediaCount]
   );
 
-  const [config, setConfig] = useState(DEFAULT_CONFIG);
-  const [lastSavedConfig, setLastSavedConfig] = useState(null);
+
 
   // Whether the user has unsaved local edits
   const hasChanges = lastSavedConfig
@@ -539,35 +565,58 @@ export default function Index() {
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER HELPERS (media cards – keeps JSX DRY)
   // ─────────────────────────────────────────────────────────────────────────
-  const renderMediaCard = (item, i, isDesktop = false) => (
-    <div
-      key={i}
-      className="grid-item"
-      style={{ aspectRatio: "1/1", background: "#f1f5f9", borderRadius: isDesktop ? "8px" : "4px", overflow: "hidden", position: "relative" }}
-    >
-      {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
-        <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-      ) : (item.media_url || item.thumbnail_url) ? (
-        <img
-          loading="lazy"
-          src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          alt="Instagram post"
-        />
-      ) : null}
-      {item.media_type === "VIDEO" && (
-        <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px", background: "rgba(0,0,0,0.55)", color: "white", padding: "2px 5px", borderRadius: "4px" }}>
-          📹
-        </div>
-      )}
-      {config.postFeed.metrics && (
-        <div className="media-metrics">
-          <span>❤️ {item.like_count ?? "0"}</span>
-          <span>💬 {item.comments_count ?? "0"}</span>
-        </div>
-      )}
-    </div>
-  );
+  const renderMediaCard = (item, i, isDesktop = false) => {
+    const itemIdentifier = item.id || item.media_url;
+    const isHidden = config.postFeed.hiddenPostIds?.includes(itemIdentifier);
+    const aspect = config.postFeed.aspectRatio === "auto" ? "auto" : (config.postFeed.aspectRatio || "1/1");
+    
+    return (
+      <div
+        key={i}
+        className="grid-item"
+        onClick={() => {
+          if (isHideMode) handleToggleHidePost(itemIdentifier);
+        }}
+        style={{ 
+          aspectRatio: aspect, 
+          background: "#f1f5f9", 
+          borderRadius: isDesktop ? "8px" : "4px", 
+          overflow: "hidden", 
+          position: "relative",
+          cursor: isHideMode ? "pointer" : "default",
+          opacity: isHideMode && isHidden ? 0.4 : 1,
+          transition: "opacity 0.2s"
+        }}
+      >
+        {isHideMode && isHidden && (
+          <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)" }}>
+            <span style={{ background: "rgba(0,0,0,0.8)", color: "white", padding: "4px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: "600" }}>👁️ Hidden</span>
+          </div>
+        )}
+        {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
+          <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (item.media_url || item.thumbnail_url) ? (
+          <img
+            loading="lazy"
+            src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            alt="Instagram post"
+          />
+        ) : null}
+        {item.media_type === "VIDEO" && (
+          <div style={{ position: "absolute", top: "4px", right: "4px", fontSize: "10px", background: "rgba(0,0,0,0.55)", color: "white", padding: "2px 5px", borderRadius: "4px" }}>
+            📹
+          </div>
+        )}
+        {config.postFeed.metrics && (
+          <div className="media-metrics">
+            <span>❤️ {item.like_count ?? "0"}</span>
+            <span>💬 {item.comments_count ?? "0"}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderCarouselCard = (item, i, isDesktop = false) => (
     <div key={i} className="carousel-item">
@@ -782,23 +831,34 @@ export default function Index() {
                   {[
                     { id: "header",   label: "Profile Header",  sub: "Show store bio & icon",       icon: "👤" },
                     { id: "metrics",  label: "Engagement Hub",  sub: "Visualise social proof",       icon: "📊" },
-                    { id: "load",     label: "Infinite Paging", sub: "Zero-latency scrolling",       icon: "🔄" },
+                    { id: "load",     label: "Infinite Paging", sub: "Zero-latency scrolling",       icon: "🔄", isPremium: true },
                     { id: "carousel", label: "Smart Carousel",  sub: "Auto-swipe logic",             icon: "📱" },
                     { id: "autoplay", label: "Smart Autoplay",  sub: "Pre-load video content",       icon: "🎬" },
                   ].map((item, idx) => (
-                    <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both` }}>
+                    <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both`, opacity: (!isPaid && item.isPremium && !config.postFeed[item.id]) ? 0.7 : 1 }}>
                       <div className="setting-info">
                         <div className="setting-icon">{item.icon}</div>
-                        <div>
-                          <div style={{ fontSize: "14px", fontWeight: "600" }}>{item.label}</div>
-                          <div style={{ fontSize: "12px", color: "#9ca3af" }}>{item.sub}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div>
+                            <div style={{ fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+                              {item.label}
+                              {item.isPremium && <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>}
+                            </div>
+                            <div style={{ fontSize: "12px", color: "#9ca3af" }}>{item.sub}</div>
+                          </div>
                         </div>
                       </div>
                       <label className="premium-switch">
                         <input
                           type="checkbox"
                           checked={config.postFeed[item.id]}
-                          onChange={(e) => updateConfig("postFeed", item.id, e.target.checked)}
+                          onChange={(e) => {
+                            if (item.isPremium && !isPaid) {
+                              shopify.toast.show("Please upgrade to a Paid plan to enable this feature.");
+                              return;
+                            }
+                            updateConfig("postFeed", item.id, e.target.checked);
+                          }}
                         />
                         <span className="slider" />
                       </label>
@@ -839,6 +899,35 @@ export default function Index() {
                         className="premium-input"
                       />
                     </div>
+                    
+                    <div className="input-group" style={{ marginTop: "16px" }}>
+                      <label className="input-label" style={{ fontSize: "10px" }}>Image Sizing (Aspect Ratio)</label>
+                      <select
+                        className="premium-input"
+                        value={config.postFeed.aspectRatio || "auto"}
+                        onChange={(e) => updateConfig("postFeed", "aspectRatio", e.target.value)}
+                      >
+                        <option value="auto">Auto (Original)</option>
+                        <option value="1/1">1:1 (Square)</option>
+                        <option value="3/4">3:4 (Portrait)</option>
+                        <option value="3/2">3:2 (Landscape)</option>
+                        <option value="9/16">9:16 (Story)</option>
+                      </select>
+                    </div>
+
+                    <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px dashed #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>Hide Specific Posts</div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Select posts in the preview to exclude them</div>
+                      </div>
+                      <button 
+                        className={`premium-button ${isHideMode ? "button-success" : ""}`} 
+                        onClick={() => setIsHideMode(!isHideMode)}
+                        style={{ padding: "8px 16px", minHeight: "unset", background: isHideMode ? "var(--premium-accent)" : "white", color: isHideMode ? "white" : "#0f172a", border: "1px solid #e2e8f0" }}
+                      >
+                        {isHideMode ? "Done Hiding" : "Exclude Posts"}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Brand Customisation */}
@@ -846,6 +935,30 @@ export default function Index() {
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
                       <span style={{ fontSize: "16px" }}>🎨</span>
                       <h3 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "#0f172a" }}>BRAND CUSTOMIZATION</h3>
+                    </div>
+
+                    <div className="setting-row" style={{ background: "white", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", opacity: !isPaid && !config.postFeed.removeWatermark ? 0.7 : 1 }}>
+                      <div>
+                        <div style={{ fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+                          Remove Watermark
+                          <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>Hide the "By BOOST STAR Experts" badge</div>
+                      </div>
+                      <label className="premium-switch">
+                        <input
+                          type="checkbox"
+                          checked={config.postFeed.removeWatermark || false}
+                          onChange={(e) => {
+                             if (!isPaid) {
+                               shopify.toast.show("Please upgrade to a Paid plan to remove the watermark.");
+                               return;
+                             }
+                             updateConfig("postFeed", "removeWatermark", e.target.checked);
+                          }}
+                        />
+                        <span className="slider" />
+                      </label>
                     </div>
 
                     <div className="setting-card">
@@ -1111,6 +1224,12 @@ export default function Index() {
                                 <div style={{ width: "20px", height: "20px", border: "2px solid #e2e8f0", borderTop: "2px solid var(--premium-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
                               </div>
                             )}
+
+                            {!config.postFeed.removeWatermark && (
+                              <div style={{ textAlign: "center", padding: "12px", fontSize: "10px", color: "#9ca3af" }}>
+                                Powered by <span style={{ fontWeight: "700", color: "#64748b" }}>BOOST STAR Experts</span>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           /* Story preview – mobile */
@@ -1127,7 +1246,7 @@ export default function Index() {
                             )}
                             {config.stories.enable && (
                               <div className="carousel-wrapper hover-buttons" style={{ position: "relative" }}>
-                                <button className="carousel-nav prev" onClick={() => scrollCarousel(mobileStoryRef, "prev")} style={{ width: "24px", height: "24px", left: "0" }}>
+                                <button className="carousel-nav prev" onClick={() => scrollCarousel(mobileStoryRef, "prev")} style={{ width: "24px", height: "24px", left: "0", top: "28px", transform: "translateY(-50%)" }}>
                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="15 18 9 12 15 6" /></svg>
                                 </button>
                                 <div className="carousel-container" ref={mobileStoryRef} style={{ gap: "12px", padding: "0 4px 10px" }}>
@@ -1146,7 +1265,7 @@ export default function Index() {
                                     </div>
                                   ))}
                                 </div>
-                                <button className="carousel-nav next" onClick={() => scrollCarousel(mobileStoryRef, "next")} style={{ width: "24px", height: "24px", right: "0" }}>
+                                <button className="carousel-nav next" onClick={() => scrollCarousel(mobileStoryRef, "next")} style={{ width: "24px", height: "24px", right: "0", top: "28px", transform: "translateY(-50%)" }}>
                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="9 18 15 12 9 6" /></svg>
                                 </button>
                               </div>
@@ -1185,7 +1304,7 @@ export default function Index() {
                                 )}
                                 {config.stories.enable && (
                                   <div className="carousel-wrapper hover-buttons" style={{ position: "relative" }}>
-                                    <button className="carousel-nav prev" onClick={() => scrollCarousel(desktopStoryRef, "prev")} style={{ width: "28px", height: "28px", left: "-8px" }}>
+                                    <button className="carousel-nav prev" onClick={() => scrollCarousel(desktopStoryRef, "prev")} style={{ width: "28px", height: "28px", left: "-8px", top: "40px", transform: "translateY(-50%)" }}>
                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
                                     </button>
                                     <div className="carousel-container" ref={desktopStoryRef} style={{ justifyContent: "flex-start", gap: "16px", padding: "8px 4px 12px" }}>
@@ -1204,7 +1323,7 @@ export default function Index() {
                                         </div>
                                       ))}
                                     </div>
-                                    <button className="carousel-nav next" onClick={() => scrollCarousel(desktopStoryRef, "next")} style={{ width: "28px", height: "28px", right: "-8px" }}>
+                                    <button className="carousel-nav next" onClick={() => scrollCarousel(desktopStoryRef, "next")} style={{ width: "28px", height: "28px", right: "-8px", top: "40px", transform: "translateY(-50%)" }}>
                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
                                     </button>
                                   </div>
@@ -1250,6 +1369,12 @@ export default function Index() {
                                 {config.postFeed.load && isInfiniteLoading && (
                                   <div style={{ padding: "24px", display: "flex", justifyContent: "center" }}>
                                     <div style={{ width: "22px", height: "22px", border: "3px solid #e2e8f0", borderTop: "3px solid var(--premium-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                                  </div>
+                                )}
+
+                                {!config.postFeed.removeWatermark && (
+                                  <div style={{ textAlign: "center", padding: "16px", fontSize: "12px", color: "#9ca3af" }}>
+                                    Powered by <span style={{ fontWeight: "700", color: "#64748b" }}>BOOST STAR Experts</span>
                                   </div>
                                 )}
                               </>
