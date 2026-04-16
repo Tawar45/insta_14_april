@@ -204,6 +204,7 @@ const DEFAULT_CONFIG = {
     animateImages: false,
     activeRing: true,
     ringColor: "#6366f1",
+    showNavigation: true,
   },
 };
 
@@ -1159,6 +1160,7 @@ export default function Index() {
                       { id: "autoplay",   label: "Auto Play Stories", sub: "Animate top highlights",    icon: "🎞️" },
                       { id: "animateImages", label: "Animate Images", sub: "Subtle zoom effect on photos", icon: "✨" },
                       { id: "activeRing", label: "Moving Story Ring", sub: "Rotating dashed border effect", icon: "🎡" },
+                      { id: "showNavigation", label: "Story Navigation Arrows", sub: "Show/Hide prev/next buttons", icon: "↔️" },
                       { id: "showHeader", label: "Display Branding",  sub: "Show/Hide story title",     icon: "📢" },
                     ].map((item, idx) => (
                       <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both` }}>
@@ -1390,9 +1392,11 @@ export default function Index() {
                             )}
                             {config.stories.enable && (
                               <div className="carousel-wrapper hover-buttons" style={{ position: "relative" }}>
+                                {config.stories.showNavigation && (
                                   <button className="carousel-nav prev" onClick={() => scrollCarousel(mobileStoryRef, "prev")} style={{ width: "22px", height: "22px", left: "-6px", top: "28px", transform: "translateY(-50%)" }}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="15 18 9 12 15 6" /></svg>
                                   </button>
+                                )}
                                 <div className="carousel-container" ref={mobileStoryRef} style={{ gap: "12px", padding: "0 4px 10px" }}>
                                   {(instaData?.media?.data || baseMedia).slice(0, 12).map((item, i) => (
                                     <div key={i} style={{ flexShrink: 0, width: "60px", textAlign: "center" }}>
@@ -1422,9 +1426,11 @@ export default function Index() {
                                     </div>
                                   ))}
                                 </div>
-                                <button className="carousel-nav next" onClick={() => scrollCarousel(mobileStoryRef, "next")} style={{ width: "22px", height: "22px", right: "-6px", top: "28px", transform: "translateY(-50%)" }}>
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="9 18 15 12 9 6" /></svg>
-                                </button>
+                                {config.stories.showNavigation && (
+                                  <button className="carousel-nav next" onClick={() => scrollCarousel(mobileStoryRef, "next")} style={{ width: "22px", height: "22px", right: "-6px", top: "28px", transform: "translateY(-50%)" }}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="9 18 15 12 9 6" /></svg>
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
@@ -1474,9 +1480,11 @@ export default function Index() {
                                 )}
                                 {config.stories.enable && (
                                   <div className="carousel-wrapper hover-buttons" style={{ position: "relative" }}>
-                                    <button className="carousel-nav prev" onClick={() => scrollCarousel(desktopStoryRef, "prev")} style={{ width: "28px", height: "28px", left: "-10px", top: "32px", transform: "translateY(-50%)" }}>
-                                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
-                                    </button>
+                                    {config.stories.showNavigation && (
+                                      <button className="carousel-nav prev" onClick={() => scrollCarousel(desktopStoryRef, "prev")} style={{ width: "28px", height: "28px", left: "-10px", top: "32px", transform: "translateY(-50%)" }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
+                                      </button>
+                                    )}
                                     <div className="carousel-container" ref={desktopStoryRef} style={{ justifyContent: "flex-start", gap: "16px", padding: "8px 4px 12px" }}>
                                       {(instaData?.media?.data || baseMedia).slice(0, 8).map((item, i) => (
                                         <div key={i} style={{ textAlign: "center", width: "72px", flexShrink: 0 }}>
@@ -1506,9 +1514,11 @@ export default function Index() {
                                         </div>
                                       ))}
                                     </div>
-                                    <button className="carousel-nav next" onClick={() => scrollCarousel(desktopStoryRef, "next")} style={{ width: "28px", height: "28px", right: "-10px", top: "32px", transform: "translateY(-50%)" }}>
-                                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
-                                    </button>
+                                    {config.stories.showNavigation && (
+                                      <button className="carousel-nav next" onClick={() => scrollCarousel(desktopStoryRef, "next")} style={{ width: "28px", height: "28px", right: "-10px", top: "32px", transform: "translateY(-50%)" }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>

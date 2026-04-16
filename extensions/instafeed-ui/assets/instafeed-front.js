@@ -342,10 +342,12 @@
     if (s.enable) {
       html += `
         <div style="position:relative;width:100%;">
-          <button class="ai-fw-nav ai-fw-prev" data-track-id="${trackId}" aria-label="Previous"
-            style="left:-16px;top:42px;transform:translateY(-50%);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
+          ${s.showNavigation ? `
+            <button class="ai-fw-nav ai-fw-prev" data-track-id="${trackId}" aria-label="Previous"
+              style="left:-16px;top:42px;transform:translateY(-50%);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+          ` : ''}
           <div id="${trackId}" class="ai-fw-track" style="
             display:flex;
             overflow-x:auto;
@@ -403,10 +405,12 @@
 
       html += `
           </div>
-          <button class="ai-fw-nav ai-fw-next" data-track-id="${trackId}" aria-label="Next"
-            style="right:-16px;top:42px;transform:translateY(-50%);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
+          ${s.showNavigation ? `
+            <button class="ai-fw-nav ai-fw-next" data-track-id="${trackId}" aria-label="Next"
+              style="right:-16px;top:42px;transform:translateY(-50%);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          ` : ''}
         </div>`;
     }
 
@@ -470,7 +474,7 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </div>
             <div>
-              <div style="font-weight:700;font-size:16px;">@${currentConfig.instagramHandle}</div>
+              <div style="font-weight:700;font-size:16px;">@${currentConfig.instagramHandle || 'instagram'}</div>
               <div style="font-size:12px;color:#64748b;">Instagram</div>
             </div>
             <button onclick="document.getElementById('ai-instafeed-modal-root').style.display='none'" style="margin-left:auto;background:#f8fafc;border:1px solid #e2e8f0;padding:8px;border-radius:8px;cursor:pointer;display:${window.innerWidth >= 768 ? 'flex' : 'none'};">
