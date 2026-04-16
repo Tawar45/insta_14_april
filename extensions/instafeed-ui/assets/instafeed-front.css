@@ -79,6 +79,15 @@
   100% { transform: scale(1); }
 }
 
+@keyframes rotateRing {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .ai-ken-burns {
   animation: kenBurns 10s ease-in-out infinite !important;
+}
+
+.ai-story-ring {
+  box-sizing: border-box;
 }

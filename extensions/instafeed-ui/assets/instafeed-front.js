@@ -312,8 +312,9 @@
     const s         = config.stories;
     const ringColor = config.postFeed?.typography?.heading?.color || "#6366f1";
     const storyItems = getMedia(mediaData, 15);
+    const isActiveRing = s.activeRing !== false;
 
-    // Unique track ID (avoids clashes if grid & story co-exist on page)
+    // Unique track ID
     const trackId = "ai-story-track-" + Date.now();
 
     let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;">`;
@@ -360,6 +361,7 @@
         const href     = item.permalink || "#";
         const target   = href === "#" ? "_self" : "_blank";
         const label    = item.caption ? esc(item.caption.split(" ")[0]) : `Story ${i + 1}`;
+        
         const mediaTpl = (isVideo && s.autoplay)
           ? `<video src="${esc(item.media_url)}" autoplay muted loop playsinline
               style="width:100%;height:100%;object-fit:cover;display:block;"></video>`
@@ -375,12 +377,20 @@
               style="text-decoration:none;display:block;">
               <div style="
                 width:68px;height:68px;border-radius:50%;
-                padding:3px;border:2.5px solid ${ringColor};
+                padding:3px;border: ${isActiveRing ? 'none' : '2.5px solid ' + ringColor};
                 background:white;margin:0 auto 8px;overflow:hidden;
                 transition:transform 0.2s;
+                position:relative;
               " onmouseenter="this.style.transform='scale(1.08)'"
                  onmouseleave="this.style.transform='scale(1)'">
-                <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#f1f5f9;">
+                ${isActiveRing ? `
+                  <div class="ai-story-ring" style="
+                    position:absolute;inset:0;border-radius:50%;
+                    border:2.5px dashed ${ringColor};
+                    animation: rotateRing 12s linear infinite;
+                  "></div>
+                ` : ''}
+                <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#f1f5f9;position:relative;z-index:1;">
                   ${mediaTpl}
                 </div>
               </div>
