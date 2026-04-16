@@ -558,26 +558,43 @@ input[type="color"].premium-input {
 /* ── Media Metrics Overlay ───────────────────────────────────────────────────── */
 .media-metrics {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -40%);
+  bottom: 12px;
+  left: 12px;
   display: flex;
-  gap: 20px;
+  gap: 12px;
   color: white;
   background: transparent;
   opacity: 0;
   transition: all 0.25s ease;
   pointer-events: none;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   z-index: 6;
   white-space: nowrap;
+  transform: translateY(10px);
 }
 
 .carousel-item:hover .media-metrics,
 .grid-item:hover .media-metrics {
   opacity: 1;
-  transform: translate(-50%, -50%);
+  transform: translateY(0);
+}
+
+.ai-ig-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -40%) scale(0.8);
+  opacity: 0;
+  transition: all 0.25s ease;
+  pointer-events: none;
+  z-index: 7;
+}
+
+.carousel-item:hover .ai-ig-icon,
+.grid-item:hover .ai-ig-icon {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .media-icon-badge {

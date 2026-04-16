@@ -232,10 +232,10 @@
 
     const metrics = c.metrics
       ? `<div style="
-          position:absolute;top:50%;left:50%;transform:translate(-50%,-40%);
-          display:flex;gap:20px;color:white;font-size:16px;font-weight:700;
+          position:absolute;bottom:12px;left:12px;
+          display:flex;gap:12px;color:white;font-size:14px;font-weight:700;
           opacity:0;transition:all 0.25s ease;pointer-events:none;z-index:6;
-          white-space:nowrap;
+          white-space:nowrap;transform:translateY(10px);
         " class="ai-metrics">
           <div style="display:flex;align-items:center;gap:6px;">
             <svg aria-label="Like" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -254,8 +254,8 @@
 
     const instagramLogo = (c.showInstagramIcon !== false)
       ? `<div style="
-          position:absolute;top:12px;right:12px;
-          opacity:0;transform:scale(0.8);
+          position:absolute;top:50%;left:50%;
+          opacity:0;transform:translate(-50%, -40%) scale(0.8);
           transition:all 0.25s ease;pointer-events:none;z-index:7;
         " class="ai-ig-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -275,14 +275,14 @@
         <a href="${esc(href)}" target="${target}" rel="noopener noreferrer"
           style="text-decoration:none;display:block;"
           onmouseenter="
-            var m=this.querySelector('.ai-metrics');if(m){m.style.opacity='1';m.style.transform='translate(-50%,-50%)';}
-            var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='1';i.style.transform='scale(1)';}
+            var m=this.querySelector('.ai-metrics');if(m){m.style.opacity='1';m.style.transform='translateY(0)';}
+            var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='1';i.style.transform='translate(-50%,-50%) scale(1)';}
             var b=this.querySelector('.media-icon-badge');if(b){b.style.opacity='0';}
             var o=this.querySelector('.ai-card-overlay');if(o)o.style.opacity='1';
           "
           onmouseleave="
-            var m=this.querySelector('.ai-metrics');if(m){m.style.opacity='0';m.style.transform='translate(-50%,-40%)';}
-            var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='0';i.style.transform='scale(0.8)';}
+            var m=this.querySelector('.ai-metrics');if(m){m.style.opacity='0';m.style.transform='translateY(10px)';}
+            var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='0';i.style.transform='translate(-50%,-40%) scale(0.8)';}
             var b=this.querySelector('.media-icon-badge');if(b){b.style.opacity='1';}
             var o=this.querySelector('.ai-card-overlay');if(o)o.style.opacity='0';
           ">
