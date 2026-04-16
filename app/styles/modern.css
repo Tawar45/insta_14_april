@@ -558,47 +558,59 @@ input[type="color"].premium-input {
 /* ── Media Metrics Overlay ───────────────────────────────────────────────────── */
 .media-metrics {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 14px 16px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -40%);
   display: flex;
   gap: 20px;
   color: white;
   background: transparent;
   opacity: 0;
-  transform: translateY(4px);
   transition: all 0.25s ease;
   pointer-events: none;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 16px;
   z-index: 6;
+  white-space: nowrap;
 }
 
 .carousel-item:hover .media-metrics,
 .grid-item:hover .media-metrics {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(-50%, -50%);
 }
 
 .ai-ig-icon {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.4);
+  top: 12px;
+  right: 12px;
   opacity: 0;
-  transform: scale(0.95);
+  transform: scale(0.8);
   transition: all 0.25s ease;
   pointer-events: none;
-  z-index: 5;
+  z-index: 7;
 }
 
 .carousel-item:hover .ai-ig-icon,
 .grid-item:hover .ai-ig-icon {
   opacity: 1;
   transform: scale(1);
+}
+
+/* Full card overlay for hover effect */
+.grid-item::before, .carousel-item::before, .hover-card-overlay {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.grid-item:hover::before, .carousel-item:hover::before, .grid-item:hover .hover-card-overlay {
+  opacity: 1;
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */

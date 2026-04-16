@@ -225,14 +225,23 @@ export default function Index() {
   const [isInfiniteLoading, setIsInfiniteLoading] = useState(false);
   const [extraLoadCount, setExtraLoadCount] = useState(0);
 
-  const PLACEHOLDER_MEDIA = useMemo(() => [
-    { media_url: "https://images.unsplash.com/photo-1611162147679-aa3c393bc3ec?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 120,  comments_count: 8  },
-    { media_url: "https://images.unsplash.com/photo-1542435503-956c469947f6?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 85,   comments_count: 12 },
-    { media_url: "https://images.unsplash.com/photo-1493723843671-1d655e8d717f?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 210, comments_count: 45 },
-    { media_url: "https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 110, comments_count: 15 },
-    { media_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 320, comments_count: 31 },
-    { media_url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop", media_type: "IMAGE", like_count: 95,  comments_count: 3  },
-  ], []);
+  const PLACEHOLDER_MEDIA = useMemo(() => {
+    const baseUrls = [
+      "https://images.unsplash.com/photo-1611162147679-aa3c393bc3ec?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1542435503-956c469947f6?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1493723843671-1d655e8d717f?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop",
+    ];
+    return Array.from({ length: 24 }).map((_, i) => ({
+      id: `placeholder_${i}`,
+      media_url: baseUrls[i % baseUrls.length],
+      media_type: "IMAGE",
+      like_count: 120 + (i * 5) % 80,
+      comments_count: 8 + (i * 2) % 15
+    }));
+  }, []);
 
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [lastSavedConfig, setLastSavedConfig] = useState(null);
@@ -459,8 +468,8 @@ export default function Index() {
       ...prev,
       [section]: { ...prev[section], [key]: value },
     }));
-    if (key === "mobileColumns")  setPreviewDevice("mobile");
-    if (key === "desktopColumns") setPreviewDevice("desktop");
+    if (key === "mobileColumns" || key === "mobileLimit")  setPreviewDevice("mobile");
+    if (key === "desktopColumns" || key === "desktopLimit") setPreviewDevice("desktop");
     if (section === "stories")   setActiveTab("story");
     if (section === "postFeed")  setActiveTab("post");
   }, []);
@@ -620,13 +629,13 @@ export default function Index() {
         {config.postFeed.metrics && (
           <div className="media-metrics">
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <svg aria-label="Like" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-label="Like" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
               </svg>
               <span>{item.like_count ?? "0"}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <svg aria-label="Comment" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-label="Comment" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
               </svg>
               <span>{item.comments_count ?? "0"}</span>
@@ -635,13 +644,15 @@ export default function Index() {
         )}
         {(config.postFeed.showInstagramIcon !== false) && (
           <div className="ai-ig-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
               <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
               <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
             </svg>
           </div>
         )}
+        {/* Hover Overlay */}
+        <div className="hover-card-overlay" />
       </div>
     );
   };
@@ -862,6 +873,7 @@ export default function Index() {
                     { id: "load",     label: "Infinite Paging", sub: "Zero-latency scrolling",       icon: "🔄", isPremium: true },
                     { id: "carousel", label: "Smart Carousel",  sub: "Auto-swipe logic",             icon: "📱" },
                     { id: "autoplay", label: "Smart Autoplay",  sub: "Pre-load video content",       icon: "🎬" },
+                    { id: "showInstagramIcon", label: "Instagram Icon", sub: "Branding badge on posts", icon: "📸" },
                   ].map((item, idx) => (
                     <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both`, opacity: (!isPaid && item.isPremium && !config.postFeed[item.id]) ? 0.7 : 1 }}>
                       <div className="setting-info">
@@ -1313,9 +1325,9 @@ export default function Index() {
                             )}
                             {config.stories.enable && (
                               <div className="carousel-wrapper hover-buttons" style={{ position: "relative" }}>
-                                <button className="carousel-nav prev" onClick={() => scrollCarousel(mobileStoryRef, "prev")} style={{ width: "24px", height: "24px", left: "0", top: "28px", transform: "translateY(-50%)" }}>
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="15 18 9 12 15 6" /></svg>
-                                </button>
+                                  <button className="carousel-nav prev" onClick={() => scrollCarousel(mobileStoryRef, "prev")} style={{ width: "22px", height: "22px", left: "-6px", top: "28px", transform: "translateY(-50%)" }}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="15 18 9 12 15 6" /></svg>
+                                  </button>
                                 <div className="carousel-container" ref={mobileStoryRef} style={{ gap: "12px", padding: "0 4px 10px" }}>
                                   {(instaData?.media?.data || baseMedia).slice(0, 12).map((item, i) => (
                                     <div key={i} style={{ flexShrink: 0, width: "60px", textAlign: "center" }}>
@@ -1332,7 +1344,7 @@ export default function Index() {
                                     </div>
                                   ))}
                                 </div>
-                                <button className="carousel-nav next" onClick={() => scrollCarousel(mobileStoryRef, "next")} style={{ width: "24px", height: "24px", right: "0", top: "28px", transform: "translateY(-50%)" }}>
+                                <button className="carousel-nav next" onClick={() => scrollCarousel(mobileStoryRef, "next")} style={{ width: "22px", height: "22px", right: "-6px", top: "28px", transform: "translateY(-50%)" }}>
                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="9 18 15 12 9 6" /></svg>
                                 </button>
                               </div>
@@ -1345,17 +1357,30 @@ export default function Index() {
                 ) : (
                   /* ── Desktop Device Frame ── */
                   <div style={{ animation: "fadeInBlur 0.4s ease-out", width: "100%", marginTop: "0" }}>
-                    <div style={{ width: "100%", maxWidth: "580px", margin: "0 auto" }}>
-                      <div style={{ width: "100%", aspectRatio: "1.6/1", background: "#1e293b", borderRadius: "16px", padding: "10px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
-                        <div style={{ width: "100%", height: "100%", background: "white", borderRadius: "8px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                          {/* Browser chrome */}
-                          <div style={{ height: "28px", background: "#f1f5f9", display: "flex", alignItems: "center", padding: "0 10px", gap: "6px", flexShrink: 0 }}>
-                            <div style={{ width: "6px", height: "6px", background: "#ff5f56", borderRadius: "50%" }} />
-                            <div style={{ width: "6px", height: "6px", background: "#ffbd2e", borderRadius: "50%" }} />
-                            <div style={{ width: "6px", height: "6px", background: "#27c93f", borderRadius: "50%" }} />
-                          </div>
-                          {/* Page content */}
-                          <div style={{ padding: "16px", flex: 1, overflowY: "auto" }} onScroll={(e) => handleScroll(e, "vertical")}>
+                    <div style={{ width: "100%", maxWidth: "680px", margin: "0 auto" }}>
+                      {/* Browser Frame */}
+                      <div style={{ width: "100%", background: "#e2e8f0", borderRadius: "12px 12px 0 0", padding: "8px 12px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid #cbd5e1", borderBottom: "none" }}>
+                         <div style={{ display: "flex", gap: "6px" }}>
+                           <div style={{ width: "10px", height: "10px", background: "#f87171", borderRadius: "50%" }} />
+                           <div style={{ width: "10px", height: "10px", background: "#fbbf24", borderRadius: "50%" }} />
+                           <div style={{ width: "10px", height: "10px", background: "#34d399", borderRadius: "50%" }} />
+                         </div>
+                         <div style={{ height: "24px", width: "120px", background: "white", borderRadius: "6px 6px 0 0", padding: "0 10px", display: "flex", alignItems: "center", fontSize: "10px", fontWeight: "600", color: "#64748b", border: "1px solid #cbd5e1", borderBottom: "none", position: "relative", top: "8px" }}>
+                           Your Feed
+                         </div>
+                      </div>
+                      <div style={{ width: "100%", background: "#f8fafc", padding: "10px 16px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid #cbd5e1" }}>
+                         <div style={{ display: "flex", gap: "10px", fontSize: "12px", color: "#94a3b8" }}>
+                           <span>←</span> <span>→</span> <span>↻</span>
+                         </div>
+                         <div style={{ flex: 1, height: "28px", background: "white", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "0 12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                           <span style={{ fontSize: "10px" }}>🔒</span>
+                           <span style={{ fontSize: "11px", color: "#64748b" }}>your-store.myshopify.com</span>
+                         </div>
+                         <div style={{ fontSize: "12px", color: "#94a3b8" }}>≡</div>
+                      </div>
+                      <div style={{ width: "100%", aspectRatio: "1.6/1", background: "white", border: "1px solid #cbd5e1", borderTop: "none", borderRadius: "0 0 12px 12px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                        <div style={{ height: "100%", overflowY: "auto", padding: "24px" }} onScroll={(e) => handleScroll(e, "vertical")}>
                             {activeTab === "story" ? (
                               /* Story desktop preview */
                               <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
@@ -1371,7 +1396,7 @@ export default function Index() {
                                 )}
                                 {config.stories.enable && (
                                   <div className="carousel-wrapper hover-buttons" style={{ position: "relative" }}>
-                                    <button className="carousel-nav prev" onClick={() => scrollCarousel(desktopStoryRef, "prev")} style={{ width: "28px", height: "28px", left: "-8px", top: "40px", transform: "translateY(-50%)" }}>
+                                    <button className="carousel-nav prev" onClick={() => scrollCarousel(desktopStoryRef, "prev")} style={{ width: "28px", height: "28px", left: "-10px", top: "32px", transform: "translateY(-50%)" }}>
                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
                                     </button>
                                     <div className="carousel-container" ref={desktopStoryRef} style={{ justifyContent: "flex-start", gap: "16px", padding: "8px 4px 12px" }}>
@@ -1390,7 +1415,7 @@ export default function Index() {
                                         </div>
                                       ))}
                                     </div>
-                                    <button className="carousel-nav next" onClick={() => scrollCarousel(desktopStoryRef, "next")} style={{ width: "28px", height: "28px", right: "-8px", top: "40px", transform: "translateY(-50%)" }}>
+                                    <button className="carousel-nav next" onClick={() => scrollCarousel(desktopStoryRef, "next")} style={{ width: "28px", height: "28px", right: "-10px", top: "32px", transform: "translateY(-50%)" }}>
                                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
                                     </button>
                                   </div>
@@ -1449,7 +1474,6 @@ export default function Index() {
                           </div>
                         </div>
                       </div>
-                    </div>
                   </div>
                 )}
               </div>

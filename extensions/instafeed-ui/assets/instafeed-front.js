@@ -90,16 +90,20 @@
   ];
 
   function getMedia(mediaData, count) {
-    const base =
-      mediaData.length > 0
-        ? mediaData
-        : PLACEHOLDERS.map((url) => ({
-            media_url:      url,
-            media_type:     "IMAGE",
-            like_count:     0,
-            comments_count: 0,
-            permalink:      "#",
-          }));
+    if (mediaData.length > 0) {
+      return mediaData.slice(0, Math.min(count, MAX_FEED_ITEMS));
+    }
+    const base = [];
+    for (let i = 0; i < count; i++) {
+        base.push({
+            id: 'placeholder_' + i,
+            media_url: PLACEHOLDERS[i % PLACEHOLDERS.length],
+            media_type: "IMAGE",
+            like_count: Math.floor(Math.random() * 200) + 50,
+            comments_count: Math.floor(Math.random() * 20) + 2,
+            permalink: "#"
+        });
+    }
     return base.slice(0, Math.min(count, MAX_FEED_ITEMS));
   }
 
@@ -210,13 +214,10 @@
 
     const metrics = c.metrics
       ? `<div style="
-          position:absolute;bottom:0;left:0;right:0;
-          padding:14px 16px;
-          background:transparent;
-          display:flex;gap:20px;color:white;
-          font-size:14px;font-weight:700;
-          opacity:0;transform:translateY(4px);transition:all 0.25s ease;
-          pointer-events:none;z-index:6;
+          position:absolute;top:50%;left:50%;transform:translate(-50%,-40%);
+          display:flex;gap:20px;color:white;font-size:16px;font-weight:700;
+          opacity:0;transition:all 0.25s ease;pointer-events:none;z-index:6;
+          white-space:nowrap;
         " class="ai-metrics">
           <div style="display:flex;align-items:center;gap:6px;">
             <svg aria-label="Like" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -235,11 +236,11 @@
 
     const instagramLogo = (c.showInstagramIcon !== false)
       ? `<div style="
-          position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-          background:rgba(0,0,0,0.4);opacity:0;transform:scale(0.95);
-          transition:all 0.25s ease;pointer-events:none;z-index:5;
+          position:absolute;top:12px;right:12px;
+          opacity:0;transform:scale(0.8);
+          transition:all 0.25s ease;pointer-events:none;z-index:7;
         " class="ai-ig-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
             <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
@@ -247,16 +248,28 @@
         </div>`
       : "";
 
+    // Dark overlay background for hover
+    const overlay = `<div class="ai-card-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.4);opacity:0;transition:opacity 0.25s;z-index:4;"></div>`;
+
     const aspect = c.aspectRatio === "auto" ? "auto" : (c.aspectRatio || "1/1");
     return `
       <div style="flex-shrink:0;width:${width};box-sizing:border-box;">
         <a href="${esc(href)}" target="${target}" rel="noopener noreferrer"
           style="text-decoration:none;display:block;"
-          onmouseenter="var m=this.querySelector('.ai-metrics');if(m)m.style.opacity='1';var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='1';i.style.transform='scale(1)';}"
-          onmouseleave="var m=this.querySelector('.ai-metrics');if(m)m.style.opacity='0';var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='0';i.style.transform='scale(0.95)';}">
+          onmouseenter="
+            var m=this.querySelector('.ai-metrics');if(m){m.style.opacity='1';m.style.transform='translate(-50%,-50%)';}
+            var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='1';i.style.transform='scale(1)';}
+            var o=this.querySelector('.ai-card-overlay');if(o)o.style.opacity='1';
+          "
+          onmouseleave="
+            var m=this.querySelector('.ai-metrics');if(m){m.style.opacity='0';m.style.transform='translate(-50%,-40%)';}
+            var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='0';i.style.transform='scale(0.8)';}
+            var o=this.querySelector('.ai-card-overlay');if(o)o.style.opacity='0';
+          ">
           <div style="aspect-ratio:${aspect};background:#f1f5f9;border-radius:6px;overflow:hidden;position:relative;">
             ${inner}
             ${videoIcon}
+            ${overlay}
             ${metrics}
             ${instagramLogo}
           </div>
