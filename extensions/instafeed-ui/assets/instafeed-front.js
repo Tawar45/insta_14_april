@@ -34,7 +34,7 @@
         lastIsMobile = isMobile;
         if (currentConfig && currentMedia) {
           if (gridRoot) renderFeedGrid(gridRoot, currentConfig, currentMedia);
-          if (storyRoot && currentConfig.stories?.enable) renderStoryBlocks(storyRoot, currentConfig, currentMedia);
+          if (storyRoot && currentConfig.stories?.enable) renderStoryLayout(storyRoot, currentConfig, currentMedia);
         }
       }
     });
@@ -73,6 +73,15 @@
 
         if (gridRoot  && config.postFeed) renderFeedGrid(gridRoot, config, mediaData);
         if (storyRoot && config.stories)  renderStoryLayout(storyRoot, config, mediaData);
+        
+        // Ensure Modal container exists
+        if (!document.getElementById("ai-instafeed-modal-root")) {
+          const modStr = `<div id="ai-instafeed-modal-root" style="position:fixed;inset:0;z-index:999999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);"></div>`;
+          document.body.insertAdjacentHTML('beforeend', modStr);
+          document.getElementById("ai-instafeed-modal-root").addEventListener('click', function(e) {
+            if (e.target.id === "ai-instafeed-modal-root") this.style.display = 'none';
+          });
+        }
       }
     } catch (err) {
       console.warn("[AI Instafeed] Could not load data:", err.message);
@@ -194,8 +203,6 @@
   function renderMediaCard(item, c, width) {
     const isVideo = item.media_type === "VIDEO";
     const src     = isVideo ? (item.thumbnail_url || item.media_url) : item.media_url;
-    const href    = item.permalink || "#";
-    const target  = href === "#" ? "_self" : "_blank";
 
     let inner = "";
     if (isVideo && c.autoplay) {
@@ -272,8 +279,9 @@
     const aspect = c.aspectRatio === "auto" ? "auto" : (c.aspectRatio || "1/1");
     return `
       <div style="flex-shrink:0;width:${width};box-sizing:border-box;">
-        <a href="${esc(href)}" target="${target}" rel="noopener noreferrer"
-          style="text-decoration:none;display:block;"
+        <div 
+          style="text-decoration:none;display:block;cursor:pointer;"
+          onclick="window.aiOpenInstaModal('${item.id || item.media_url.slice(-20)}')"
           onmouseenter="
             var m=this.querySelector('.ai-metrics');if(m){m.style.opacity='1';m.style.transform='translateY(0)';}
             var i=this.querySelector('.ai-ig-icon');if(i){i.style.opacity='1';i.style.transform='translate(-50%,-50%) scale(1)';}
@@ -293,7 +301,7 @@
             ${metrics}
             ${instagramLogo}
           </div>
-        </a>
+        </div>
       </div>`;
   }
 
@@ -420,6 +428,63 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
   }
+
+  // ── Modal Logic ──────────────────────────────────────────────────────────
+  window.aiOpenInstaModal = function(id) {
+    const item = currentMedia.find(m => (m.id || m.media_url.slice(-20)) === id);
+    if (!item) return;
+    
+    const root = document.getElementById("ai-instafeed-modal-root");
+    if (!root) return;
+    
+    const isVideo = item.media_type === "VIDEO";
+    const mediaHtml = isVideo 
+      ? `<video src="${item.media_url}" autoplay loop muted playsinline style="max-width:100%;max-height:100%;object-fit:contain;"></video>`
+      : `<img src="${item.media_url}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+
+    const accent = currentConfig.postFeed?.typography?.heading?.color || "#6366f1";
+    
+    root.innerHTML = `
+      <div style="background:white;width:100%;max-width:1000px;max-height:90vh;border-radius:20px;display:flex;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);flex-direction:${window.innerWidth < 768 ? 'column' : 'row'};">
+        <div style="flex:1.2;background:#000;display:flex;align-items:center;justify-content:center;position:relative;">
+          ${mediaHtml}
+          <button onclick="document.getElementById('ai-instafeed-modal-root').style.display='none'" style="position:absolute;top:16px;right:16px;background:white;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-weight:bold;display:${window.innerWidth < 768 ? 'flex' : 'none'};align-items:center;justify-content:center;">✕</button>
+        </div>
+        <div style="flex:0.8;display:flex;flex-direction:column;background:white;padding:24px;min-width:320px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;border-bottom:1px solid #f1f5f9;padding-bottom:16px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:${accent};display:flex;align-items:center;justify-content:center;color:white;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:16px;">@${currentConfig.instagramHandle}</div>
+              <div style="font-size:12px;color:#64748b;">Instagram</div>
+            </div>
+            <button onclick="document.getElementById('ai-instafeed-modal-root').style.display='none'" style="margin-left:auto;background:#f8fafc;border:1px solid #e2e8f0;padding:8px;border-radius:8px;cursor:pointer;display:${window.innerWidth >= 768 ? 'flex' : 'none'};">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          <div style="flex:1;overflow-y:auto;margin-bottom:24px;">
+            <p style="margin:0;font-size:14px;line-height:1.6;color:#334155;">${esc(item.caption)}</p>
+            <div style="margin-top:16px;font-size:11px;color:#94a3b8;font-weight:600;">${item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Recently'}</div>
+          </div>
+          <div style="border-top:1px solid #f1f5f9;padding-top:20px;">
+            <div style="display:flex;gap:24px;margin-bottom:20px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <svg color="#ef4444" fill="#ef4444" width="22" height="22" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                <span style="font-weight:700;font-size:18px;">${item.like_count || 0}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                <span style="font-weight:700;font-size:18px;">${item.comments_count || 0}</span>
+              </div>
+            </div>
+            <a href="${item.permalink}" target="_blank" rel="noreferrer" style="display:flex;align-items:center;justify-content:center;height:44px;background:#000;color:white;text-decoration:none;border-radius:12px;font-weight:700;font-size:14px;width:100%;">View on Instagram</a>
+          </div>
+        </div>
+      </div>
+    `;
+    root.style.display = 'flex';
+  };
 
   // ── Start ─────────────────────────────────────────────────────────────────
   if (document.readyState === "loading") {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLoaderData, useFetcher, useRevalidator } from "react-router";
+/* eslint-disable no-undef */
 import { authenticate } from "../shopify.server";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import {
@@ -55,6 +56,7 @@ export const action = async ({ request }) => {
   return await billing.request({
     plan: planName,
     isTest: true,
+    /* eslint-disable no-undef */
     returnUrl: `https://${session.shop}/admin/apps/${process.env.SHOPIFY_API_KEY}/app/plans`,
   });
 };

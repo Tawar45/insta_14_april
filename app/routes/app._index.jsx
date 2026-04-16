@@ -223,6 +223,7 @@ export default function Index() {
   const isPaid = !!loaderData.subscription;
 
   const [instaData, setInstaData] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
   const [isInfiniteLoading, setIsInfiniteLoading] = useState(false);
   const [extraLoadCount, setExtraLoadCount] = useState(0);
 
@@ -615,7 +616,11 @@ export default function Index() {
         key={i}
         className="grid-item"
         onClick={() => {
-          if (isHideMode) handleToggleHidePost(itemIdentifier);
+          if (isHideMode) {
+            handleToggleHidePost(itemIdentifier);
+          } else {
+            setSelectedPost(item);
+          }
         }}
         style={{ 
           aspectRatio: aspect, 
@@ -1517,6 +1522,105 @@ export default function Index() {
           </div>
         </div>
       </div>
+
+      {/* ── Premium Post Modal ── */}
+      {selectedPost && (
+        <div 
+          className="premium-modal-overlay" 
+          onClick={() => setSelectedPost(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.85)",
+            backdropFilter: "blur(12px)",
+            zIndex: 2000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+            animation: "fadeInBlur 0.3s ease"
+          }}
+        >
+          <div 
+            className="premium-modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white",
+              width: "100%",
+              maxWidth: "1000px",
+              maxHeight: "90vh",
+              borderRadius: "20px",
+              display: "flex",
+              overflow: "hidden",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+              flexDirection: window.innerWidth < 768 ? "column" : "row"
+            }}
+          >
+            {/* Left: Media Area */}
+            <div style={{ flex: 1.2, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+              {selectedPost.media_type === "VIDEO" ? (
+                <video src={selectedPost.media_url} autoPlay loop muted playsInline style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+              ) : (
+                <img src={selectedPost.media_url} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} alt="Post" />
+              )}
+              <button 
+                onClick={() => setSelectedPost(null)}
+                style={{ position: "absolute", top: "16px", right: "16px", background: "white", border: "none", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}
+              >✕</button>
+            </div>
+
+            {/* Right: Info Area */}
+            <div style={{ flex: 0.8, display: "flex", flexDirection: "column", background: "white", padding: "24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", borderBottom: "1px solid #f1f5f9", paddingBottom: "16px" }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--premium-accent-gradient)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                </div>
+                <div>
+                  <div style={{ fontWeight: "700", fontSize: "16px" }}>@{instaData?.username || config.instagramHandle}</div>
+                  <div style={{ fontSize: "12px", color: "#64748b" }}>Instagram Business Discovery</div>
+                </div>
+                <button 
+                  onClick={() => setSelectedPost(null)}
+                  style={{ marginLeft: "auto", background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px", borderRadius: "8px", cursor: "pointer" }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </button>
+              </div>
+
+              <div style={{ flex: 1, overflowY: "auto", marginBottom: "24px" }}>
+                <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.6", color: "#334155" }}>
+                  {selectedPost.caption || "No caption provided for this post."}
+                </p>
+                <div style={{ marginTop: "16px", fontSize: "11px", color: "#94a3b8", fontWeight: "600" }}>
+                  {selectedPost.timestamp ? new Date(selectedPost.timestamp).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Recently Shared"}
+                </div>
+              </div>
+
+              <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "20px" }}>
+                <div style={{ display: "flex", gap: "24px", marginBottom: "20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <svg color="#ef4444" fill="#ef4444" width="22" height="22" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    <span style={{ fontWeight: "700", fontSize: "18px" }}>{selectedPost.like_count || 0}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    <span style={{ fontWeight: "700", fontSize: "18px" }}>{selectedPost.comments_count || 0}</span>
+                  </div>
+                </div>
+                <a 
+                  href={selectedPost.permalink} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="premium-button button-accent"
+                  style={{ width: "100%", textDecoration: "none" }}
+                >
+                  View on Instagram
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
