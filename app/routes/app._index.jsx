@@ -16,7 +16,6 @@ import {
   PlayIcon,
   HeartIcon,
   ChatIcon,
-  CameraIcon,
   LinkIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -32,6 +31,15 @@ import {
   DesktopIcon,
   CollectionIcon
 } from "@shopify/polaris-icons";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CUSTOM ICONS
+// ─────────────────────────────────────────────────────────────────────────────
+const InstagramIcon = () => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+  </svg>
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LOADER
@@ -725,7 +733,7 @@ export default function Index() {
         )}
         {(config.postFeed.showInstagramIcon !== false) && (
           <div className="ai-ig-icon" style={{ color: "white" }}>
-            <Icon source={CameraIcon} />
+            <InstagramIcon />
           </div>
         )}
         {/* Hover Overlay */}
@@ -857,7 +865,7 @@ export default function Index() {
           <div className="input-group-nested">
             <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
               <div style={{ paddingLeft: "16px", color: "var(--premium-accent)", display: "flex", alignItems: "center", flexShrink: 0 }}>
-                <Icon source={CameraIcon} />
+                <InstagramIcon />
               </div>
               <input
                 type="text"
@@ -1000,7 +1008,7 @@ export default function Index() {
                     { id: "load",     label: "Infinite Paging", sub: "Zero-latency scrolling",       icon: RefreshIcon, isPremium: true },
                     { id: "carousel", label: "Smart Carousel",  sub: "Auto-swipe logic",             icon: MobileIcon },
                     { id: "autoplay", label: "Smart Autoplay",  sub: "Pre-load video content",       icon: PlayIcon },
-                    { id: "showInstagramIcon", label: "Instagram Icon", sub: "Branding badge on posts", icon: CameraIcon },
+                    { id: "showInstagramIcon", label: "Instagram Icon", sub: "Branding badge on posts", icon: InstagramIcon },
                     { id: "removeWatermark", label: "Remove Watermark", sub: "Hide 'By BOOST STAR' badge", icon: StarIcon, isPremium: true },
                     { id: "isHideMode", label: "Manual Hide Mode", sub: "Hide specific posts from feed", icon: ViewIcon, isPremium: true, isLocal: true },
                   ].map((item, idx) => (
@@ -1699,7 +1707,7 @@ export default function Index() {
             <div style={{ flex: 0.8, display: "flex", flexDirection: "column", background: "white", padding: "24px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", borderBottom: "1px solid #f1f5f9", paddingBottom: "16px" }}>
                 <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--premium-accent-gradient)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                  <InstagramIcon />
                 </div>
                 <div>
                   <div style={{ fontWeight: "700", fontSize: "16px" }}>@{instaData?.username || config.instagramHandle}</div>
