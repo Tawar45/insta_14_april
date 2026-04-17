@@ -1163,7 +1163,7 @@ export default function Index() {
                     {config.stories.activeRing && (
                       <div className="setting-row" style={{ animation: "slideInUp 0.3s ease-out 0.25s both", background: "#f8fafc", marginTop: "12px" }}>
                         <div className="setting-info">
-                          <div className="setting-icon">🎨</div>
+                          <div className="setting-icon"><Icon source={ColorIcon} color="inherit" /></div>
                           <div>
                             <p style={{ fontWeight: 600, fontSize: "14px" }}>Ring Color</p>
                             <p style={{ fontSize: "12px", color: "#64748b" }}>Choose the color of the moving ring</p>
@@ -1180,10 +1180,10 @@ export default function Index() {
                   </div>
 
                   <div className="visual-architecture" style={{ marginTop: "32px", animation: "slideInUp 0.3s ease-out 0.2s both" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-                      <span style={{ fontSize: "16px" }}>🎨</span>
-                      <h3 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "#0f172a" }}>STORY BRANDING</h3>
-                    </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+                        <Icon source={ColorIcon} tone="base" />
+                        <h3 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "#0f172a" }}>STORY BRANDING</h3>
+                      </div>
 
                     <div className="config-visual-card">
                       <div className="input-group-header">
