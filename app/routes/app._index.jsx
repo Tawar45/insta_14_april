@@ -1469,7 +1469,7 @@ export default function Index() {
 
                             {!config.postFeed.removeWatermark && (
                               <div style={{ textAlign: "center", padding: "12px", fontSize: "10px", color: "#9ca3af" }}>
-                                Powered by <span style={{ fontWeight: "700", color: "#64748b" }}>BOOST STAR Experts</span>
+                                Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: "700", color: "#64748b", textDecoration: "none" }}>BOOST STAR Experts</a>
                               </div>
                             )}
                           </div>
@@ -1663,7 +1663,7 @@ export default function Index() {
 
                                 {!config.postFeed.removeWatermark && (
                                   <div style={{ textAlign: "center", padding: "16px", fontSize: "12px", color: "#9ca3af" }}>
-                                    Powered by <span style={{ fontWeight: "700", color: "#64748b" }}>BOOST STAR Experts</span>
+                                    Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: "700", color: "#64748b", textDecoration: "none" }}>BOOST STAR Experts</a>
                                   </div>
                                 )}
                               </>

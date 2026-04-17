@@ -228,7 +228,7 @@
     if (!c.removeWatermark) {
       html += `
         <div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;">
-          Powered by <span style="font-weight:700;color:#64748b;">BOOST STAR Experts</span>
+          Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style="font-weight:700;color:#64748b;text-decoration:none;">BOOST STAR Experts</a>
         </div>`;
     }
 
