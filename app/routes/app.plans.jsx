@@ -128,8 +128,8 @@ export const action = async ({ request }) => {
   const returnUrl = `https://${session.shop}/admin/apps/${apiKey}/app/plans`;
 
   const response = await admin.graphql(
-    `mutation appSubscriptionCreate($name: String!, $lineItems: [AppSubscriptionLineItemInput!]!, $returnUrl: URL!, $test: Boolean!) {
-      appSubscriptionCreate(name: $name, lineItems: $lineItems, returnUrl: $returnUrl, test: $test) {
+    `mutation appSubscriptionCreate($name: String!, $lineItems: [AppSubscriptionLineItemInput!]!, $returnUrl: URL!, $test: Boolean!, $trialDays: Int) {
+      appSubscriptionCreate(name: $name, lineItems: $lineItems, returnUrl: $returnUrl, test: $test, trialDays: $trialDays) {
         appSubscription { id }
         confirmationUrl
         userErrors { field message }
@@ -150,6 +150,7 @@ export const action = async ({ request }) => {
             },
           },
         ],
+        ...(plan.trial ? { trialDays: plan.trial } : {})
       },
     }
   );
@@ -174,6 +175,11 @@ export default function Plans() {
   const navigation = useNavigation();
   const navigate = useNavigate();
   const [isYearly, setIsYearly] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const isPageLoading = navigation.state === "loading" || (fetcher.state === "submitting" && fetcher.formData?.get("planName"));
 
@@ -188,25 +194,51 @@ export default function Plans() {
     }
   }, [fetcher.data, shopify]);
 
+  // ── SKELETON LOADER (Home Page Style) ──
+  if (!isHydrated) {
+    return (
+      <div style={{ padding: "32px", maxWidth: "1300px", margin: "0 auto", opacity: 0 }}>
+        <SkeletonPage title="Plans & Pricing" />
+      </div>
+    );
+  }
+
   if (isPageLoading) {
     return (
-      <SkeletonPage title="Plans & Pricing" primaryAction>
-        <Layout>
-          {[1, 2].map((i) => (
-            <Layout.Section variant="oneHalf" key={i}>
-              <Card>
-                <BlockStack gap="500">
-                  <SkeletonDisplayText size="small" />
-                  <SkeletonBodyText lines={3} />
-                  <div style={{ marginTop: "20px" }}>
-                    <SkeletonBodyText lines={1} />
+      <div className="premium-dashboard page-fade-in">
+        <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
+          <SkeletonPage title="Plans & Pricing" primaryAction>
+            <Layout>
+              <Layout.Section>
+                <Card>
+                  <div style={{ padding: "40px" }}>
+                    <SkeletonDisplayText size="medium" />
+                    <div style={{ marginTop: "24px" }}><SkeletonBodyText lines={3} /></div>
                   </div>
-                </BlockStack>
-              </Card>
-            </Layout.Section>
-          ))}
-        </Layout>
-      </SkeletonPage>
+                </Card>
+                <div style={{ marginTop: "32px" }}>
+                  <Card>
+                    <div style={{ padding: "40px" }}>
+                      <SkeletonDisplayText size="small" />
+                      <div style={{ marginTop: "24px" }}><SkeletonBodyText lines={5} /></div>
+                    </div>
+                  </Card>
+                </div>
+              </Layout.Section>
+              <Layout.Section variant="oneThird">
+                <Card>
+                  <div style={{ padding: "40px" }}>
+                    <BlockStack gap="500">
+                      <SkeletonDisplayText size="small" />
+                      <SkeletonBodyText lines={10} />
+                    </BlockStack>
+                  </div>
+                </Card>
+              </Layout.Section>
+            </Layout>
+          </SkeletonPage>
+        </div>
+      </div>
     );
   }
 
@@ -256,9 +288,17 @@ export default function Plans() {
   const isSubmitting = fetcher.state !== "idle" || navigation.state !== "idle";
 
   return (
-    <div className="premium-dashboard">
+    <div className="premium-dashboard page-fade-in">
+      <style>{`
+        .page-fade-in { animation: fadeInBlur 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .button-success { 
+          background: #10b981 !important; 
+          color: white !important; 
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+        }
+      `}</style>
       <Page>
-        <BlockStack gap="600">
+        <BlockStack gap="100">
           
           {/* --- PREMIUM BANNER (ABSOLUTE TOP) --- */}
           <div className="premium-card" style={{
@@ -295,7 +335,10 @@ export default function Plans() {
           </div>
 
           {/* --- PREMIUM HEADER --- */}
-          <div className="premium-header" style={{ marginBottom: "24px" }}>
+          <div className="premium-header" style={{ 
+            marginBottom: "0px", display: "flex", justifyContent: "space-between", 
+            alignItems: "center", padding: "12px 24px", gap: "16px" 
+          }}>
             <div className="brand-section">
               <button 
                 onClick={() => navigate("/app")}
@@ -313,40 +356,64 @@ export default function Plans() {
                   <Icon source={ChevronLeftIcon} tone="base" />
                 </div>
                 <div>
-                  <h1 style={{ margin: 0, fontSize: "20px", fontWeight: "800" }}>Plans & Pricing</h1>
-                  <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>Choose the perfect scale for your brand</p>
+                  <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "800" }}>Plans & Pricing</h1>
+                  <p style={{ margin: 0, fontSize: "11px", color: "#64748b" }}>Scale your brand</p>
                 </div>
               </button>
             </div>
-            <div className="status-badge">
-              <div className="status-dot" />
-              Billing System <span style={{ opacity: 0.6, marginLeft: "4px" }}>Secure</span>
+
+            {/* --- INTEGRATED PRICING TOGGLE --- */}
+            <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1, justifyContent: "flex-end" }}>
+              <div 
+                onClick={() => setIsYearly(!isYearly)}
+                style={{ 
+                  background: "#f1f5f9", 
+                  padding: "3px", 
+                  borderRadius: "24px", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  cursor: "pointer",
+                  position: "relative",
+                  width: "200px",
+                  height: "38px",
+                  border: "1px solid #e2e8f0",
+                  userSelect: "none"
+                }}
+              >
+                <div style={{
+                  position: "absolute",
+                  left: isYearly ? "calc(50% + 1px)" : "3px",
+                  width: "calc(50% - 4px)",
+                  height: "calc(100% - 6px)",
+                  background: "white",
+                  borderRadius: "20px",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  zIndex: 1
+                }} />
+                
+                <div style={{ 
+                  flex: 1, textAlign: "center", zIndex: 2, 
+                  color: !isYearly ? "#0f172a" : "#64748b",
+                  fontWeight: "700", fontSize: "12px"
+                }}>Monthly</div>
+                
+                <div style={{ 
+                  flex: 1, textAlign: "center", zIndex: 2, 
+                  color: isYearly ? "#0f172a" : "#64748b",
+                  fontWeight: "700", fontSize: "12px"
+                }}>Yearly <span style={{ color: "#10b981" }}>-25%</span></div>
+              </div>
+
+              <div className="status-badge" style={{ padding: "6px 12px", height: "38px" }}>
+                <div className="status-dot" />
+                Billing <span style={{ opacity: 0.6, marginLeft: "4px" }}>Secure</span>
+              </div>
             </div>
           </div>
 
           {/* --- MAIN CONTAINER --- */}
           <div style={{ maxWidth: "1300px", margin: "0 auto", width: "100%" }}>
-
-            {/* --- PRICING TOGGLE --- */}
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: "40px" }}>
-              <div className="tab-container" style={{ margin: 0, width: "auto" }}>
-                <div 
-                  className={`tab-item ${!isYearly ? "active" : ""}`} 
-                  onClick={() => setIsYearly(false)}
-                >Monthly</div>
-                <div 
-                  className={`tab-item ${isYearly ? "active" : ""}`} 
-                  onClick={() => setIsYearly(true)}
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  Yearly
-                  <span style={{ 
-                    background: "#ecfdf5", color: "#10b981", padding: "2px 8px", 
-                    borderRadius: "6px", fontSize: "10px", fontWeight: "800"
-                  }}>-25%</span>
-                </div>
-              </div>
-            </div>
 
             {/* --- PLANS GRID --- */}
             <div style={{ 
@@ -360,7 +427,9 @@ export default function Plans() {
                   flexDirection: "column",
                   gap: "32px",
                   position: "relative",
-                  border: p.isPopular ? "2px solid var(--premium-accent)" : "1px solid #e2e8f0"
+                  border: p.isCurrent ? "2px solid var(--premium-accent)" : "1px solid #e2e8f0",
+                  background: p.isCurrent ? "white" : "white",
+                  boxShadow: p.isCurrent ? "0 20px 25px -5px rgba(124, 58, 237, 0.1), 0 8px 10px -6px rgba(124, 58, 237, 0.1)" : "none"
                 }}>
                   {p.isPopular && (
                     <div style={{
@@ -418,30 +487,40 @@ export default function Plans() {
                   </BlockStack>
 
                   <button
-                    className={`premium-button ${p.name === "Pro" ? "button-accent" : "button-primary"}`}
+                    className={`premium-button ${
+                      p.isCurrent 
+                        ? "button-success" 
+                        : (p.name === "Pro" ? "button-accent" : "button-primary")
+                    }`}
                     disabled={p.isCurrent || isSubmitting}
                     onClick={() => handlePlan(p)}
-                    style={{ width: "100%", height: "56px", fontSize: "17px" }}
+                    style={{ 
+                      width: "100%", 
+                      height: "56px", 
+                      fontSize: "17px",
+                      opacity: p.isCurrent ? 0.9 : 1,
+                      cursor: p.isCurrent ? "default" : "pointer"
+                    }}
                   >
                     {isSubmitting && fetcher.formData?.get("planName")?.includes(p.name) ? (
                       <div className="animate-spin" style={{ width: "22px", height: "22px", border: "3px solid rgba(255,255,255,0.3)", borderTopColor: "white", borderRadius: "50%" }}></div>
                     ) : (
-                      p.isCurrent ? "Current Plan" : (p.name === "Pro" ? "Upgrade Now" : "Choose Starter")
+                      p.isCurrent ? "✓ Active Plan" : (p.name === "Pro" ? "Upgrade Now" : "Choose Starter")
                     )}
                   </button>
                 </div>
               ))}
             </div>
 
-            {/* --- FAQ SECTION ALIGNED --- */}
-            <div className="premium-card" style={{ padding: 0 }}>
-              <div style={{ padding: "32px", borderBottom: "1px solid #f1f5f9" }}>
+            {/* --- FAQ SECTION --- */}
+            <div className="premium-card" style={{ padding: "40px" }}>
+              <div style={{ marginBottom: "24px" }}>
                 <BlockStack gap="100">
                   <Text variant="headingLg" as="h2">Have Questions?</Text>
                   <Text variant="bodyMd" as="p" tone="subdued">Everything you need to know about the plans and features.</Text>
                 </BlockStack>
               </div>
-              <div style={{ padding: "0 32px" }}>
+              <div>
                 {[
                   { q: "How does the 14-day Free Trial work?", a: "Every premium plan starts with a 14-day free trial. You won't be charged until the trial ends, and you can cancel anytime." },
                   { q: "Is Ai-Instafeed really hands-free?", a: "Yes! Once set up, the app automatically syncs your latest Instagram posts to your store." },
