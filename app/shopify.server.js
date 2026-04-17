@@ -41,30 +41,6 @@ const shopify = shopifyApp({
       ],
       replacementBehavior: "APPLY_IMMEDIATELY",
     },
-    "Plus Monthly": {
-      lineItems: [
-        {
-          planType: "RECURRING",
-          amount: 20,
-          currencyCode: "USD",
-          interval: "EVERY_30_DAYS",
-          trialDays: 7,
-        },
-      ],
-      replacementBehavior: "APPLY_IMMEDIATELY",
-    },
-    "Plus Yearly": {
-      lineItems: [
-        {
-          planType: "RECURRING",
-          amount: 180,
-          currencyCode: "USD",
-          interval: "ANNUAL",
-          trialDays: 7,
-        },
-      ],
-      replacementBehavior: "APPLY_IMMEDIATELY",
-    },
   },
   future: {
     expiringOfflineAccessTokens: true,

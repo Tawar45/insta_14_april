@@ -16,7 +16,7 @@
  */
 
 import { authenticate } from "../shopify.server.js";
-import { fetchShopInstaData, fetchShopConfig } from "../instagramApi.server.js";
+import { fetchShopInstaData, fetchShopConfig, checkProPlan } from "../instagramApi.server.js";
 import { trackApiResponse, withRateLimit } from "../rateLimiter.server.js";
 
 export const loader = async ({ request }) => {
@@ -33,28 +33,37 @@ export const loader = async ({ request }) => {
   const shop = session.shop;
 
   try {
-    // ── 2. Fetch config (cached, 30 min) ────────────────────────────────────
-    // `fetchShopConfig` checks cache first and only calls Shopify Admin GraphQL
-    // on a cache miss.  We wrap in withRateLimit to respect bucket limits.
-    const config = await withRateLimit(shop, () => fetchShopConfig(admin, shop));
+    // ── 2. Get Subscription Status ───────────────────────────────────────────
+    const isPro = await checkProPlan(admin, shop);
 
-    // Track the Shopify API response headers for rate-limit accounting.
-    // (GraphQL via `admin.graphql` handles this internally but we log anyway.)
+    // ── 3. Fetch config (cached, 30 min) ────────────────────────────────────
+    const config = await withRateLimit(shop, () => fetchShopConfig(admin, shop));
     trackApiResponse(shop, {});
 
-    // ── 3. Return early if no config exists ──────────────────────────────────
+    // ── 4. Return early if no config exists ──────────────────────────────────
     if (!config || !config.instagramHandle) {
       return Response.json({ config: null, instaData: null }, { status: 200 });
     }
 
-    // ── 4. Retrieve Persisted Instagram data ──────────────────────────────
-    // We now read directly from the Shopify Metafield saved by the dashboard.
-    // This COMPLETELY ELIMINATES storefront calls to the Instagram Graph API,
-    // preserving your API rate limits.
+    // ── 5. Enforce Restrictions for Starter Plan ─────────────────────────────
+    if (!isPro) {
+      if (config.postFeed) {
+        config.postFeed.removeWatermark = false; // Force watermark
+        config.postFeed.load = false;           // Force no infinite scroll
+        if (config.postFeed.desktopColumns > 4) config.postFeed.desktopColumns = 4;
+        if (config.postFeed.desktopLimit > 12)  config.postFeed.desktopLimit = 12;
+        // Also limit hidden post IDs? Maybe keep for consistency.
+      }
+      if (config.stories) {
+        config.stories.enable = false; // Stories are PRO only
+      }
+    }
+
+    // ── 6. Retrieve Persisted Instagram data ──────────────────────────────
     const instaData = await withRateLimit(shop, () => fetchShopInstaData(admin, shop));
     trackApiResponse(shop, {});
 
-    // ── 5. Return response ───────────────────────────────────────────────────
+    // ── 7. Return response ───────────────────────────────────────────────────
     return Response.json({ config, instaData }, { status: 200 });
 
   } catch (error) {

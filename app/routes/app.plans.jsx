@@ -21,11 +21,16 @@ export const loader = async ({ request }) => {
   const { billing } = await authenticate.admin(request);
   try {
     const billingCheck = await billing.check({
-      plans: ["Pro Monthly", "Pro Yearly", "Plus Monthly", "Plus Yearly"],
+      plans: ["Pro Monthly", "Pro Yearly"],
       isTest: true,
     });
+    
+    const activeSub = billingCheck.hasActivePayment 
+      ? billingCheck.appSubscriptions.find(s => s.status === "ACTIVE")
+      : null;
+
     return {
-      subscription: billingCheck.hasActivePayment ? billingCheck.appSubscriptions[0] : null,
+      subscription: activeSub,
       apiKey: process.env.SHOPIFY_API_KEY,
     };
   } catch (e) {
@@ -45,13 +50,11 @@ export const action = async ({ request }) => {
   const PLAN_DATA = {
     "Pro Monthly":  { amount: 8,   interval: "EVERY_30_DAYS", trial: 7 },
     "Pro Yearly":   { amount: 72,  interval: "ANNUAL",        trial: 7 },
-    "Plus Monthly": { amount: 20,  interval: "EVERY_30_DAYS", trial: 7 },
-    "Plus Yearly":  { amount: 180, interval: "ANNUAL",        trial: 7 },
   };
 
   if (planName === "Starter") {
     const billingCheck = await billing.check({
-      plans: ["Pro Monthly", "Pro Yearly", "Plus Monthly", "Plus Yearly"],
+      plans: ["Pro Monthly", "Pro Yearly"],
       isTest: true,
     });
     if (billingCheck.hasActivePayment) {
@@ -145,13 +148,6 @@ export default function Plans() {
       priceMonthly: 8, priceYearly: 6, features: "7-day free trial • cancel anytime",
       isCurrent: currentPlanName.includes("Pro"),
       monthlyName: "Pro Monthly", yearlyName: "Pro Yearly",
-    },
-    {
-      name: "Plus", badge: "PLUS", tone: "success",
-      description: "For brands that need automation, UGC display, and reporting.",
-      priceMonthly: 20, priceYearly: 15, features: "7-day free trial • cancel anytime",
-      isCurrent: currentPlanName.includes("Plus"),
-      monthlyName: "Plus Monthly", yearlyName: "Plus Yearly",
     },
   ];
 

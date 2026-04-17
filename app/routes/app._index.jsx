@@ -47,13 +47,19 @@ export const loader = async ({ request }) => {
   let subscription = null;
   try {
     const billingCheck = await billing.check({
-      plans: ["Pro Monthly", "Pro Yearly", "Plus Monthly", "Plus Yearly"],
+      plans: ["Pro Monthly", "Pro Yearly"],
       isTest: true,
     });
+    // Ensure we only count ACTIVE subscriptions
     if (billingCheck.hasActivePayment) {
-      subscription = billingCheck.appSubscriptions[0];
+      const activeSub = billingCheck.appSubscriptions.find(s => s.status === "ACTIVE");
+      if (activeSub) {
+        subscription = activeSub;
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Billing check error:", e.message);
+  }
 
   try {
     const config = await withRateLimit(shop, () => fetchShopConfig(admin, shop));
@@ -248,6 +254,7 @@ export default function Index() {
   const [previewDevice, setPreviewDevice] = useState("mobile");
 
   const isPaid = !!loaderData.subscription;
+  const planName = loaderData.subscription?.name || "Starter";
 
   const [instaData, setInstaData] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -779,10 +786,42 @@ export default function Index() {
           onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = loaderData?.subscription ? "0 6px 16px rgba(99, 102, 241, 0.3)" : "none"; }}
           onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = loaderData?.subscription ? "0 4px 12px rgba(99, 102, 241, 0.2)" : "none"; }}
         >
-          <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: loaderData?.subscription ? "white" : "#94a3b8" }} />
-          {loaderData?.subscription?.name?.toUpperCase() || "STARTER PLAN"}
+          <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: isPaid ? "white" : "#94a3b8" }} />
+          {planName.toUpperCase()} {isPaid ? "PRO" : "PLAN"}
         </div>
       </div>
+
+      {!isPaid && (
+        <div style={{ 
+          margin: "0 auto 24px", 
+          maxWidth: "1300px", 
+          background: "linear-gradient(90deg, #fef2f2 0%, #fff 100%)", 
+          border: "1px solid #fee2e2", 
+          borderRadius: "16px", 
+          padding: "16px 24px", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "space-between",
+          animation: "fadeInBlur 0.6s ease-out"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ background: "#ef4444", color: "white", padding: "8px", borderRadius: "12px" }}>
+              <Icon source={StarIcon} />
+            </div>
+            <div>
+              <p style={{ fontWeight: "700", color: "#991b1b", margin: 0 }}>Unlock PRO Features</p>
+              <p style={{ fontSize: "13px", color: "#b91c1c", margin: 0 }}>Hiding posts, removing watermark, infinite scroll, and Story layouts are PRO features.</p>
+            </div>
+          </div>
+          <button 
+            className="premium-button button-accent" 
+            style={{ padding: "8px 20px" }}
+            onClick={() => navigate("/app/plans")}
+          >
+            Upgrade Now
+          </button>
+        </div>
+      )}
 
       <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
 
@@ -939,7 +978,21 @@ export default function Index() {
             {/* Tabs */}
             <div className="tab-container">
               <div className={`tab-item ${activeTab === "post" ? "active" : ""}`} onClick={() => setActiveTab("post")}>Feed Grid Settings</div>
-              <div className={`tab-item ${activeTab === "story" ? "active" : ""}`} onClick={() => setActiveTab("story")}>Story &amp; Layouts</div>
+              <div 
+                className={`tab-item ${activeTab === "story" ? "active" : ""}`} 
+                onClick={() => {
+                  if (!isPaid) {
+                    shopify.toast.show("Story Layouts are available in the PRO plan", { isError: true });
+                    navigate("/app/plans");
+                  } else {
+                    setActiveTab("story");
+                  }
+                }}
+                style={{ opacity: isPaid ? 1 : 0.6, display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                Story &amp; Layouts
+                {!isPaid && <Icon source={StarIcon} tone="caution" />}
+              </div>
             </div>
 
             {/* Tab Content */}
@@ -957,8 +1010,9 @@ export default function Index() {
                     { id: "autoplay", label: "Smart Autoplay",  sub: "Pre-load video content",       icon: PlayIcon },
                     { id: "showInstagramIcon", label: "Instagram Icon", sub: "Branding badge on posts", icon: CameraIcon },
                     { id: "removeWatermark", label: "Remove Watermark", sub: "Hide 'By BOOST STAR' badge", icon: StarIcon, isPremium: true },
+                    { id: "isHideMode", label: "Manual Hide Mode", sub: "Hide specific posts from feed", icon: ViewIcon, isPremium: true, isLocal: true },
                   ].map((item, idx) => (
-                    <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both`, opacity: (!isPaid && item.isPremium && !config.postFeed[item.id]) ? 0.7 : 1 }}>
+                    <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both`, opacity: (!isPaid && item.isPremium) ? 0.7 : 1 }}>
                       <div className="setting-info">
                         <div className="setting-icon"><Icon source={item.icon} color="inherit" /></div>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -974,14 +1028,18 @@ export default function Index() {
                       <label className="premium-switch" title={item.isPremium && !isPaid ? "Upgrade to PRO to enable this feature" : ""}>
                         <input
                           type="checkbox"
-                          checked={(!isPaid && item.isPremium) ? false : !!config.postFeed[item.id]}
+                          checked={(!isPaid && item.isPremium) ? false : (item.isLocal ? isHideMode : !!config.postFeed[item.id])}
                           onChange={(e) => {
                             if (item.isPremium && !isPaid) {
-                              // Redirect to billing/plans page for upgrade
+                              shopify.toast.show(`${item.label} is a PRO feature`, { isError: true });
                               navigate("/app/plans");
                               return;
                             }
-                            updateConfig("postFeed", item.id, e.target.checked);
+                            if (item.isLocal) {
+                              setIsHideMode(e.target.checked);
+                            } else {
+                              updateConfig("postFeed", item.id, e.target.checked);
+                            }
                           }}
                         />
                         <span className="slider" />
@@ -997,9 +1055,21 @@ export default function Index() {
                         <select
                           className="premium-input"
                           value={config.postFeed.desktopColumns}
-                          onChange={(e) => updateConfig("postFeed", "desktopColumns", parseInt(e.target.value))}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            if (!isPaid && val > 4) {
+                              shopify.toast.show("Unlock PRO to use more than 4 columns", { isError: true });
+                              navigate("/app/plans");
+                              return;
+                            }
+                            updateConfig("postFeed", "desktopColumns", val);
+                          }}
                         >
-                          {[3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} Columns</option>)}
+                          {[3, 4, 5, 6].map((n) => (
+                            <option key={n} value={n}>
+                              {n} Columns {!isPaid && n > 4 ? " (PRO)" : ""}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div className="input-group">
@@ -1021,9 +1091,21 @@ export default function Index() {
                           <select
                             className="premium-input"
                             value={config.postFeed.desktopLimit || 8}
-                            onChange={(e) => updateConfig("postFeed", "desktopLimit", parseInt(e.target.value))}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              if (!isPaid && val > 12) {
+                                shopify.toast.show("Unlock PRO to show more than 12 posts", { isError: true });
+                                navigate("/app/plans");
+                                return;
+                              }
+                              updateConfig("postFeed", "desktopLimit", val);
+                            }}
                           >
-                            {[4, 6, 8, 12, 16, 20, 24].map((n) => <option key={n} value={n}>{n} Posts</option>)}
+                            {[4, 6, 8, 12, 16, 20, 24].map((n) => (
+                              <option key={n} value={n}>
+                                {n} Posts {!isPaid && n > 12 ? " (PRO)" : ""}
+                              </option>
+                            ))}
                           </select>
                         </div>
                         <div className="input-group">
