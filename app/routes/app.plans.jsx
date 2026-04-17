@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLoaderData, useFetcher, useNavigation, Form } from "react-router";
+import { useLoaderData, useFetcher, useNavigation, Form, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import {
@@ -15,7 +15,57 @@ import {
   SkeletonPage,
   SkeletonDisplayText,
   SkeletonBodyText,
+  Box,
+  Icon,
 } from "@shopify/polaris";
+import {
+  ChevronLeftIcon,
+  StarIcon,
+  MagicIcon,
+} from "@shopify/polaris-icons";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FAQ ITEM COMPONENT (Accordion)
+// ─────────────────────────────────────────────────────────────────────────────
+const FAQItem = ({ question, answer, isLast }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div 
+      onClick={() => setIsOpen(!isOpen)}
+      style={{ 
+        padding: "24px 0", 
+        borderBottom: isLast ? "none" : "1px solid #f1f5f9",
+        cursor: "pointer"
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Text variant="bodyLg" fontWeight="bold">{question}</Text>
+        <div style={{ 
+          width: "32px", height: "32px", borderRadius: "50%", background: "#f8fafc",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "all 0.3s ease",
+          transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
+          border: "1px solid #f1f5f9",
+          flexShrink: 0
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </div>
+      </div>
+      <div style={{ 
+        maxHeight: isOpen ? "300px" : "0", 
+        overflow: "hidden", 
+        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+        marginTop: isOpen ? "16px" : "0",
+        opacity: isOpen ? 1 : 0
+      }}>
+        <Text variant="bodyMd" tone="subdued">{answer}</Text>
+      </div>
+    </div>
+  );
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LOADER - Check current subscription status
@@ -122,6 +172,7 @@ export default function Plans() {
   const fetcher = useFetcher();
   const shopify = useAppBridge();
   const navigation = useNavigation();
+  const navigate = useNavigate();
   const [isYearly, setIsYearly] = useState(false);
 
   const isPageLoading = navigation.state === "loading" || (fetcher.state === "submitting" && fetcher.formData?.get("planName"));
@@ -164,12 +215,11 @@ export default function Plans() {
   const plans = [
     {
       name: "Starter", badge: "STARTER", tone: "new",
-      description: "Essential tools to show your social proof.",
+      description: "Essential tools for social proof.",
       priceMonthly: 0, priceYearly: 0, 
       features: [
         "Up to 12 Latest Posts",
         "Up to 4 Posts per Row",
-        "Header & Subtext Control",
         "Post Metrics on Hover",
         "Responsive Grid Layout",
         "Standard Support"
@@ -180,14 +230,14 @@ export default function Plans() {
       name: "Pro", badge: "PRO", tone: "info",
       description: "Advanced controls for growing brands.",
       priceMonthly: 8, priceYearly: 6, 
+      isPopular: true,
       features: [
         "Everything in Starter+",
-        "Remove 'BOOST STAR' Watermark",
+        "Remove 'Ai-Instafeed' Watermark",
         "Infinite Scrolling Feature",
         "Manual Hide Mode (Hide Posts)",
         "Premium Story Layouts",
         "Unlimited Posts & Columns",
-        "Custom Branding Colors",
         "Priority 24/7 Support"
       ],
       isCurrent: currentPlanName.includes("Pro"),
@@ -206,91 +256,214 @@ export default function Plans() {
   const isSubmitting = fetcher.state !== "idle" || navigation.state !== "idle";
 
   return (
-    <Page title="Plans & Pricing">
-      <BlockStack gap="800">
-        <div style={{ textAlign: "center", marginTop: "40px", marginBottom: "24px" }}>
-          <Text variant="heading2xl" as="h1">Choose the perfect plan for your store</Text>
-          <div style={{ marginTop: "12px", color: "#64748b" }}>
-            <Text variant="bodyLg" as="p">Switch plans at any time to unlock premium features and branding.</Text>
-          </div>
-        </div>
-
-        <InlineStack align="center">
-          <div style={{ background: "#f1f5f9", padding: "6px", borderRadius: "12px", display: "flex", alignItems: "center", gap: "12px" }}>
-             <Text variant="bodyMd" as="span" tone={!isYearly ? "base" : "subdued"}>Monthly</Text>
-             <button 
-                onClick={() => setIsYearly(!isYearly)}
+    <div className="premium-dashboard">
+      <Page>
+        <BlockStack gap="600">
+          
+          {/* --- PREMIUM HEADER (HOME PAGE STYLE) --- */}
+          <div className="premium-header" style={{ marginBottom: "24px" }}>
+            <div className="brand-section">
+              <button 
+                onClick={() => navigate("/app")}
                 style={{ 
-                  width: "48px", height: "24px", borderRadius: "12px", background: "#6366f1", position: "relative", border: "none", cursor: "pointer", padding: 0
+                  background: "transparent", border: "none", cursor: "pointer", 
+                  display: "flex", alignItems: "center", gap: "12px", padding: 0,
+                  color: "#1e293b"
                 }}
-             >
-                <div style={{ 
-                  width: "18px", height: "18px", borderRadius: "50%", background: "white", 
-                  position: "absolute", top: "3px", left: isYearly ? "27px" : "3px", 
-                  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)" 
-                }} />
-             </button>
-             <Text variant="bodyMd" as="span" tone={isYearly ? "base" : "subdued"}>Yearly <Badge tone="success" size="small">SAVE 25%</Badge></Text>
+              >
+                <div style={{
+                  width: "40px", height: "40px", borderRadius: "12px", border: "1px solid #e2e8f0",
+                  display: "flex", alignItems: "center", justifyContent: "center", background: "white",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
+                }}>
+                  <Icon source={ChevronLeftIcon} tone="base" />
+                </div>
+                <div>
+                  <h1 style={{ margin: 0, fontSize: "20px", fontWeight: "800" }}>Plans & Pricing</h1>
+                  <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>Choose the perfect scale for your brand</p>
+                </div>
+              </button>
+            </div>
+            <div className="status-badge">
+              <div className="status-dot" />
+              Billing System <span style={{ opacity: 0.6, marginLeft: "4px" }}>Secure</span>
+            </div>
           </div>
-        </InlineStack>
 
-        <div style={{ display: "flex", justifyContent: "center", gap: "24px", padding: "20px 0", maxWidth: "1000px", margin: "0 auto", width: "100%" }}>
-          {plans.map((p) => (
-            <div key={p.name} style={{ flex: 1, minWidth: "320px" }}>
-              <Card background={p.isCurrent ? "bg-surface-secondary" : "bg-surface"}>
-                <BlockStack gap="600">
-                  <InlineStack align="space-between">
-                    <Badge tone={p.tone} size="large">{p.badge}</Badge>
-                    {p.isCurrent && <Badge tone="success">Current Plan</Badge>}
-                  </InlineStack>
-                  
-                  <div>
-                    <Text as="p" tone="subdued" variant="bodyMd">{p.description}</Text>
+          {/* --- MAIN CONTAINER --- */}
+          <div style={{ maxWidth: "1300px", margin: "0 auto", width: "100%" }}>
+            
+            {/* --- PREMIUM BANNER (HOME PAGE ALIGNED) --- */}
+            <div className="premium-card" style={{
+              background: "var(--premium-accent-gradient)",
+              padding: "24px 32px",
+              color: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "32px",
+              border: "none"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                <div style={{
+                  width: "48px", height: "48px", borderRadius: "50%", background: "rgba(255, 255, 255, 0.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  <Icon source={StarIcon} tone="inherit" />
+                </div>
+                <BlockStack gap="100">
+                  <Text variant="headingLg" as="h2" color="inherit">Supercharge Your Social Proof</Text>
+                  <Text variant="bodyMd" as="p" tone="inherit">Join 10,000+ merchants using Ai-Instafeed to boost credibility and sales.</Text>
+                </BlockStack>
+              </div>
+              <div style={{ 
+                background: "rgba(255,255,255,0.1)", padding: "12px 20px", borderRadius: "12px", 
+                border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(4px)",
+                textAlign: "center"
+              }}>
+                <Text variant="headingMd" as="span" color="inherit">Trial Active</Text>
+                <div style={{ fontSize: "11px", opacity: 0.8 }}>Start for $0 today</div>
+              </div>
+            </div>
+
+            {/* --- PRICING TOGGLE --- */}
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "40px" }}>
+              <div className="tab-container" style={{ margin: 0, width: "auto" }}>
+                <div 
+                  className={`tab-item ${!isYearly ? "active" : ""}`} 
+                  onClick={() => setIsYearly(false)}
+                >Monthly</div>
+                <div 
+                  className={`tab-item ${isYearly ? "active" : ""}`} 
+                  onClick={() => setIsYearly(true)}
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  Yearly
+                  <span style={{ 
+                    background: "#ecfdf5", color: "#10b981", padding: "2px 8px", 
+                    borderRadius: "6px", fontSize: "10px", fontWeight: "800"
+                  }}>-25%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* --- PLANS GRID --- */}
+            <div style={{ 
+              display: "grid", gridTemplateColumns: "repeat(2, 1fr)", 
+              gap: "32px", width: "100%", marginBottom: "48px"
+            }}>
+              {plans.map((p) => (
+                <div key={p.name} className="premium-card" style={{
+                  padding: "40px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "32px",
+                  position: "relative",
+                  border: p.isPopular ? "2px solid var(--premium-accent)" : "1px solid #e2e8f0"
+                }}>
+                  {p.isPopular && (
+                    <div style={{
+                      position: "absolute", top: "-14px", left: "50%", transform: "translateX(-50%)",
+                      background: "var(--premium-accent-gradient)",
+                      color: "white", padding: "4px 16px", borderRadius: "20px",
+                      fontSize: "12px", fontWeight: "900", zIndex: 10
+                    }}>MOST POPULAR</div>
+                  )}
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div className="status-badge" style={{ 
+                      background: p.name === "Pro" ? "rgba(99, 102, 241, 0.1)" : "#f1f5f9",
+                      color: p.name === "Pro" ? "var(--premium-accent)" : "#64748b",
+                      border: "none",
+                      padding: "4px 12px"
+                    }}>{p.badge}</div>
+                    {p.isCurrent && <Badge tone="success">ACTIVE PLAN</Badge>}
                   </div>
 
-                  <InlineStack align="start" blockAlign="end" gap="100">
-                    {p.priceMonthly === 0 ? <Text as="h2" variant="heading3xl">Free</Text> : (
+                  <div>
+                    <h3 style={{ fontSize: "32px", fontWeight: "900", color: "#0f172a", margin: 0 }}>{p.name}</h3>
+                    <p style={{ fontSize: "15px", color: "#64748b", marginTop: "8px" }}>{p.description}</p>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+                    {p.priceMonthly === 0 ? (
+                      <span style={{ fontSize: "48px", fontWeight: "900", color: "#0f172a" }}>Free</span>
+                    ) : (
                       <>
-                        <Text as="span" variant="bodyLg">USD</Text>
-                        <Text as="h2" variant="heading3xl">${isYearly ? p.priceYearly : p.priceMonthly}</Text>
-                        <Text as="span" variant="bodyMd" tone="subdued">/month</Text>
+                        <span style={{ fontSize: "28px", fontWeight: "700", color: "#94a3b8" }}>$</span>
+                        <span style={{ fontSize: "48px", fontWeight: "900", color: "#0f172a" }}>
+                          {isYearly ? p.priceYearly : p.priceMonthly}
+                        </span>
+                        <span style={{ fontSize: "18px", fontWeight: "600", color: "#94a3b8" }}>/ month</span>
                       </>
                     )}
-                  </InlineStack>
+                  </div>
 
-                  <div style={{ height: "1px", background: "#f1f5f9", margin: "8px 0" }} />
+                  <div style={{ height: "1px", background: "#f1f5f9" }} />
 
-                  <BlockStack gap="300">
+                  <BlockStack gap="400">
                     {p.features.map((feature, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "start", gap: "10px" }}>
-                        <div style={{ width: "20px", height: "20px", background: "#ecfdf5", borderRadius: "50%", display: "flex", alignItems: "center", justifyItems: "center", flexShrink: 0 }}>
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ margin: "auto" }}>
-                            <path d="M10 3L4.5 8.5L2 6" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div style={{ 
+                          width: "24px", height: "24px", borderRadius: "50%", 
+                          background: p.name === "Pro" ? "#f5f3ff" : "#f0fdf4",
+                          display: "flex", alignItems: "center", justifyContent: "center"
+                        }}>
+                          <Icon source={p.name === "Pro" ? MagicIcon : StarIcon} tone={p.name === "Pro" ? "magic" : "success"} />
                         </div>
-                        <Text variant="bodyMd" as="span">{feature}</Text>
+                        <Text variant="bodyMd" as="span" tone="base">{feature}</Text>
                       </div>
                     ))}
                   </BlockStack>
 
-                  <div style={{ marginTop: "12px" }}>
-                    <Button
-                      size="large"
-                      variant={p.isCurrent ? "secondary" : "primary"}
-                      disabled={p.isCurrent || isSubmitting}
-                      loading={isSubmitting && fetcher.formData?.get("planName")?.includes(p.name)}
-                      onClick={() => handlePlan(p)}
-                      fullWidth
-                    >
-                      {p.isCurrent ? "Already Subscribed" : (p.name === "Pro" ? "Get Started with Pro" : "Back to Starter")}
-                    </Button>
-                  </div>
-                </BlockStack>
-              </Card>
+                  <button
+                    className={`premium-button ${p.name === "Pro" ? "button-accent" : "button-primary"}`}
+                    disabled={p.isCurrent || isSubmitting}
+                    onClick={() => handlePlan(p)}
+                    style={{ width: "100%", height: "56px", fontSize: "17px" }}
+                  >
+                    {isSubmitting && fetcher.formData?.get("planName")?.includes(p.name) ? (
+                      <div className="animate-spin" style={{ width: "22px", height: "22px", border: "3px solid rgba(255,255,255,0.3)", borderTopColor: "white", borderRadius: "50%" }}></div>
+                    ) : (
+                      p.isCurrent ? "Current Plan" : (p.name === "Pro" ? "Upgrade Now" : "Choose Starter")
+                    )}
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </BlockStack>
-    </Page>
+
+            {/* --- FAQ SECTION ALIGNED --- */}
+            <div className="premium-card" style={{ padding: 0 }}>
+              <div style={{ padding: "32px", borderBottom: "1px solid #f1f5f9" }}>
+                <BlockStack gap="100">
+                  <Text variant="headingLg" as="h2">Have Questions?</Text>
+                  <Text variant="bodyMd" as="p" tone="subdued">Everything you need to know about the plans and features.</Text>
+                </BlockStack>
+              </div>
+              <div style={{ padding: "0 32px" }}>
+                {[
+                  { q: "How does the 14-day Free Trial work?", a: "Every premium plan starts with a 14-day free trial. You won't be charged until the trial ends, and you can cancel anytime." },
+                  { q: "Is Ai-Instafeed really hands-free?", a: "Yes! Once set up, the app automatically syncs your latest Instagram posts to your store." },
+                  { q: "Will this slow down my store?", a: "No. Our scripts are loaded asynchronously and optimized for blazing fast performance." },
+                  { q: "Do you offer support?", a: "Yes, we provide 24/7 priority support to help you with setup and customization." }
+                ].map((faq, i, arr) => (
+                  <FAQItem key={i} question={faq.q} answer={faq.a} isLast={i === arr.length - 1} />
+                ))}
+              </div>
+            </div>
+
+            <div style={{ textAlign: "center", padding: "48px 0", color: "#94a3b8" }}>
+              <BlockStack gap="200">
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                  <div className="status-dot" style={{ width: "6px", height: "6px" }} />
+                  <span style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px" }}>Secure Shopify Checkout</span>
+                </div>
+                <Text variant="bodySm" as="p">© 2026 Ai Highlight Center. Powered by Advanced AI Algorithms.</Text>
+              </BlockStack>
+            </div>
+          </div>
+        </BlockStack>
+      </Page>
+    </div>
   );
 }
