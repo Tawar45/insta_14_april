@@ -946,6 +946,7 @@ export default function Index() {
                     { id: "carousel", label: "Smart Carousel",  sub: "Auto-swipe logic",             icon: MobileIcon },
                     { id: "autoplay", label: "Smart Autoplay",  sub: "Pre-load video content",       icon: PlayIcon },
                     { id: "showInstagramIcon", label: "Instagram Icon", sub: "Branding badge on posts", icon: CameraIcon },
+                    { id: "removeWatermark", label: "Remove Watermark", sub: "Hide 'By BOOST STAR' badge", icon: StarIcon, isPremium: true },
                   ].map((item, idx) => (
                     <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both`, opacity: (!isPaid && item.isPremium && !config.postFeed[item.id]) ? 0.7 : 1 }}>
                       <div className="setting-info">
@@ -1054,51 +1055,6 @@ export default function Index() {
 
                   </div>
 
-                  {/* Brand Customisation */}
-                  <div style={{ marginTop: "32px", animation: "slideInUp 0.3s ease-out 0.2s both" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-                      <Icon source={ColorIcon} color="subdued" />
-                      <h3 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "#0f172a" }}>BRAND CUSTOMIZATION</h3>
-                    </div>
-
-                    <div className="setting-row" style={{ background: "white", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", opacity: !isPaid && !config.postFeed.removeWatermark ? 0.7 : 1 }}>
-                      <div>
-                        <div style={{ fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
-                          Remove Watermark
-                          <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>
-                        </div>
-                        <div style={{ fontSize: "12px", color: "#64748b" }}>Hide the "By BOOST STAR Experts" badge</div>
-                      </div>
-                      <label className="premium-switch">
-                        <input
-                          type="checkbox"
-                          checked={!isPaid ? false : !!config.postFeed.removeWatermark}
-                          onChange={(e) => {
-                             if (!isPaid) {
-                               navigate("/app/plans");
-                               return;
-                             }
-                             updateConfig("postFeed", "removeWatermark", e.target.checked);
-                          }}
-                        />
-                        <span className="slider" />
-                      </label>
-                    </div>
-
-                    <div className="setting-row" style={{ background: "white", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <div style={{ fontSize: "14px", fontWeight: "600" }}>Instagram Hover Icon</div>
-                        <div style={{ fontSize: "12px", color: "#64748b" }}>Show Instagram logo overlay on hover</div>
-                      </div>
-                      <label className="premium-switch">
-                        <input
-                          type="checkbox"
-                          checked={config.postFeed.showInstagramIcon !== false}
-                          onChange={(e) => updateConfig("postFeed", "showInstagramIcon", e.target.checked)}
-                        />
-                        <span className="slider" />
-                      </label>
-                    </div>
 
                     <div className="setting-card">
                       <div>
@@ -1162,7 +1118,6 @@ export default function Index() {
                         </select>
                       </div>
                     </div>
-                  </div>
                 </>
               ) : (
                 /* ── Story & Layouts Settings ── */
