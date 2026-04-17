@@ -171,7 +171,7 @@
     const mediaItems = getMedia(mediaData, limit);
     const trackId = "ai-fw-grid-track-" + Date.now();
 
-    let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;">`;
+    let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;padding-top:${c.paddingTop || 0}px;padding-bottom:${c.paddingBottom || 0}px;">`;
 
     if (c.header) {
       html += `
@@ -353,7 +353,7 @@
     const isActiveRing = s.activeRing !== false;
     const trackId = "ai-story-track-" + Date.now();
 
-    let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;">`;
+    let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;padding-top:${s.paddingTop || 0}px;padding-bottom:${s.paddingBottom || 0}px;">`;
 
     if (s.showHeader) {
       html += `

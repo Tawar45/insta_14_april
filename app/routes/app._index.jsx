@@ -234,6 +234,8 @@ const DEFAULT_CONFIG = {
     removeWatermark: false,
     showInstagramIcon: true,
     hiddenPostIds: [],
+    paddingTop: 32,
+    paddingBottom: 32,
   },
   stories: {
     enable: true,
@@ -251,6 +253,8 @@ const DEFAULT_CONFIG = {
     activeRing: true,
     ringColor: "#6366f1",
     showNavigation: true,
+    paddingTop: 24,
+    paddingBottom: 24,
   },
 };
 
@@ -1152,6 +1156,29 @@ export default function Index() {
                         className="premium-input"
                       />
                     </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "16px" }}>
+                      <div className="input-group">
+                        <label className="input-label" style={{ fontSize: "10px" }}>Top Padding ({config.postFeed.paddingTop}px)</label>
+                        <input
+                          type="range"
+                          min="0" max="100"
+                          value={config.postFeed.paddingTop}
+                          onChange={(e) => updateConfig("postFeed", "paddingTop", parseInt(e.target.value))}
+                          className="premium-input"
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label className="input-label" style={{ fontSize: "10px" }}>Bottom Padding ({config.postFeed.paddingBottom}px)</label>
+                        <input
+                          type="range"
+                          min="0" max="100"
+                          value={config.postFeed.paddingBottom}
+                          onChange={(e) => updateConfig("postFeed", "paddingBottom", parseInt(e.target.value))}
+                          className="premium-input"
+                        />
+                      </div>
+                    </div>
                     
                     <div className="input-group" style={{ marginTop: "16px" }}>
                       <label className="input-label" style={{ fontSize: "10px" }}>Image Sizing (Aspect Ratio)</label>
@@ -1365,6 +1392,27 @@ export default function Index() {
                           </div>
                         </div>
                       </div>
+                    <div className="input-group" style={{ marginTop: "20px" }}>
+                      <label className="input-label" style={{ fontSize: "10px" }}>Vertical Spacing (Top: {config.stories.paddingTop}px, Bottom: {config.stories.paddingBottom}px)</label>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                        <input
+                          type="range"
+                          min="0" max="100"
+                          value={config.stories.paddingTop}
+                          onChange={(e) => updateConfig("stories", "paddingTop", parseInt(e.target.value))}
+                          className="premium-input"
+                          title="Top Padding"
+                        />
+                        <input
+                          type="range"
+                          min="0" max="100"
+                          value={config.stories.paddingBottom}
+                          onChange={(e) => updateConfig("stories", "paddingBottom", parseInt(e.target.value))}
+                          className="premium-input"
+                          title="Bottom Padding"
+                        />
+                      </div>
+                    </div>
                     </div>
                     </div>
                 </>
@@ -1424,7 +1472,7 @@ export default function Index() {
                         onScroll={(e) => handleScroll(e, "vertical")}
                       >
                         {activeTab === "post" ? (
-                          <div style={{ animation: "fadeInBlur 0.4s ease-out" }}>
+                          <div style={{ animation: "fadeInBlur 0.4s ease-out", paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
                             {/* Header */}
                             {config.postFeed.header && (
                               <div style={{ padding: "12px 16px 0", textAlign: config.postFeed.alignment }}>
@@ -1475,7 +1523,7 @@ export default function Index() {
                           </div>
                         ) : (
                           /* Story preview – mobile */
-                          <div style={{ padding: "16px" }}>
+                          <div style={{ padding: "16px", paddingTop: `${config.stories.paddingTop}px`, paddingBottom: `${config.stories.paddingBottom}px` }}>
                             {config.stories.showHeader && (
                               <div style={{ textAlign: config.stories.alignment, marginBottom: "24px" }}>
                                 <h4 style={{ fontSize: `${Math.min(config.stories.typography.heading.size, 22)}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 6px 0", lineHeight: 1.2, color: config.stories.typography.heading.color }}>
@@ -1563,7 +1611,7 @@ export default function Index() {
                         <div style={{ height: "100%", overflowY: "auto", padding: "24px" }} onScroll={(e) => handleScroll(e, "vertical")}>
                             {activeTab === "story" ? (
                               /* Story desktop preview */
-                              <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                              <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: `${config.stories.paddingTop}px`, paddingBottom: `${config.stories.paddingBottom}px` }}>
                                 {config.stories.showHeader && (
                                   <div style={{ textAlign: config.stories.alignment, marginBottom: "24px" }}>
                                     <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 8px 0", color: config.stories.typography.heading.color }}>
@@ -1620,7 +1668,7 @@ export default function Index() {
                               </div>
                             ) : (
                               /* Feed Grid desktop preview */
-                              <>
+                              <div style={{ paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
                                 {config.postFeed.header && (
                                   <div style={{ marginBottom: "16px", textAlign: config.postFeed.alignment }}>
                                     <h4 style={{ fontSize: `${config.postFeed.typography.heading.size + 2}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
@@ -1666,7 +1714,7 @@ export default function Index() {
                                     Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: "700", color: "#64748b", textDecoration: "none" }}>BOOST STAR Experts</a>
                                   </div>
                                 )}
-                              </>
+                              </div>
                             )}
                           </div>
                         </div>
