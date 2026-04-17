@@ -1057,6 +1057,15 @@ export default function Index() {
 
 
                     <div className="setting-card">
+                      <div style={{ marginBottom: "20px" }}>
+                        <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Header Alignment</label>
+                        <select className="premium-input" value={config.postFeed.alignment} onChange={(e) => updateConfig("postFeed", "alignment", e.target.value)}>
+                          <option value="left">Left Align</option>
+                          <option value="center">Center Align</option>
+                          <option value="right">Right Align</option>
+                        </select>
+                      </div>
+
                       <div>
                         <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Feed Heading</label>
                         <input className="premium-input" value={config.postFeed.heading} onChange={(e) => updateConfig("postFeed", "heading", e.target.value)} />
@@ -1109,14 +1118,6 @@ export default function Index() {
                         </div>
                       </div>
 
-                      <div style={{ marginTop: "20px" }}>
-                        <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Header Alignment</label>
-                        <select className="premium-input" value={config.postFeed.alignment} onChange={(e) => updateConfig("postFeed", "alignment", e.target.value)}>
-                          <option value="left">Left Align</option>
-                          <option value="center">Center Align</option>
-                          <option value="right">Right Align</option>
-                        </select>
-                      </div>
                     </div>
                 </>
               ) : (
