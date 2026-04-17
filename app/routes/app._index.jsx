@@ -1004,28 +1004,30 @@ export default function Index() {
                       </div>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
-                      <div className="input-group">
-                        <label className="input-label" style={{ fontSize: "10px" }}>Total Posts (Desktop)</label>
-                        <select
-                          className="premium-input"
-                          value={config.postFeed.desktopLimit || 8}
-                          onChange={(e) => updateConfig("postFeed", "desktopLimit", parseInt(e.target.value))}
-                        >
-                          {[4, 6, 8, 12, 16, 20, 24].map((n) => <option key={n} value={n}>{n} Posts</option>)}
-                        </select>
+                    {!config.postFeed.load && (
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                        <div className="input-group">
+                          <label className="input-label" style={{ fontSize: "10px" }}>Total Posts (Desktop)</label>
+                          <select
+                            className="premium-input"
+                            value={config.postFeed.desktopLimit || 8}
+                            onChange={(e) => updateConfig("postFeed", "desktopLimit", parseInt(e.target.value))}
+                          >
+                            {[4, 6, 8, 12, 16, 20, 24].map((n) => <option key={n} value={n}>{n} Posts</option>)}
+                          </select>
+                        </div>
+                        <div className="input-group">
+                          <label className="input-label" style={{ fontSize: "10px" }}>Total Posts (Mobile)</label>
+                          <select
+                            className="premium-input"
+                            value={config.postFeed.mobileLimit || 4}
+                            onChange={(e) => updateConfig("postFeed", "mobileLimit", parseInt(e.target.value))}
+                          >
+                            {[3, 4, 6, 8, 12].map((n) => <option key={n} value={n}>{n} Posts</option>)}
+                          </select>
+                        </div>
                       </div>
-                      <div className="input-group">
-                        <label className="input-label" style={{ fontSize: "10px" }}>Total Posts (Mobile)</label>
-                        <select
-                          className="premium-input"
-                          value={config.postFeed.mobileLimit || 4}
-                          onChange={(e) => updateConfig("postFeed", "mobileLimit", parseInt(e.target.value))}
-                        >
-                          {[3, 4, 6, 8, 12].map((n) => <option key={n} value={n}>{n} Posts</option>)}
-                        </select>
-                      </div>
-                    </div>
+                    )}
                     <div className="input-group">
                       <label className="input-label" style={{ fontSize: "10px" }}>Visual Gap ({config.postFeed.gap}px)</label>
                       <input
