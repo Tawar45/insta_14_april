@@ -1056,68 +1056,74 @@ export default function Index() {
                   </div>
 
 
-                    <div className="setting-card">
-                      <div style={{ marginBottom: "20px" }}>
-                        <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Header Alignment</label>
-                        <select className="premium-input" value={config.postFeed.alignment} onChange={(e) => updateConfig("postFeed", "alignment", e.target.value)}>
-                          <option value="left">Left Align</option>
-                          <option value="center">Center Align</option>
-                          <option value="right">Right Align</option>
+                    <div className="config-visual-card">
+                      <div className="input-group-header">
+                        <Icon source={ColorIcon} tone="base" />
+                        <h4>Branding & Typography</h4>
+                      </div>
+
+                      <div style={{ marginBottom: "24px" }}>
+                        <label className="input-label">Layout Alignment</label>
+                        <select className="premium-input" value={config.postFeed.alignment} onChange={(e) => updateConfig("postFeed", "alignment", e.target.value)} style={{ background: "#f8fafc" }}>
+                          <option value="left">Left Aligned</option>
+                          <option value="center">Centered</option>
+                          <option value="right">Right Aligned</option>
                         </select>
                       </div>
 
-                      <div>
-                        <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Feed Heading</label>
-                        <input className="premium-input" value={config.postFeed.heading} onChange={(e) => updateConfig("postFeed", "heading", e.target.value)} />
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "12px" }}>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Size</label>
-                          <input type="number" className="premium-input" value={config.postFeed.typography.heading.size}
-                            onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, heading: { ...config.postFeed.typography.heading, size: parseInt(e.target.value) } })} />
-                        </div>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Weight</label>
-                          <select className="premium-input" value={config.postFeed.typography.heading.weight}
-                            onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, heading: { ...config.postFeed.typography.heading, weight: e.target.value } })}>
-                            <option value="400">Normal</option>
-                            <option value="600">Semi-Bold</option>
-                            <option value="800">Extra-Bold</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Color</label>
-                          <input type="color" className="premium-input" value={config.postFeed.typography.heading.color}
-                            onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, heading: { ...config.postFeed.typography.heading, color: e.target.value } })} />
-                        </div>
-                      </div>
-
-                      <div style={{ marginTop: "20px" }}>
-                        <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Subheading Text</label>
-                        <input className="premium-input" value={config.postFeed.subheading} onChange={(e) => updateConfig("postFeed", "subheading", e.target.value)} />
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "12px" }}>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Size</label>
-                          <input type="number" className="premium-input" value={config.postFeed.typography.subheading.size}
-                            onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, subheading: { ...config.postFeed.typography.subheading, size: parseInt(e.target.value) } })} />
-                        </div>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Weight</label>
-                          <select className="premium-input" value={config.postFeed.typography.subheading.weight}
-                            onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, subheading: { ...config.postFeed.typography.subheading, weight: e.target.value } })}>
-                            <option value="400">Normal</option>
-                            <option value="500">Medium</option>
-                            <option value="700">Bold</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Color</label>
-                          <input type="color" className="premium-input" value={config.postFeed.typography.subheading.color}
-                            onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, subheading: { ...config.postFeed.typography.subheading, color: e.target.value } })} />
+                      <div style={{ marginBottom: "16px" }}>
+                        <label className="input-label">Feed Heading</label>
+                        <input className="premium-input" value={config.postFeed.heading} onChange={(e) => updateConfig("postFeed", "heading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. SHOP OUR INSTAGRAM" />
+                        
+                        <div className="typography-grid">
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Size (px)</label>
+                            <input type="number" className="premium-input" value={config.postFeed.typography.heading.size}
+                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, heading: { ...config.postFeed.typography.heading, size: parseInt(e.target.value) } })} />
+                          </div>
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Weight</label>
+                            <select className="premium-input" value={config.postFeed.typography.heading.weight}
+                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, heading: { ...config.postFeed.typography.heading, weight: e.target.value } })}>
+                              <option value="400">Normal</option>
+                              <option value="600">Semi-Bold</option>
+                              <option value="800">Extra-Bold</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Color</label>
+                            <input type="color" className="premium-input" value={config.postFeed.typography.heading.color}
+                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, heading: { ...config.postFeed.typography.heading, color: e.target.value } })} />
+                          </div>
                         </div>
                       </div>
 
+                      <div style={{ marginTop: "24px" }}>
+                        <label className="input-label">Subheading Text</label>
+                        <input className="premium-input" value={config.postFeed.subheading} onChange={(e) => updateConfig("postFeed", "subheading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. Tag us to get featured!" />
+                        
+                        <div className="typography-grid">
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Size (px)</label>
+                            <input type="number" className="premium-input" value={config.postFeed.typography.subheading.size}
+                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, subheading: { ...config.postFeed.typography.subheading, size: parseInt(e.target.value) } })} />
+                          </div>
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Weight</label>
+                            <select className="premium-input" value={config.postFeed.typography.subheading.weight}
+                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, subheading: { ...config.postFeed.typography.subheading, weight: e.target.value } })}>
+                              <option value="400">Normal</option>
+                              <option value="500">Medium</option>
+                              <option value="700">Bold</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Color</label>
+                            <input type="color" className="premium-input" value={config.postFeed.typography.subheading.color}
+                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, subheading: { ...config.postFeed.typography.subheading, color: e.target.value } })} />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                 </>
               ) : (
@@ -1179,69 +1185,76 @@ export default function Index() {
                       <h3 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "#0f172a" }}>STORY BRANDING</h3>
                     </div>
 
-                    <div className="input-group" style={{ marginBottom: "20px" }}>
-                      <label className="input-label" style={{ fontSize: "10px" }}>Header Alignment</label>
-                      <select className="premium-input" value={config.stories.alignment} onChange={(e) => updateConfig("stories", "alignment", e.target.value)}>
-                        <option value="left">Left Align</option>
-                        <option value="center">Center Align</option>
-                        <option value="right">Right Align</option>
-                      </select>
-                    </div>
-
-                    <div className="setting-card">
-                      <div>
-                        <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Story Heading</label>
-                        <input className="premium-input" value={config.stories.heading} onChange={(e) => updateConfig("stories", "heading", e.target.value)} />
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "12px" }}>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Size</label>
-                          <input type="number" className="premium-input" value={config.stories.typography.heading.size}
-                            onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, size: parseInt(e.target.value) } })} />
-                        </div>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Weight</label>
-                          <select className="premium-input" value={config.stories.typography.heading.weight}
-                            onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, weight: e.target.value } })}>
-                            <option value="400">Normal</option>
-                            <option value="600">Semi-Bold</option>
-                            <option value="800">Extra-Bold</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Color</label>
-                          <input type="color" className="premium-input" value={config.stories.typography.heading.color}
-                            onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, color: e.target.value } })} />
-                        </div>
+                    <div className="config-visual-card">
+                      <div className="input-group-header">
+                        <Icon source={ColorIcon} tone="base" />
+                        <h4>Branding & Typography</h4>
                       </div>
 
-                      <div style={{ marginTop: "20px" }}>
-                        <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Story Subtext</label>
-                        <input className="premium-input" value={config.stories.subheading} onChange={(e) => updateConfig("stories", "subheading", e.target.value)} />
+                      <div style={{ marginBottom: "24px" }}>
+                        <label className="input-label">Layout Alignment</label>
+                        <select className="premium-input" value={config.stories.alignment} onChange={(e) => updateConfig("stories", "alignment", e.target.value)} style={{ background: "#f8fafc" }}>
+                          <option value="left">Left Aligned</option>
+                          <option value="center">Centered</option>
+                          <option value="right">Right Aligned</option>
+                        </select>
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "12px" }}>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Size</label>
-                          <input type="number" className="premium-input" value={config.stories.typography.subheading.size}
-                            onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, size: parseInt(e.target.value) } })} />
+
+                      <div style={{ marginBottom: "16px" }}>
+                        <label className="input-label">Story Heading</label>
+                        <input className="premium-input" value={config.stories.heading} onChange={(e) => updateConfig("stories", "heading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. SHOP OUR INSTAGRAM" />
+                        
+                        <div className="typography-grid">
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Size (px)</label>
+                            <input type="number" className="premium-input" value={config.stories.typography.heading.size}
+                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, size: parseInt(e.target.value) } })} />
+                          </div>
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Weight</label>
+                            <select className="premium-input" value={config.stories.typography.heading.weight}
+                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, weight: e.target.value } })}>
+                              <option value="400">Normal</option>
+                              <option value="600">Semi-Bold</option>
+                              <option value="800">Extra-Bold</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Color</label>
+                            <input type="color" className="premium-input" value={config.stories.typography.heading.color}
+                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, color: e.target.value } })} />
+                          </div>
                         </div>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Weight</label>
-                          <select className="premium-input" value={config.stories.typography.subheading.weight}
-                            onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, weight: e.target.value } })}>
-                            <option value="400">Normal</option>
-                            <option value="500">Medium</option>
-                            <option value="700">Bold</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "10px", marginBottom: "4px" }}>Color</label>
-                          <input type="color" className="premium-input" value={config.stories.typography.subheading.color}
-                            onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, color: e.target.value } })} />
+                      </div>
+
+                      <div style={{ marginTop: "24px" }}>
+                        <label className="input-label">Story Subtext</label>
+                        <input className="premium-input" value={config.stories.subheading} onChange={(e) => updateConfig("stories", "subheading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. Tag us to get featured!" />
+                        
+                        <div className="typography-grid">
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Size (px)</label>
+                            <input type="number" className="premium-input" value={config.stories.typography.subheading.size}
+                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, size: parseInt(e.target.value) } })} />
+                          </div>
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Weight</label>
+                            <select className="premium-input" value={config.stories.typography.subheading.weight}
+                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, weight: e.target.value } })}>
+                              <option value="400">Normal</option>
+                              <option value="500">Medium</option>
+                              <option value="700">Bold</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="input-label" style={{ fontSize: "9px" }}>Color</label>
+                            <input type="color" className="premium-input" value={config.stories.typography.subheading.color}
+                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, color: e.target.value } })} />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                    </div>
                 </>
               )}
             </div>

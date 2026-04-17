@@ -292,10 +292,60 @@ input:checked + .slider::before {
 }
 
 .setting-card {
-  background: #f8fafc;
+  background: white;
   padding: 16px;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
+}
+
+.config-visual-card {
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  position: relative;
+  overflow: hidden;
+  margin-top: 24px;
+}
+
+.config-visual-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--premium-accent-gradient);
+}
+
+.config-visual-card .input-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.config-visual-card .input-group-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.config-visual-card .typography-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  gap: 12px;
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 12px;
+  border: 1px solid #f1f5f9;
 }
 
 /* ── Labels ──────────────────────────────────────────────────────────────────── */
