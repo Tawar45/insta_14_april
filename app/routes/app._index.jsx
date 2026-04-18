@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { useFetcher, useLoaderData, useNavigate } from "react-router";
+import { authenticate } from "../shopify.server";
+import { fetchShopConfig, fetchShopInstaData, fetchAllInstagramMedia } from "../instagramApi.server";
+import { withRateLimit, trackApiResponse } from "../rateLimiter.server";
+import { invalidateResource } from "../cache.server";
 import {
   SkeletonPage,
   Layout,
@@ -67,10 +71,6 @@ const ImageMediaIcon = () => (
 // LOADER
 // ─────────────────────────────────────────────────────────────────────────────
 export const loader = async ({ request }) => {
-  const { authenticate } = await import("../shopify.server");
-  const { fetchShopConfig, fetchShopInstaData } = await import("../instagramApi.server.js");
-  const { withRateLimit, trackApiResponse } = await import("../rateLimiter.server.js");
-
   const { admin, session, billing } = await authenticate.admin(request);
   const shop = session?.shop ?? "unknown";
   
@@ -123,10 +123,6 @@ export const loader = async ({ request }) => {
 // ACTION
 // ─────────────────────────────────────────────────────────────────────────────
 export const action = async ({ request }) => {
-  const { authenticate } = await import("../shopify.server");
-  const { fetchAllInstagramMedia, fetchShopInstaData } = await import("../instagramApi.server.js");
-  const { invalidateResource } = await import("../cache.server.js");
-
   const { admin, session } = await authenticate.admin(request);
   const shop = session?.shop ?? "unknown";
   const formData = await request.formData();

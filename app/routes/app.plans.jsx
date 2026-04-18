@@ -9,13 +9,10 @@ import {
   Text,
   Badge,
   Button,
-  InlineStack,
   BlockStack,
-  ButtonGroup,
   SkeletonPage,
   SkeletonDisplayText,
   SkeletonBodyText,
-  Box,
   Icon,
 } from "@shopify/polaris";
 import {
@@ -308,9 +305,11 @@ export default function Plans() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            marginBottom: "0px",
+            marginBottom: "24px",
             border: "none",
-            borderRadius: "20px"
+            borderRadius: "20px",
+            maxWidth: "1300px",
+            margin: "0 auto"
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
               <div style={{
@@ -336,8 +335,10 @@ export default function Plans() {
 
           {/* --- PREMIUM HEADER --- */}
           <div className="premium-header" style={{ 
-            marginBottom: "0px", display: "flex", justifyContent: "space-between", 
-            alignItems: "center", padding: "12px 24px", gap: "16px" 
+            marginBottom: "24px", display: "flex", justifyContent: "space-between", 
+            alignItems: "center", padding: "12px 24px", gap: "16px",
+            maxWidth: "1300px",
+            margin: "0 auto"
           }}>
             <div className="brand-section">
               <button 

@@ -99,6 +99,10 @@ body {
   border: var(--premium-border);
   flex-wrap: wrap;
   gap: 12px;
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .brand-section {
