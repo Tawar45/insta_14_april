@@ -236,6 +236,7 @@ const DEFAULT_CONFIG = {
     load: false,
     carousel: true,
     autoplay: true,
+    modalSound: false,
     heading: "SHOP OUR INSTAGRAM",
     subheading: "Tag us @account to get featured in our gallery!",
     typography: {
@@ -1052,6 +1053,7 @@ export default function Index() {
                     { id: "load",     label: "Infinite Paging", sub: "Zero-latency scrolling",       icon: RefreshIcon, isPremium: true },
                     { id: "carousel", label: "Smart Carousel",  sub: "Auto-swipe logic",             icon: MobileIcon },
                     { id: "autoplay", label: "Smart Autoplay",  sub: "Pre-load video content",       icon: PlayIcon },
+                    { id: "modalSound", label: "Video Modal Sound", sub: "Enable audio in popup videos", icon: PlayIcon, isPremium: true },
                     { id: "showInstagramIcon", label: "Instagram Icon", sub: "Branding badge on posts", icon: InstagramIcon },
                     { id: "removeWatermark", label: "Remove Watermark", sub: "Hide 'By BOOST STAR' badge", icon: StarIcon, isPremium: true },
                     { id: "isHideMode", label: "Manual Hide Mode", sub: "Hide specific posts from feed", icon: ViewIcon, isPremium: true, isLocal: true },
