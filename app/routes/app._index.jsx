@@ -55,6 +55,14 @@ const CarouselMediaIcon = () => (
   </svg>
 );
 
+const ImageMediaIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#FFFFFF" d="M19 3H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2zM5 19V5h14l.002 14H5z"/>
+    <path fill="#FFFFFF" d="m10 14-1-1-3 4h12l-5-7z"/>
+    <circle fill="#FFFFFF" cx="8.5" cy="8.5" r="1.5"/>
+  </svg>
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // LOADER
 // ─────────────────────────────────────────────────────────────────────────────
@@ -703,6 +711,10 @@ export default function Index() {
     const isHidden = config.postFeed.hiddenPostIds?.includes(itemIdentifier);
     const aspect = config.postFeed.aspectRatio === "auto" ? "auto" : (config.postFeed.aspectRatio || "1/1");
     
+    const rawType   = (item.media_type || "").toUpperCase();
+    const isVideo   = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+    const isAlbum   = rawType === "CAROUSEL_ALBUM" || rawType === "ALBUM";
+
     return (
       <div
         key={i}
@@ -732,24 +744,29 @@ export default function Index() {
             </span>
           </div>
         )}
-        {item.media_type === "VIDEO" && config.postFeed.autoplay ? (
+        {isVideo && config.postFeed.autoplay ? (
           <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (item.media_url || item.thumbnail_url) ? (
           <img
             loading="lazy"
-            src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url}
+            src={isVideo ? (item.thumbnail_url || item.media_url) : item.media_url}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
             alt="Instagram post"
           />
         ) : null}
-        {item.media_type === "VIDEO" && (
+        {isVideo && (
           <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))", color: "white" }}>
             <VideoMediaIcon />
           </div>
         )}
-        {item.media_type === "CAROUSEL_ALBUM" && (
+        {isAlbum && (
           <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))", color: "white" }}>
             <CarouselMediaIcon />
+          </div>
+        )}
+        {!isVideo && !isAlbum && (
+           <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))", color: "white" }}>
+            <ImageMediaIcon />
           </div>
         )}
         {config.postFeed.metrics && (
