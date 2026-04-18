@@ -426,61 +426,96 @@
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
+  // ── Modal: close helper (stops video/audio) ─────────────────────────────
+  function aiCloseModal() {
+    const root = document.getElementById('ai-instafeed-modal-root');
+    if (!root) return;
+    // Pause & mute any video inside modal to stop audio immediately
+    root.querySelectorAll('video').forEach(v => {
+      v.pause();
+      v.muted = true;
+      v.src = '';
+    });
+    root.style.display = 'none';
+    root.innerHTML = '';
+  }
+
   window.aiOpenInstaModal = function(id) {
     const item = currentMedia.find(m => (m.id || m.media_url.slice(-20)) === id);
     if (!item) return;
-    const root = document.getElementById("ai-instafeed-modal-root");
+    const root = document.getElementById('ai-instafeed-modal-root');
     if (!root) return;
-    const isVideo = item.media_type === "VIDEO";
-    const enableSound = currentConfig.postFeed?.modalSound;
-    const videoAttrs = enableSound ? 'controls controlsList="nodownload"' : 'muted';
-    const mediaHtml = isVideo 
-      ? `<video src="${item.media_url}" autoplay loop ${videoAttrs} playsinline style="max-width:100%;max-height:100%;object-fit:contain;"></video>`
-      : `<img src="${item.media_url}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
-    
-    root.innerHTML = `
-      <div class="ai-modal-content ai-modal-layout">
-        <div class="ai-modal-media-pane">
-          ${mediaHtml}
-          <button class="ai-modal-mobile-close" onclick="document.getElementById('ai-instafeed-modal-root').style.display='none'">✕</button>
-        </div>
-        <div class="ai-modal-info-pane">
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;border-bottom:1px solid #f1f5f9;padding-bottom:20px;">
-            <div style="width:48px;height:48px;border-radius:50%;background:var(--ai-accent-gradient);display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 4px 10px rgba(99,102,241,0.2); flex-shrink: 0;">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-            </div>
-            <div style="flex:1;min-width:0;overflow:hidden;">
-              <div style="font-weight:800;font-size:18px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@${currentConfig.instagramHandle || 'instagram'}</div>
-              <div style="font-size:13px;color:#64748b;font-weight:500;">Instagram Feed</div>
-            </div>
-            <button class="ai-modal-close-btn" onclick="document.getElementById('ai-instafeed-modal-root').style.display='none'">
-              <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#64748b" stroke-width="2.5"><path d="M15 5l-10 10m0-10l10 10"/></svg>
-            </button>
-          </div>
-          <div class="ai-modal-body" style="flex:1;max-height: 50vh;overflow-y:auto;margin-bottom:24px;padding-right:8px;">
-            <p style="margin:0;font-size:15px;line-height:1.7;color:#334155;white-space:pre-wrap;word-break:break-word;">${esc(item.caption)}</p>
-            <div style="margin-top:20px;font-size:12px;color:#94a3b8;font-weight:700;display:flex;align-items:center;gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" style="flex-shrink:0;"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-6V6a1 1 0 10-2 0v5a1 1 0 00.5.86l3 1.73a1 1 0 001-1.73L11 10z"/></svg>
-              ${item.timestamp ? new Date(item.timestamp).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : 'Recently'}
-            </div>
-          </div>
-          <div style="border-top:1px solid #f1f5f9;padding-top:20px;margin-top:auto;">
-            <div style="display:flex;gap:32px;margin-bottom:20px;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <svg width="24" height="24" viewBox="0 0 20 20" fill="#ef4444" style="flex-shrink:0;"><path d="M14.5 3c-1.2 0-2.3.6-3 1.5-.7-.9-1.8-1.5-3-1.5-1.2 0-2.6.4-3.2 2-.6 1.6.2 3.7 1.8 5.4 1.5 1.6 4.4 4.1 4.4 4.1s2.9-2.5 4.4-4.1c1.6-1.7 2.4-3.8 1.8-5.4-.6-1.6-2-2-3.2-2z"/></svg>
-                <span style="font-weight:800;font-size:20px;color:#0f172a;">${item.like_count || 0}</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <svg width="24" height="24" viewBox="0 0 20 20" fill="#64748b" style="flex-shrink:0;"><path d="M17 14c-.5 0-1 .4-1 1v2H4V5h12v2c0 .5.4 1 1 1s1-.5 1-1V5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2-2 2h12.6l2.7 2.7c.1.1.2.2.3.2.4.1.8-.1 1-.5V8c0-.5-.4-1-1-1s-1 .4-1 1v6c0 .5-.4 1-1 1z"/></svg>
-                <span style="font-weight:800;font-size:20px;color:#0f172a;">${item.comments_count || 0}</span>
-              </div>
-            </div>
-            <a href="${item.permalink}" target="_blank" rel="noreferrer" style="display:flex;align-items:center;justify-content:center;height:52px;background:#000;color:white;text-decoration:none;border-radius:12px;font-weight:800;font-size:15px;width:100%;transition:all 0.2s ease;box-shadow:0 4px 12px rgba(0,0,0,0.1);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'">View on Instagram</a>
-          </div>
-        </div>
-      </div>
-    `;
+
+    // Stop any already-playing video first
+    root.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; });
+
+    const isVideo      = item.media_type === 'VIDEO';
+    const enableSound  = currentConfig.postFeed?.modalSound;
+    const videoAttrs   = enableSound ? 'controls controlsList="nodownload"' : 'muted';
+    const mediaHtml    = isVideo
+      ? '<video id="ai-modal-video" src="' + item.media_url + '" autoplay loop ' + videoAttrs + ' playsinline style="width:100%;height:100%;object-fit:contain;display:block;"></video>'
+      : '<img src="' + item.media_url + '" alt="Instagram post" style="width:100%;height:100%;object-fit:contain;display:block;">';
+
+    const handle  = currentConfig.instagramHandle || 'instagram';
+    const caption = item.caption ? item.caption.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+    const date    = item.timestamp ? new Date(item.timestamp).toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}) : 'Recently';
+    const link    = item.permalink || '#';
+    const likes   = item.like_count || 0;
+    const comments = item.comments_count || 0;
+
+    root.innerHTML =
+      '<div class="ai-modal-layout">' +
+        '<div class="ai-modal-media-pane">' +
+          mediaHtml +
+          '<button class="ai-modal-float-close" onclick="aiCloseModal()" aria-label="Close">' +
+            '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 5L5 15M5 5l10 10"/></svg>' +
+          '</button>' +
+        '</div>' +
+        '<div class="ai-modal-info-pane">' +
+          '<div class="ai-modal-header">' +
+            '<div class="ai-modal-avatar">' +
+              '<svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>' +
+            '</div>' +
+            '<div class="ai-modal-handle-wrap">' +
+              '<div class="ai-modal-handle">@' + handle + '</div>' +
+              '<div class="ai-modal-sublabel">Instagram Feed</div>' +
+            '</div>' +
+            '<button class="ai-modal-header-close" onclick="aiCloseModal()" aria-label="Close">' +
+              '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#64748b" stroke-width="2.5"><path d="M15 5L5 15M5 5l10 10"/></svg>' +
+            '</button>' +
+          '</div>' +
+          '<div class="ai-modal-body">' +
+            '<p class="ai-modal-caption">' + caption + '</p>' +
+            '<div class="ai-modal-date">' +
+              '<svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" style="flex-shrink:0"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-6V6a1 1 0 10-2 0v5a1 1 0 00.5.86l3 1.73a1 1 0 001-1.73L11 10z"/></svg>' +
+              date +
+            '</div>' +
+          '</div>' +
+          '<div class="ai-modal-footer">' +
+            '<div class="ai-modal-stats">' +
+              '<div class="ai-modal-stat">' +
+                '<svg width="22" height="22" viewBox="0 0 20 20" fill="#ef4444"><path d="M14.5 3c-1.2 0-2.3.6-3 1.5-.7-.9-1.8-1.5-3-1.5-1.2 0-2.6.4-3.2 2-.6 1.6.2 3.7 1.8 5.4 1.5 1.6 4.4 4.1 4.4 4.1s2.9-2.5 4.4-4.1c1.6-1.7 2.4-3.8 1.8-5.4-.6-1.6-2-2-3.2-2z"/></svg>' +
+                '<span>' + likes + '</span>' +
+              '</div>' +
+              '<div class="ai-modal-stat">' +
+                '<svg width="22" height="22" viewBox="0 0 20 20" fill="#64748b"><path d="M18 10c0 3.86-3.58 7-8 7a8.9 8.9 0 01-3.35-.65L2 18l1.7-4.25C2.63 12.5 2 11.3 2 10c0-3.86 3.58-7 8-7s8 3.14 8 7z"/></svg>' +
+                '<span>' + comments + '</span>' +
+              '</div>' +
+            '</div>' +
+            '<a href="' + link + '" target="_blank" rel="noreferrer" class="ai-modal-ig-btn">View on Instagram</a>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    // Backdrop close (click outside card)
+    root.onclick = function(e) { if (e.target === root) aiCloseModal(); };
+
+    // ESC key close
+    document.onkeydown = function(e) { if (e.key === 'Escape') aiCloseModal(); };
+
     root.style.display = 'flex';
+    // Expose globally so close buttons in HTML can reach it
+    window.aiCloseModal = aiCloseModal;
   };
 
   if (document.readyState === "loading") {
