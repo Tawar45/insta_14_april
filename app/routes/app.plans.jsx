@@ -294,7 +294,7 @@ export default function Plans() {
           box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
         }
       `}</style>
-      <Page>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 16px" }}>
         <BlockStack gap="300">
           
           {/* --- PREMIUM BANNER (ABSOLUTE TOP) --- */}
@@ -305,11 +305,9 @@ export default function Plans() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            marginBottom: "24px",
+            marginBottom: "0px",
             border: "none",
-            borderRadius: "20px",
-            maxWidth: "1300px",
-            margin: "0 auto"
+            borderRadius: "20px"
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
               <div style={{
@@ -335,10 +333,8 @@ export default function Plans() {
 
           {/* --- PREMIUM HEADER --- */}
           <div className="premium-header" style={{ 
-            marginBottom: "24px", display: "flex", justifyContent: "space-between", 
-            alignItems: "center", padding: "12px 24px", gap: "16px",
-            maxWidth: "1300px",
-            margin: "0 auto"
+            marginBottom: "0px", display: "flex", justifyContent: "space-between", 
+            alignItems: "center", padding: "12px 24px", gap: "16px"
           }}>
             <div className="brand-section">
               <button 
@@ -413,8 +409,8 @@ export default function Plans() {
             </div>
           </div>
 
-          {/* --- MAIN CONTAINER --- */}
-          <div style={{ maxWidth: "1300px", margin: "0 auto", width: "100%" }}>
+          {/* --- MAIN CONTENT AREA --- */}
+          <div style={{ width: "100%" }}>
 
             {/* --- PLANS GRID --- */}
             <div style={{ 
@@ -544,7 +540,7 @@ export default function Plans() {
             </div>
           </div>
         </BlockStack>
-      </Page>
+      </div>
     </div>
   );
 }
