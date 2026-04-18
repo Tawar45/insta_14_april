@@ -391,7 +391,7 @@
           : (src ? `<img loading="lazy" src="${esc(src)}" alt="story" class="${s.animateImages ? 'ai-ken-burns' : ''}" style="width:100%;height:100%;object-fit:cover;display:block;">` : `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`);
 
         const isPopup  = s.openPopup === true;
-        const clickAction = isPopup ? `onclick="window.aiOpenInstaModal('${item.id || (item.media_url ? item.media_url.slice(-20) : '')}'); return false;"` : "";
+        const clickAction = isPopup ? `onclick="window.aiOpenInstaModal('${item.id || (item.media_url ? item.media_url.slice(-20) : '')}', 'story'); return false;"` : "";
         const finalHref   = isPopup ? "javascript:void(0)" : href;
 
         html += `
@@ -465,7 +465,7 @@
   // ── Current modal index tracker ────────────────────────────────────────────
   let currentModalIndex = -1;
 
-  function aiRenderModal(index) {
+  function aiRenderModal(index, source = 'grid') {
     const root = document.getElementById('ai-instafeed-modal-root');
     if (!root) return;
 
@@ -494,6 +494,13 @@
     const link     = item.permalink || '#';
     const likes    = item.like_count || 0;
     const comments = item.comments_count || 0;
+
+    // Show watermark based on source settings
+    const showBranding = (source === 'story') 
+      ? !currentConfig.stories.removeWatermark 
+      : !currentConfig.postFeed.removeWatermark;
+      
+    const watermarkHtml = showBranding ? '<div style="text-align:center;padding:12px 0 0;font-size:11px;color:#9ca3af;">Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style="font-weight:700;color:#64748b;text-decoration:none;">BOOST STAR Experts</a></div>' : '';
 
     // Nav buttons HTML
     const prevBtn = hasPrev
@@ -552,6 +559,7 @@
               '</div>' +
             '</div>' +
             '<a href="' + link + '" target="_blank" rel="noreferrer" class="ai-modal-ig-btn">View on Instagram</a>' +
+            watermarkHtml +
           '</div>' +
         '</div>' +
       '</div>';
@@ -573,12 +581,12 @@
     aiRenderModal(newIndex);
   };
 
-  window.aiOpenInstaModal = function(id) {
-    const index = currentMedia.findIndex(m => (m.id || m.media_url.slice(-20)) === id);
+  window.aiOpenInstaModal = function(id, source = 'grid') {
+    const index = currentMedia.findIndex(m => (m.id || (m.media_url ? m.media_url.slice(-20) : '')) === id);
     if (index === -1) return;
     const root = document.getElementById('ai-instafeed-modal-root');
     if (!root) return;
-    aiRenderModal(index);
+    aiRenderModal(index, source);
   };
 
   if (document.readyState === "loading") {

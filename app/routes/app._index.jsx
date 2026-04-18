@@ -280,6 +280,7 @@ const DEFAULT_CONFIG = {
     paddingTop: 24,
     paddingBottom: 24,
     openPopup: false,
+    removeWatermark: false,
   },
 };
 
@@ -295,6 +296,7 @@ export default function Index() {
 
   const [isHydrated, setIsHydrated] = useState(false);
   const [isAppBridgeReady, setIsAppBridgeReady] = useState(false);
+  const [modalSource, setModalSource] = useState("grid");
 
   const [activeTab, setActiveTab] = useState("post");
   const [previewDevice, setPreviewDevice] = useState("mobile");
@@ -720,6 +722,7 @@ export default function Index() {
           if (isHideMode) {
             handleToggleHidePost(itemIdentifier);
           } else {
+            setModalSource("grid");
             setSelectedPost(item);
           }
         }}
@@ -1319,6 +1322,7 @@ export default function Index() {
                       { id: "showNavigation", label: "Story Navigation Arrows", sub: "Show/Hide prev/next buttons", icon: ChevronRightIcon },
                       { id: "showHeader", label: "Display Branding",  sub: "Show/Hide story title",     icon: MegaphoneIcon },
                       { id: "openPopup", label: "Story Pop-up", sub: "Open modal on story click", icon: ViewIcon },
+                      { id: "removeWatermark", label: "Remove App Branding", sub: "Clean & professional look", icon: MagicIcon, isPro: true },
                     ].map((item, idx) => (
                       <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both` }}>
                         <div className="setting-info">
@@ -1332,7 +1336,14 @@ export default function Index() {
                           <input
                             type="checkbox"
                             checked={config.stories[item.id]}
-                            onChange={(e) => updateConfig("stories", item.id, e.target.checked)}
+                            onChange={(e) => {
+                              if (item.isPro && !isPaid) {
+                                shopify.toast.show("Unlock PRO to remove watermark", { isError: true });
+                                navigate("/app/plans");
+                                return;
+                              }
+                              updateConfig("stories", item.id, e.target.checked);
+                            }}
                           />
                           <span className="slider" />
                         </label>
@@ -1583,7 +1594,12 @@ export default function Index() {
                                     <div 
                                       key={i} 
                                       style={{ flexShrink: 0, width: "60px", textAlign: "center", cursor: config.stories.openPopup ? "pointer" : "default" }}
-                                      onClick={() => config.stories.openPopup && setSelectedPost(item)}
+                                      onClick={() => {
+                                        if (config.stories.openPopup) {
+                                          setModalSource("story");
+                                          setSelectedPost(item);
+                                        }
+                                      }}
                                     >
                                       <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", overflow: "hidden", margin: "0 auto", position: "relative" }}>
                                         {config.stories.activeRing && (
@@ -1615,6 +1631,11 @@ export default function Index() {
                                   <button className="carousel-nav next" onClick={() => scrollCarousel(mobileStoryRef, "next")} style={{ width: "22px", height: "22px", right: "-6px", top: "28px", transform: "translateY(-50%)" }}>
                                     <Icon source={ChevronRightIcon} />
                                   </button>
+                                )}
+                                {!config.stories.removeWatermark && (
+                                  <div style={{ textAlign: "center", padding: "10px 0 0", fontSize: "10px", color: "#9ca3af" }}>
+                                    Powered by BOOST STAR Experts
+                                  </div>
                                 )}
                               </div>
                             )}
@@ -1675,7 +1696,12 @@ export default function Index() {
                                         <div 
                                           key={i} 
                                           style={{ textAlign: "center", width: "72px", flexShrink: 0, cursor: config.stories.openPopup ? "pointer" : "default" }}
-                                          onClick={() => config.stories.openPopup && setSelectedPost(item)}
+                                          onClick={() => {
+                                            if (config.stories.openPopup) {
+                                              setModalSource("story");
+                                              setSelectedPost(item);
+                                            }
+                                          }}
                                         >
                                           <div style={{ width: "64px", height: "64px", borderRadius: "50%", padding: "3px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", marginBottom: "6px", overflow: "hidden", margin: "0 auto 6px", position: "relative" }}>
                                             {config.stories.activeRing && (
@@ -1865,6 +1891,11 @@ export default function Index() {
                 >
                   View on Instagram
                 </a>
+                {((modalSource === "story" && !config.stories.removeWatermark) || (modalSource === "grid" && !config.postFeed.removeWatermark)) && (
+                   <div style={{ textAlign: "center", padding: "12px 0 0", fontSize: "11px", color: "#9ca3af" }}>
+                     Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: "700", color: "#64748b", textDecoration: "none" }}>BOOST STAR Experts</a>
+                   </div>
+                )}
               </div>
             </div>
           </div>
