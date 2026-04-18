@@ -429,47 +429,86 @@
   // ── Modal: close helper (stops video/audio) ─────────────────────────────
   function aiCloseModal() {
     const root = document.getElementById('ai-instafeed-modal-root');
-    if (!root) return;
-    // Pause & mute any video inside modal to stop audio immediately
+    if (!root || root.style.display === 'none') return;
+    if (root.classList.contains('ai-modal-closing')) return; // already closing
+
+    // Stop video/audio immediately (no delay)
     root.querySelectorAll('video').forEach(v => {
       v.pause();
       v.muted = true;
       v.src = '';
     });
-    root.style.display = 'none';
-    root.innerHTML = '';
+
+    // Play premium close animation
+    root.classList.add('ai-modal-closing');
+
+    // After animation completes: hide + clear DOM
+    setTimeout(() => {
+      root.style.display = 'none';
+      root.classList.remove('ai-modal-closing');
+      root.innerHTML = '';
+      document.onkeydown = null;
+    }, 300);
   }
 
-  window.aiOpenInstaModal = function(id) {
-    const item = currentMedia.find(m => (m.id || m.media_url.slice(-20)) === id);
-    if (!item) return;
+
+  // ── Current modal index tracker ────────────────────────────────────────────
+  let currentModalIndex = -1;
+
+  function aiRenderModal(index) {
     const root = document.getElementById('ai-instafeed-modal-root');
     if (!root) return;
 
-    // Stop any already-playing video first
+    // Stop any existing video
     root.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; });
 
-    const isVideo      = item.media_type === 'VIDEO';
-    const enableSound  = currentConfig.postFeed?.modalSound;
-    const videoAttrs   = enableSound ? 'controls controlsList="nodownload"' : 'muted';
-    const mediaHtml    = isVideo
+    const item = currentMedia[index];
+    if (!item) return;
+
+    currentModalIndex = index;
+
+    const showNav    = currentConfig.postFeed?.modalNavigation !== false;
+    const hasPrev    = showNav && index > 0;
+    const hasNext    = showNav && index < currentMedia.length - 1;
+
+    const isVideo     = item.media_type === 'VIDEO';
+    const enableSound = currentConfig.postFeed?.modalSound;
+    const videoAttrs  = enableSound ? 'controls controlsList="nodownload"' : 'muted';
+    const mediaHtml   = isVideo
       ? '<video id="ai-modal-video" src="' + item.media_url + '" autoplay loop ' + videoAttrs + ' playsinline style="width:100%;height:100%;object-fit:contain;display:block;"></video>'
       : '<img src="' + item.media_url + '" alt="Instagram post" style="width:100%;height:100%;object-fit:contain;display:block;">';
 
-    const handle  = currentConfig.instagramHandle || 'instagram';
-    const caption = item.caption ? item.caption.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
-    const date    = item.timestamp ? new Date(item.timestamp).toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}) : 'Recently';
-    const link    = item.permalink || '#';
-    const likes   = item.like_count || 0;
+    const handle   = currentConfig.instagramHandle || 'instagram';
+    const caption  = item.caption ? item.caption.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+    const date     = item.timestamp ? new Date(item.timestamp).toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}) : 'Recently';
+    const link     = item.permalink || '#';
+    const likes    = item.like_count || 0;
     const comments = item.comments_count || 0;
+
+    // Nav buttons HTML
+    const prevBtn = hasPrev
+      ? '<button class="ai-modal-nav-btn ai-modal-prev" onclick="aiModalNav(-1)" aria-label="Previous post">' +
+          '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 16l-5-5 5-5"/></svg>' +
+        '</button>'
+      : '';
+
+    const nextBtn = hasNext
+      ? '<button class="ai-modal-nav-btn ai-modal-next" onclick="aiModalNav(1)" aria-label="Next post">' +
+          '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16l5-5-5-5"/></svg>' +
+        '</button>'
+      : '';
+
+    const counterBadge = showNav
+      ? '<div class="ai-modal-counter">' + (index + 1) + ' / ' + currentMedia.length + '</div>'
+      : '';
 
     root.innerHTML =
       '<div class="ai-modal-layout">' +
         '<div class="ai-modal-media-pane">' +
           mediaHtml +
-          '<button class="ai-modal-float-close" onclick="aiCloseModal()" aria-label="Close">' +
-            '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 5L5 15M5 5l10 10"/></svg>' +
-          '</button>' +
+          prevBtn +
+          nextBtn +
+          counterBadge +
         '</div>' +
         '<div class="ai-modal-info-pane">' +
           '<div class="ai-modal-header">' +
@@ -507,15 +546,29 @@
         '</div>' +
       '</div>';
 
-    // Backdrop close (click outside card)
     root.onclick = function(e) { if (e.target === root) aiCloseModal(); };
-
-    // ESC key close
-    document.onkeydown = function(e) { if (e.key === 'Escape') aiCloseModal(); };
+    document.onkeydown = function(e) {
+      if (e.key === 'Escape') aiCloseModal();
+      if (e.key === 'ArrowRight' && hasNext) aiModalNav(1);
+      if (e.key === 'ArrowLeft'  && hasPrev) aiModalNav(-1);
+    };
 
     root.style.display = 'flex';
-    // Expose globally so close buttons in HTML can reach it
     window.aiCloseModal = aiCloseModal;
+  }
+
+  window.aiModalNav = function(dir) {
+    const newIndex = currentModalIndex + dir;
+    if (newIndex < 0 || newIndex >= currentMedia.length) return;
+    aiRenderModal(newIndex);
+  };
+
+  window.aiOpenInstaModal = function(id) {
+    const index = currentMedia.findIndex(m => (m.id || m.media_url.slice(-20)) === id);
+    if (index === -1) return;
+    const root = document.getElementById('ai-instafeed-modal-root');
+    if (!root) return;
+    aiRenderModal(index);
   };
 
   if (document.readyState === "loading") {
