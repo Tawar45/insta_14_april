@@ -420,6 +420,7 @@ export default function Plans() {
                   flexDirection: "column",
                   gap: "32px",
                   position: "relative",
+                  overflow: "visible",
                   border: p.isCurrent ? "2px solid var(--premium-accent)" : "1px solid #e2e8f0",
                   background: p.isCurrent ? "white" : "white",
                   boxShadow: p.isCurrent ? "0 20px 25px -5px rgba(225, 48, 108, 0.1), 0 8px 10px -6px rgba(225, 48, 108, 0.1)" : "none"

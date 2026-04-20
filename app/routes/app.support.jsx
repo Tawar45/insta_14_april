@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import whiteLogo from "../image/boost-star-white.png";
 import { useLoaderData, useFetcher, useNavigation, Form, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -108,9 +109,19 @@ export default function Support() {
         .support-card {
           transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .support-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        .support-link-card {
+          transition: all 0.2s ease;
+        }
+        .support-link-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+          background: white !important;
+          border-color: #e2e8f0 !important;
+        }
+        .support-card {
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: var(--premium-card-shadow);
         }
         .gradient-text {
           background: var(--premium-accent-gradient);
@@ -280,12 +291,14 @@ export default function Support() {
                       <Text variant="headingMd" as="h3">Direct Support</Text>
                       <Text variant="bodyMd" tone="subdued">Get in touch through our official channels.</Text>
                       
-                      <div className="support-card" style={{ 
+                      <div className="support-link-card" style={{ 
                         padding: "16px", borderRadius: "12px", border: "1px solid #f1f5f9", 
                         background: "#f8fafc", cursor: "pointer" 
                       }} onClick={() => window.open(`mailto:${supportEmail}`)}>
-                        <InlineStack gap="300" align="start">
-                          <Icon source={EmailIcon} tone="info" />
+                        <InlineStack gap="400" align="start" blockAlign="center">
+                          <div style={{ background: "#eff6ff", padding: "10px", borderRadius: "10px", color: "#2563eb" }}>
+                            <Icon source={EmailIcon} tone="inherit" />
+                          </div>
                           <BlockStack gap="0">
                             <Text variant="bodyMd" fontWeight="bold">Email Us</Text>
                             <Text variant="bodySm" tone="subdued">{supportEmail}</Text>
@@ -293,12 +306,14 @@ export default function Support() {
                         </InlineStack>
                       </div>
 
-                      <div className="support-card" style={{ 
+                      <div className="support-link-card" style={{ 
                         padding: "16px", borderRadius: "12px", border: "1px solid #f1f5f9", 
-                        background: "#eff6ff", cursor: "pointer" 
+                        background: "#f0fdf4", cursor: "pointer" 
                       }} onClick={() => window.open(`https://wa.me/${whatsappNumber.replace("+", "")}`)}>
-                        <InlineStack gap="300" align="start">
-                          <Icon source={ChatIcon} tone="success" />
+                        <InlineStack gap="400" align="start" blockAlign="center">
+                          <div style={{ background: "#dcfce7", padding: "10px", borderRadius: "10px", color: "#16a34a" }}>
+                            <Icon source={ChatIcon} tone="inherit" />
+                          </div>
                           <BlockStack gap="0">
                             <Text variant="bodyMd" fontWeight="bold">WhatsApp Expert</Text>
                             <Text variant="bodySm" tone="subdued">Instant Chat Support</Text>
@@ -306,12 +321,14 @@ export default function Support() {
                         </InlineStack>
                       </div>
 
-                      <div className="support-card" style={{ 
+                      <div className="support-link-card" style={{ 
                         padding: "16px", borderRadius: "12px", border: "1px solid #f1f5f9", 
                         background: "#fff7ed", cursor: "pointer" 
                       }} onClick={() => navigate("/app/guide")}>
-                        <InlineStack gap="300" align="start">
-                          <Icon source={QuestionCircleIcon} tone="warning" />
+                        <InlineStack gap="400" align="start" blockAlign="center">
+                          <div style={{ background: "#ffedd5", padding: "10px", borderRadius: "10px", color: "#d97706" }}>
+                            <Icon source={QuestionCircleIcon} tone="inherit" />
+                          </div>
                           <BlockStack gap="0">
                             <Text variant="bodyMd" fontWeight="bold">Help Guide</Text>
                             <Text variant="bodySm" tone="subdued">Detailed Instructions</Text>
@@ -331,13 +348,19 @@ export default function Support() {
                         display: "flex", alignItems: "center", justifyContent: "center",
                         boxShadow: "0 10px 15px -3px rgba(225, 48, 108, 0.3)"
                       }}>
-                        <Icon source={MagicIcon} tone="inherit" />
+                        <img 
+                          src={whiteLogo} 
+                          alt="BOOST STAR Logo" 
+                          style={{ width: "32px", height: "auto" }} 
+                        />
                       </div>
-                      <Text variant="headingMd">BOOST STAR Experts</Text>
-                      <Text variant="bodySm" tone="subdued">
+                      <Text variant="headingMd" alignment="center">BOOST STAR Experts</Text>
+                      <Text variant="bodySm" tone="subdued" alignment="center">
                         We are a team of Shopify Experts specialized in social proof and conversion optimization.
                       </Text>
-                      <Badge tone="success">Verified Expert Team</Badge>
+                      <InlineStack align="center">
+                        <Badge tone="success">Verified Expert Team</Badge>
+                      </InlineStack>
                     </BlockStack>
                   </div>
                 </Card>
