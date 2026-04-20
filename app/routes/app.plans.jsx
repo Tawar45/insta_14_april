@@ -98,8 +98,8 @@ export const action = async ({ request }) => {
 
   // Plan Details (matches shopify.server.js)
   const PLAN_DATA = {
-    "Pro Monthly":  { amount: 9,   interval: "EVERY_30_DAYS", trial: 7 },
-    "Pro Yearly":   { amount: 84,  interval: "ANNUAL",        trial: 7 },
+    "Pro Monthly":  { amount: 9,   interval: "EVERY_30_DAYS", trial: 3 },
+    "Pro Yearly":   { amount: 84,  interval: "ANNUAL",        trial: 3 },
   };
 
   if (planName === "Starter") {
@@ -257,7 +257,7 @@ export default function Plans() {
     },
     {
       name: "Pro", badge: "PRO", tone: "info",
-      description: "Advanced controls for growing brands.",
+      description: "Advanced controls with 3-Day Free Trial.",
       priceMonthly: 9, priceYearly: 7, 
       isPopular: true,
       features: [
@@ -333,7 +333,7 @@ export default function Plans() {
 
           {/* --- PREMIUM HEADER --- */}
           <div className="premium-header" style={{ 
-            marginBottom: "0px", display: "flex", justifyContent: "space-between", 
+            marginBottom: "24px", display: "flex", justifyContent: "space-between", 
             alignItems: "center", padding: "12px 24px", gap: "16px"
           }}>
             <div className="brand-section">
@@ -406,7 +406,7 @@ export default function Plans() {
           </div>
 
           {/* --- MAIN CONTENT AREA --- */}
-          <div style={{ width: "100%" }}>
+          <div style={{ width: "100%", marginTop: "24px" }}>
 
             {/* --- PLANS GRID --- */}
             <div style={{ 
@@ -515,7 +515,7 @@ export default function Plans() {
               </div>
               <div>
                 {[
-                  { q: "How does the 14-day Free Trial work?", a: "Every premium plan starts with a 14-day free trial. You won't be charged until the trial ends, and you can cancel anytime." },
+                  { q: "How does the 3-day Free Trial work?", a: "Every premium plan starts with a 3-day free trial. You won't be charged until the trial ends, and you can cancel anytime." },
                   { q: "Is Ai-Instafeed really hands-free?", a: "Yes! Once set up, the app automatically syncs your latest Instagram posts to your store." },
                   { q: "Will this slow down my store?", a: "No. Our scripts are loaded asynchronously and optimized for blazing fast performance." },
                   { q: "Do you offer support?", a: "Yes, we provide 24/7 priority support to help you with setup and customization." }

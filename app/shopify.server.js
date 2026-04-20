@@ -21,10 +21,10 @@ const shopify = shopifyApp({
       lineItems: [
         {
           planType: "RECURRING",
-          amount: 8,
+          amount: 9,
           currencyCode: "USD",
           interval: "EVERY_30_DAYS",
-          trialDays: 7,
+          trialDays: 3,
         },
       ],
       replacementBehavior: "APPLY_IMMEDIATELY",
@@ -33,10 +33,10 @@ const shopify = shopifyApp({
       lineItems: [
         {
           planType: "RECURRING",
-          amount: 72,
+          amount: 84,
           currencyCode: "USD",
           interval: "ANNUAL",
-          trialDays: 7,
+          trialDays: 3,
         },
       ],
       replacementBehavior: "APPLY_IMMEDIATELY",
