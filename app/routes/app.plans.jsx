@@ -98,8 +98,8 @@ export const action = async ({ request }) => {
 
   // Plan Details (matches shopify.server.js)
   const PLAN_DATA = {
-    "Pro Monthly":  { amount: 8,   interval: "EVERY_30_DAYS", trial: 7 },
-    "Pro Yearly":   { amount: 72,  interval: "ANNUAL",        trial: 7 },
+    "Pro Monthly":  { amount: 9,   interval: "EVERY_30_DAYS", trial: 7 },
+    "Pro Yearly":   { amount: 84,  interval: "ANNUAL",        trial: 7 },
   };
 
   if (planName === "Starter") {
@@ -258,7 +258,7 @@ export default function Plans() {
     {
       name: "Pro", badge: "PRO", tone: "info",
       description: "Advanced controls for growing brands.",
-      priceMonthly: 8, priceYearly: 6, 
+      priceMonthly: 9, priceYearly: 7, 
       isPopular: true,
       features: [
         "Everything in Starter+",
@@ -402,10 +402,6 @@ export default function Plans() {
                 }}>Yearly <span style={{ color: "#10b981" }}>-25%</span></div>
               </div>
 
-              <div className="status-badge" style={{ padding: "6px 12px", height: "38px", background: "rgba(255, 255, 255, 0.2)", color: "white", borderColor: "rgba(255, 255, 255, 0.1)" }}>
-                <div className="status-dot" />
-                Billing <span style={{ opacity: 0.8, marginLeft: "4px" }}>Secure</span>
-              </div>
             </div>
           </div>
 
@@ -535,7 +531,7 @@ export default function Plans() {
                   <div className="status-dot" style={{ width: "6px", height: "6px" }} />
                   <span style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px" }}>Secure Shopify Checkout</span>
                 </div>
-                <Text variant="bodySm" as="p">© 2026 Ai Highlight Center. Powered by Advanced AI Algorithms.</Text>
+                <Text variant="bodySm" as="p">© 2026 AI Instafeed Expert. Powered by Advanced AI Algorithms.</Text>
               </BlockStack>
             </div>
           </div>

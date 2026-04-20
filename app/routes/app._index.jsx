@@ -808,23 +808,15 @@ export default function Index() {
       <div className="premium-header">
         <div className="brand-section">
           <div className="brand-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
+            <InstagramIcon />
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "800", color: "white" }}>Ai Highlight Center</h1>
+            <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "800", color: "white" }}>AI Instafeed Expert</h1>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.8)" }}>V2.0 Core</span>
             </div>
           </div>
-          <div className="status-badge" style={{ marginLeft: "16px", background: "rgba(255, 255, 255, 0.2)", color: "white", borderColor: "rgba(255, 255, 255, 0.1)" }}>
-            <div className="status-dot" style={{ background: "#4ade80" }} />
-            System Online <span style={{ opacity: 0.8, marginLeft: "4px" }}>Active</span>
-          </div>
-        </div>
-
-        {/* Plan & Customize Buttons */}
+        </div> {/* brand-section */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <button
             className="premium-button"
@@ -874,27 +866,36 @@ export default function Index() {
         <div style={{ 
           margin: "0 auto 24px", 
           maxWidth: "1300px", 
-          background: "linear-gradient(90deg, #fef2f2 0%, #fff 100%)", 
-          border: "1px solid #fee2e2", 
+          background: "var(--premium-accent-gradient)", 
+          boxShadow: "0 10px 25px -5px rgba(225, 48, 108, 0.3)",
           borderRadius: "16px", 
           padding: "16px 24px", 
           display: "flex", 
           alignItems: "center", 
           justifyContent: "space-between",
-          animation: "fadeInBlur 0.6s ease-out"
+          animation: "fadeInBlur 0.6s ease-out",
+          border: "1px solid rgba(255, 255, 255, 0.1)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <div style={{ background: "#ef4444", color: "white", padding: "8px", borderRadius: "12px" }}>
+            <div style={{ background: "rgba(255, 255, 255, 0.2)", color: "white", padding: "8px", borderRadius: "12px" }}>
               <Icon source={StarIcon} />
             </div>
             <div>
-              <p style={{ fontWeight: "700", color: "#991b1b", margin: 0 }}>Unlock PRO Features</p>
-              <p style={{ fontSize: "13px", color: "#b91c1c", margin: 0 }}>Hiding posts, removing watermark, and infinite scroll are PRO features.</p>
+              <p style={{ fontWeight: "700", color: "white", margin: 0 }}>Unlock PRO Features</p>
+              <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.85)", margin: 0 }}>Hiding posts, removing watermark, and infinite scroll are PRO features.</p>
             </div>
           </div>
           <button 
-            className="premium-button button-accent" 
-            style={{ padding: "8px 20px" }}
+            className="premium-button" 
+            style={{ 
+              padding: "8px 20px",
+              background: "white",
+              color: "#e1306c",
+              fontWeight: "800",
+              fontSize: "12px",
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+            }}
             onClick={() => navigate("/app/plans")}
           >
             Upgrade Now
