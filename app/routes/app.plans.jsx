@@ -342,7 +342,7 @@ export default function Plans() {
                 style={{ 
                   background: "transparent", border: "none", cursor: "pointer", 
                   display: "flex", alignItems: "center", gap: "12px", padding: 0,
-                  color: "#1e293b"
+                  color: "white"
                 }}
               >
                 <div style={{
@@ -353,8 +353,8 @@ export default function Plans() {
                   <Icon source={ChevronLeftIcon} tone="base" />
                 </div>
                 <div>
-                  <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "800" }}>Plans & Pricing</h1>
-                  <p style={{ margin: 0, fontSize: "11px", color: "#64748b" }}>Scale your brand</p>
+                  <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "800", color: "white" }}>Plans & Pricing</h1>
+                  <p style={{ margin: 0, fontSize: "11px", color: "rgba(255, 255, 255, 0.82)" }}>Scale your brand</p>
                 </div>
               </button>
             </div>
@@ -397,14 +397,14 @@ export default function Plans() {
                 
                 <div style={{ 
                   flex: 1, textAlign: "center", zIndex: 2, 
-                  color: isYearly ? "#0f172a" : "#64748b",
+                  color: isYearly ? "var(--premium-text-primary)" : "var(--premium-text-secondary)",
                   fontWeight: "700", fontSize: "12px"
                 }}>Yearly <span style={{ color: "#10b981" }}>-25%</span></div>
               </div>
 
-              <div className="status-badge" style={{ padding: "6px 12px", height: "38px" }}>
+              <div className="status-badge" style={{ padding: "6px 12px", height: "38px", background: "rgba(255, 255, 255, 0.2)", color: "white", borderColor: "rgba(255, 255, 255, 0.1)" }}>
                 <div className="status-dot" />
-                Billing <span style={{ opacity: 0.6, marginLeft: "4px" }}>Secure</span>
+                Billing <span style={{ opacity: 0.8, marginLeft: "4px" }}>Secure</span>
               </div>
             </div>
           </div>
@@ -426,7 +426,7 @@ export default function Plans() {
                   position: "relative",
                   border: p.isCurrent ? "2px solid var(--premium-accent)" : "1px solid #e2e8f0",
                   background: p.isCurrent ? "white" : "white",
-                  boxShadow: p.isCurrent ? "0 20px 25px -5px rgba(124, 58, 237, 0.1), 0 8px 10px -6px rgba(124, 58, 237, 0.1)" : "none"
+                  boxShadow: p.isCurrent ? "0 20px 25px -5px rgba(225, 48, 108, 0.1), 0 8px 10px -6px rgba(225, 48, 108, 0.1)" : "none"
                 }}>
                   {p.isPopular && (
                     <div style={{
@@ -439,7 +439,7 @@ export default function Plans() {
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div className="status-badge" style={{ 
-                      background: p.name === "Pro" ? "rgba(99, 102, 241, 0.1)" : "#f1f5f9",
+                      background: p.name === "Pro" ? "rgba(225, 48, 108, 0.1)" : "#f1f5f9",
                       color: p.name === "Pro" ? "var(--premium-accent)" : "#64748b",
                       border: "none",
                       padding: "4px 12px"
@@ -448,17 +448,17 @@ export default function Plans() {
                   </div>
 
                   <div>
-                    <h3 style={{ fontSize: "32px", fontWeight: "900", color: "#0f172a", margin: 0 }}>{p.name}</h3>
-                    <p style={{ fontSize: "15px", color: "#64748b", marginTop: "8px" }}>{p.description}</p>
+                    <h3 style={{ fontSize: "32px", fontWeight: "900", color: "var(--premium-text-primary)", margin: 0 }}>{p.name}</h3>
+                    <p style={{ fontSize: "15px", color: "var(--premium-text-secondary)", marginTop: "8px" }}>{p.description}</p>
                   </div>
 
                   <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
                     {p.priceMonthly === 0 ? (
-                      <span style={{ fontSize: "48px", fontWeight: "900", color: "#0f172a" }}>Free</span>
+                      <span style={{ fontSize: "48px", fontWeight: "900", color: "var(--premium-text-primary)" }}>Free</span>
                     ) : (
                       <>
                         <span style={{ fontSize: "28px", fontWeight: "700", color: "#94a3b8" }}>$</span>
-                        <span style={{ fontSize: "48px", fontWeight: "900", color: "#0f172a" }}>
+                        <span style={{ fontSize: "48px", fontWeight: "900", color: "var(--premium-text-primary)" }}>
                           {isYearly ? p.priceYearly : p.priceMonthly}
                         </span>
                         <span style={{ fontSize: "18px", fontWeight: "600", color: "#94a3b8" }}>/ month</span>

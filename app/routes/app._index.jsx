@@ -245,8 +245,8 @@ const DEFAULT_CONFIG = {
     heading: "SHOP OUR INSTAGRAM",
     subheading: "Tag us @account to get featured in our gallery!",
     typography: {
-      heading:    { size: 18, weight: "800", color: "#0f172a" },
-      subheading: { size: 12, weight: "500", color: "#64748b" },
+      heading:    { size: 18, weight: "800", color: "var(--premium-text-primary)" },
+      subheading: { size: 12, weight: "500", color: "var(--premium-text-secondary)" },
     },
     alignment: "left",
     desktopColumns: 4,
@@ -275,7 +275,7 @@ const DEFAULT_CONFIG = {
     },
     animateImages: false,
     activeRing: true,
-    ringColor: "#6366f1",
+    ringColor: "#e1306c",
     showNavigation: true,
     paddingTop: 24,
     paddingBottom: 24,
@@ -813,50 +813,58 @@ export default function Index() {
             </svg>
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "700" }}>Ai Highlight Center</h1>
+            <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "800", color: "white" }}>Ai Highlight Center</h1>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ fontSize: "12px", color: "#6b7280" }}>V2.0 Core</span>
+              <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.8)" }}>V2.0 Core</span>
             </div>
           </div>
-          <div className="status-badge" style={{ marginLeft: "16px" }}>
-            <div className="status-dot" />
-            System Online <span style={{ opacity: 0.6, marginLeft: "4px" }}>Active</span>
+          <div className="status-badge" style={{ marginLeft: "16px", background: "rgba(255, 255, 255, 0.2)", color: "white", borderColor: "rgba(255, 255, 255, 0.1)" }}>
+            <div className="status-dot" style={{ background: "#4ade80" }} />
+            System Online <span style={{ opacity: 0.8, marginLeft: "4px" }}>Active</span>
           </div>
         </div>
 
         {/* Plan & Customize Buttons */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <Button
-            variant="tertiary"
-            icon={StoreIcon}
+          <button
+            className="premium-button"
+            style={{ 
+              background: "rgba(255, 255, 255, 0.15)", 
+              color: "white", 
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              backdropFilter: "blur(4px)",
+              padding: "8px 16px",
+              fontSize: "13px"
+            }}
             onClick={() => {
               const customizerUrl = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
               window.open(customizerUrl, "_blank");
             }}
           >
+            <Icon source={StoreIcon} tone="inherit" />
             Customize in Store
-          </Button>
+          </button>
 
           <div 
             onClick={() => navigate("/app/plans")}
             style={{ 
               fontSize: "11px", 
-              fontWeight: "800", 
-              padding: "6px 14px", 
+              fontWeight: "900", 
+              padding: "8px 16px", 
               borderRadius: "14px", 
-              background: loaderData?.subscription ? "var(--premium-accent-gradient)" : "rgba(0,0,0,0.05)",
-              color: loaderData?.subscription ? "white" : "#64748b",
+              background: "white",
+              color: "#e1306c",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "5px",
-              boxShadow: loaderData?.subscription ? "0 4px 12px rgba(99, 102, 241, 0.2)" : "none",
+              gap: "6px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
               transition: "all 0.2s ease"
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = loaderData?.subscription ? "0 6px 16px rgba(99, 102, 241, 0.3)" : "none"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = loaderData?.subscription ? "0 4px 12px rgba(99, 102, 241, 0.2)" : "none"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px) scale(1.02)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(0, 0, 0, 0.15)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"; }}
           >
-            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: isPaid ? "white" : "#94a3b8" }} />
+            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#e1306c" }} />
             {planName.toUpperCase()} {isPaid ? "PRO" : "PLAN"}
           </div>
         </div>
@@ -904,9 +912,9 @@ export default function Index() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
                 <span style={{ background: "var(--premium-accent)", color: "white", width: "22px", height: "22px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800", flexShrink: 0 }}>1</span>
-                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#0f172a" }}>Connect Your Account</h2>
+                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "var(--premium-text-primary)" }}>Connect Your Account</h2>
               </div>
-              <p style={{ margin: 0, fontSize: "14px", color: "#64748b", lineHeight: "1.6" }}>
+              <p style={{ margin: 0, fontSize: "14px", color: "var(--premium-text-secondary)", lineHeight: "1.6" }}>
                 Seamlessly sync your Instagram feed to your Shopify storefront.<br />
                 Enter your <span style={{ color: "var(--premium-accent)", fontWeight: "600" }}>@username</span> or profile URL to begin.
               </p>
@@ -957,7 +965,7 @@ export default function Index() {
               {isConnected && (
                 <button
                   className="premium-button"
-                  style={{ background: "#f1f5f9", color: "#6366f1", border: "1px solid #e2e8f0", minHeight: "46px", fontSize: "13px" }}
+                  style={{ background: "#f1f5f9", color: "#e1306c", border: "1px solid #e2e8f0", minHeight: "46px", fontSize: "13px" }}
                   disabled={isSyncing}
                   title="Re-sync: Crawl all pages from Instagram again and update stored data"
                   onClick={() => {
@@ -967,7 +975,7 @@ export default function Index() {
                   }}
                 >
                   {isSyncing ? (
-                    <div style={{ width: "14px", height: "14px", border: "2px solid #6366f1", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                    <div style={{ width: "14px", height: "14px", border: "2px solid #e1306c", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
                   ) : (
                     <Icon source={RefreshIcon} />
                   )}
@@ -1362,7 +1370,7 @@ export default function Index() {
                         </div>
                         <input 
                           type="color" 
-                          value={config.stories.ringColor || "#6366f1"} 
+                          value={config.stories.ringColor || "#e1306c"} 
                           onChange={(e) => updateConfig("stories", "ringColor", e.target.value)}
                           style={{ width: "40px", height: "40px", border: "none", borderRadius: "10px", cursor: "pointer", background: "none", padding: 0 }}
                         />
@@ -1470,7 +1478,7 @@ export default function Index() {
             {/* Bottom Apply / Discard */}
             {hasChanges && (
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "32px", borderTop: "1px solid #f1f5f9", paddingTop: "24px", animation: "slideInUp 0.3s ease-out" }}>
-                <button className="premium-button" style={{ color: "#64748b", background: "transparent" }} onClick={discardChanges}>Discard Changes</button>
+                <button className="premium-button" style={{ color: "var(--premium-text-secondary)", background: "transparent" }} onClick={discardChanges}>Discard Changes</button>
                 <button className="premium-button button-success" style={{ minWidth: "160px" }} onClick={applyChanges}>Apply Configuration</button>
               </div>
             )}
@@ -1480,7 +1488,7 @@ export default function Index() {
           <div style={{ position: "sticky", top: "24px" }}>
             <div className="premium-card" style={{ padding: "24px", background: "#f8fafc" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                <h2 style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: "#64748b" }}>LIVE RENDERING</h2>
+                <h2 style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: "var(--premium-text-secondary)" }}>LIVE RENDERING</h2>
                 <div style={{ display: "flex", gap: "6px", background: "white", padding: "4px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
                   <button
                     onClick={() => setPreviewDevice("mobile")}
@@ -1500,7 +1508,7 @@ export default function Index() {
                 {isSyncing && (
                   <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.82)", zIndex: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)", borderRadius: "16px", animation: "fadeInBlur 0.3s ease" }}>
                     <div style={{ width: "40px", height: "40px", border: "4px solid #e2e8f0", borderTop: `4px solid var(--premium-accent)`, borderRadius: "50%", animation: "spin 0.8s linear infinite", marginBottom: "16px" }} />
-                    <span style={{ fontWeight: "700", color: "#0f172a" }}>Syncing Live Data…</span>
+                    <span style={{ fontWeight: "700", color: "var(--premium-text-primary)" }}>Syncing Live Data…</span>
                   </div>
                 )}
 
@@ -1735,6 +1743,11 @@ export default function Index() {
                                       </button>
                                     )}
                                   </div>
+                                )}
+                                {!config.stories.removeWatermark && (
+                                   <div style={{ textAlign: "center", padding: "10px 0 0", fontSize: "11px", color: "#9ca3af" }}>
+                                     Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: "700", color: "#64748b", textDecoration: "none" }}>BOOST STAR Experts</a>
+                                   </div>
                                 )}
                               </div>
                             ) : (
