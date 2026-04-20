@@ -10,6 +10,7 @@ import {
   Badge,
   Button,
   BlockStack,
+  InlineStack,
   SkeletonPage,
   SkeletonDisplayText,
   SkeletonBodyText,
@@ -526,15 +527,16 @@ export default function Plans() {
               </div>
             </div>
 
-            <div style={{ textAlign: "center", padding: "48px 0", color: "#94a3b8" }}>
+            <footer style={{ textAlign: "center", padding: "40px 0", marginTop: "24px" }}>
               <BlockStack gap="200">
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                  <div className="status-dot" style={{ width: "6px", height: "6px" }} />
-                  <span style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px" }}>Secure Shopify Checkout</span>
-                </div>
-                <Text variant="bodySm" as="p">© 2026 AI Instafeed Expert. Powered by Advanced AI Algorithms.</Text>
+                <Text variant="bodySm" tone="subdued">© 2026 AI Instafeed by BOOST STAR Experts</Text>
+                <InlineStack gap="200" align="center">
+                  <Text variant="bodySm" tone="subdued">Terms of Service</Text>
+                  <Text variant="bodySm" tone="subdued">•</Text>
+                  <Text variant="bodySm" tone="subdued">Privacy Policy</Text>
+                </InlineStack>
               </BlockStack>
-            </div>
+            </footer>
           </div>
         </BlockStack>
       </div>

@@ -288,8 +288,8 @@ export default function Support() {
                 <Card>
                   <div style={{ padding: "8px" }}>
                     <BlockStack gap="400">
-                      <Text variant="headingMd" as="h3">Direct Support</Text>
-                      <Text variant="bodyMd" tone="subdued">Get in touch through our official channels.</Text>
+                      <Text variant="headingMd" as="h3" alignment="center">Direct Support</Text>
+                      <Text variant="bodyMd" tone="subdued" alignment="center">Get in touch through our official channels.</Text>
                       
                       <div className="support-link-card" style={{ 
                         padding: "16px", borderRadius: "12px", border: "1px solid #f1f5f9", 

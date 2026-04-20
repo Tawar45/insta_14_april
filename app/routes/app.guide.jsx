@@ -365,6 +365,16 @@ export default function Guide() {
             </div>
           </Layout.Section>
         </Layout>
+        <footer style={{ textAlign: "center", padding: "40px 0", marginTop: "24px" }}>
+          <BlockStack gap="200">
+            <Text variant="bodySm" tone="subdued">© 2026 AI Instafeed by BOOST STAR Experts</Text>
+            <InlineStack gap="200" align="center">
+              <Text variant="bodySm" tone="subdued">Terms of Service</Text>
+              <Text variant="bodySm" tone="subdued">•</Text>
+              <Text variant="bodySm" tone="subdued">Privacy Policy</Text>
+            </InlineStack>
+          </BlockStack>
+        </footer>
         </BlockStack>
       </div>
     </div>
