@@ -42,9 +42,23 @@ import {
 // LOADER - Fetch shop info if needed
 // ─────────────────────────────────────────────────────────────────────────────
 export const loader = async ({ request }) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
+  
+  // Fetch shop details for default email
+  const response = await admin.graphql(
+    `#graphql
+    query {
+      shop {
+        email
+      }
+    }`
+  );
+  const { data } = await response.json();
+  const merchantEmail = data?.shop?.email || "";
+
   return {
     shop: session.shop,
+    merchantEmail,
     supportEmail: process.env.SUPPORT_EMAIL || "support@booststar.com",
     whatsappNumber: "+1234567890",
   };
@@ -98,13 +112,12 @@ export const action = async ({ request }) => {
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Support() {
-  const { shop, supportEmail, whatsappNumber } = useLoaderData();
+  const { shop, merchantEmail, supportEmail, whatsappNumber } = useLoaderData();
   const fetcher = useFetcher();
   const shopify = useAppBridge();
   const navigation = useNavigation();
   const navigate = useNavigate();
-
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(merchantEmail || "");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
