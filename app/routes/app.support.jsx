@@ -35,7 +35,8 @@ import {
   CheckCircleIcon,
   AlertCircleIcon,
   PersonIcon,
-  SendIcon
+  SendIcon,
+  XCircleIcon
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -123,6 +124,7 @@ export default function Support() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: "", content: "", isError: false });
   const [isHydrated, setIsHydrated] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const isSubmitting = fetcher.state === "submitting";
 
@@ -142,6 +144,7 @@ export default function Support() {
       setEmail("");
       setSubject("");
       setMessage("");
+      setSelectedFiles([]);
     } else if (fetcher.data?.error) {
       setModalConfig({
         title: "Submission Failed",
@@ -265,7 +268,21 @@ export default function Support() {
                 <div style={{ padding: "8px" }}>
                   <BlockStack gap="400">
                     <Text variant="headingMd" as="h3">Send us a message</Text>
-                    <fetcher.Form method="post" encType="multipart/form-data">
+                    <fetcher.Form 
+                      method="post" 
+                      encType="multipart/form-data"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData();
+                        formData.append("email", email);
+                        formData.append("subject", subject);
+                        formData.append("message", message);
+                        selectedFiles.forEach(file => {
+                          formData.append("attachment", file);
+                        });
+                        fetcher.submit(formData, { method: "post", encType: "multipart/form-data" });
+                      }}
+                    >
                       <FormLayout>
                         <TextField
                           label="Your Email"
@@ -315,6 +332,58 @@ export default function Support() {
                             }}
                           />
                           <input type="hidden" name="message" value={message} />
+                          
+                          {/* File Previews */}
+                          {selectedFiles.length > 0 && (
+                            <div style={{ 
+                              padding: "12px 20px", 
+                              display: "flex", 
+                              flexWrap: "wrap", 
+                              gap: "8px", 
+                              background: "#f8f9fa",
+                              borderTop: "1px solid #f1f3f4"
+                            }}>
+                              {selectedFiles.map((file, index) => (
+                                <div 
+                                  key={`${file.name}-${index}`}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "6px",
+                                    padding: "4px 10px",
+                                    background: "white",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: "16px",
+                                    fontSize: "12px",
+                                    color: "#475569",
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.02)"
+                                  }}
+                                >
+                                  <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {file.name}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== index))}
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      padding: 0,
+                                      cursor: "pointer",
+                                      color: "#94a3b8",
+                                      display: "flex",
+                                      alignItems: "center"
+                                    }}
+                                  >
+                                    <div style={{ width: "14px" }}>
+                                      <Icon source={XCircleIcon} tone="inherit" />
+                                    </div>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
                           <div style={{ 
                             padding: "12px 20px", 
                             background: "#fdfdfd", 
@@ -330,13 +399,9 @@ export default function Support() {
                                   name="attachment"
                                   multiple
                                   onChange={(e) => {
-                                    const files = e.target.files;
-                                    const label = document.getElementById('file-name-label');
-                                    if (label) {
-                                      if (files.length === 0) label.textContent = "No file chosen";
-                                      else if (files.length === 1) label.textContent = files[0].name;
-                                      else label.textContent = `${files.length} files selected`;
-                                    }
+                                    const newFiles = Array.from(e.target.files);
+                                    setSelectedFiles(prev => [...prev, ...newFiles]);
+                                    e.target.value = ''; // Reset to allow re-selection
                                   }}
                                   style={{ display: "none" }}
                                 />
@@ -366,7 +431,7 @@ export default function Support() {
                                 textOverflow: "ellipsis", 
                                 whiteSpace: "nowrap" 
                               }}>
-                                No file chosen
+                                {selectedFiles.length === 0 ? "No file chosen" : `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected`}
                               </span>
                               
                               <button 
