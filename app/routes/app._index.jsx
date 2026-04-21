@@ -1614,7 +1614,9 @@ export default function Index() {
                                     >
                                       <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", overflow: "hidden", margin: "0 auto", position: "relative" }}>
                                         {config.stories.activeRing && (
-                                          <div className="ai-story-ring" style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2.5px dashed " + (config.stories.ringColor || "var(--premium-accent)"), animation: "rotateRing 10s linear infinite" }} />
+                                          <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
+                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                          </svg>
                                         )}
                                         <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
                                           {(item.media_url || item.thumbnail_url) && (
@@ -1716,7 +1718,9 @@ export default function Index() {
                                         >
                                           <div style={{ width: "64px", height: "64px", borderRadius: "50%", padding: "3px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", marginBottom: "6px", overflow: "hidden", margin: "0 auto 6px", position: "relative" }}>
                                             {config.stories.activeRing && (
-                                              <div className="ai-story-ring" style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "3px dashed " + (config.stories.ringColor || "var(--premium-accent)"), animation: "rotateRing 10s linear infinite" }} />
+                                              <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
+                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                              </svg>
                                             )}
                                             <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
                                               {(item.media_url || item.thumbnail_url) && (

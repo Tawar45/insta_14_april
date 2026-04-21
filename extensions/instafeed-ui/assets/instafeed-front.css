@@ -581,3 +581,58 @@
   .ai-modal-counter { font-size: 11px; bottom: 10px; }
 }
 
+/* ── Story Ring & Hover Effects ─────────────────────────────────────────── */
+.ai-story-ring-wrapper {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ai-story-item:hover .ai-story-ring-wrapper {
+  transform: scale(1.1);
+}
+
+.ai-story-ring-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+  display: block;
+}
+
+.ai-story-ring-circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-dasharray: 12 8;
+  animation: ai-ring-rotation 5s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+  will-change: transform;
+}
+
+@keyframes ai-ring-rotation {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.ai-story-image-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f1f5f9;
+  position: relative;
+  z-index: 1;
+}
+
+.ai-story-label {
+  margin-top: 4px;
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
