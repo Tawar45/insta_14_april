@@ -20,6 +20,7 @@ import {
   Banner,
   InlineStack,
   Divider,
+  Modal,
 } from "@shopify/polaris";
 import { sendSupportEmail } from "../utils/email.server";
 import {
@@ -30,7 +31,11 @@ import {
   QuestionCircleIcon,
   StarIcon,
   MagicIcon,
+  AttachmentIcon,
+  CheckCircleIcon,
+  AlertCircleIcon,
   PersonIcon,
+  SendIcon
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -55,6 +60,19 @@ export const action = async ({ request }) => {
   const email = formData.get("email");
   const subject = formData.get("subject");
   const message = formData.get("message");
+  const attachmentFiles = formData.getAll("attachment");
+
+  let attachments = [];
+  for (const attachment of attachmentFiles) {
+    if (attachment && attachment.size > 0 && attachment.name) {
+      const buffer = Buffer.from(await attachment.arrayBuffer());
+      attachments.push({
+        filename: attachment.name,
+        content: buffer,
+        contentType: attachment.type,
+      });
+    }
+  }
 
   // Check if SMTP is configured
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
@@ -70,6 +88,7 @@ export const action = async ({ request }) => {
     subject,
     message,
     shop: session.shop,
+    attachments,
   });
 
   return result;
@@ -88,24 +107,37 @@ export default function Support() {
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState({ title: "", content: "", isError: false });
   const [isHydrated, setIsHydrated] = useState(false);
+
+  const isSubmitting = fetcher.state === "submitting";
 
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  const isSubmitting = fetcher.state !== "idle";
 
   useEffect(() => {
     if (fetcher.data?.success) {
-      shopify.toast.show("Support request sent successfully!");
+      setModalConfig({
+        title: "Message Sent!",
+        content: "Thank you for reaching out. Our support team will get back to you within 2 hours.",
+        isError: false
+      });
+      setModalOpen(true);
       setEmail("");
       setSubject("");
       setMessage("");
     } else if (fetcher.data?.error) {
-      shopify.toast.show(fetcher.data.error, { isError: true });
+      setModalConfig({
+        title: "Submission Failed",
+        content: fetcher.data.error || "Something went wrong while sending your request. Please try again.",
+        isError: true
+      });
+      setModalOpen(true);
     }
-  }, [fetcher.data, shopify]);
+  }, [fetcher.data]);
 
   if (!isHydrated) {
     return (
@@ -220,7 +252,7 @@ export default function Support() {
                 <div style={{ padding: "8px" }}>
                   <BlockStack gap="400">
                     <Text variant="headingMd" as="h3">Send us a message</Text>
-                    <fetcher.Form method="post">
+                    <fetcher.Form method="post" encType="multipart/form-data">
                       <FormLayout>
                         <TextField
                           label="Your Email"
@@ -240,26 +272,143 @@ export default function Support() {
                           placeholder="How can we help?"
                           requiredIndicator
                         />
-                        <TextField
-                          label="Message"
-                          name="message"
-                          value={message}
-                          onChange={setMessage}
-                          multiline={4}
-                          autoComplete="off"
-                          placeholder="Describe your issue or question in detail..."
-                          requiredIndicator
-                        />
-                        <div style={{ marginTop: "12px" }}>
-                          <Button 
-                            submit 
-                            variant="primary" 
-                            size="large" 
-                            loading={isSubmitting}
-                            fullWidth
-                          >
-                            Send Message
-                          </Button>
+                        <div style={{ 
+                          position: "relative", 
+                          border: "1px solid #d1d5db", 
+                          borderRadius: "10px", 
+                          background: "white",
+                          overflow: "hidden",
+                          transition: "border-color 0.2s ease"
+                        }} className="message-container">
+                          <div
+                            contentEditable={true}
+                            onInput={(e) => setMessage(e.currentTarget.innerHTML)}
+                            onPaste={(e) => {
+                              // Optional: handle paste to ensure some styling is kept or cleaned
+                            }}
+                            placeholder="Describe your issue or question in detail..."
+                            style={{
+                              width: "100%",
+                              minHeight: "220px",
+                              padding: "20px",
+                              border: "none",
+                              outline: "none",
+                              background: "white",
+                              fontSize: "15px",
+                              lineHeight: "1.6",
+                              color: "#202124",
+                              fontFamily: "'Google Sans', Roboto, Arial, sans-serif",
+                              overflowY: "auto"
+                            }}
+                          />
+                          <input type="hidden" name="message" value={message} />
+                          <div style={{ 
+                            padding: "12px 20px", 
+                            background: "#fdfdfd", 
+                            borderTop: "1px solid #f1f3f4",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between"
+                          }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                              <label style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+                                <input
+                                  type="file"
+                                  name="attachment"
+                                  multiple
+                                  onChange={(e) => {
+                                    const files = e.target.files;
+                                    const label = document.getElementById('file-name-label');
+                                    if (label) {
+                                      if (files.length === 0) label.textContent = "No file chosen";
+                                      else if (files.length === 1) label.textContent = files[0].name;
+                                      else label.textContent = `${files.length} files selected`;
+                                    }
+                                  }}
+                                  style={{ display: "none" }}
+                                />
+                                <div style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                  padding: "8px 16px",
+                                  borderRadius: "24px",
+                                  background: "#f1f3f4",
+                                  color: "#5f6368",
+                                  fontSize: "14px",
+                                  fontWeight: "500",
+                                  border: "1px solid #dadce0",
+                                  transition: "all 0.2s"
+                                }} className="attach-btn-hover">
+                                  <Icon source={AttachmentIcon} tone="inherit" />
+                                  <span>Attach</span>
+                                </div>
+                              </label>
+                              <span id="file-name-label" style={{ 
+                                fontSize: "13px", 
+                                color: "#5f6368", 
+                                fontStyle: "italic",
+                                maxWidth: "180px", 
+                                overflow: "hidden", 
+                                textOverflow: "ellipsis", 
+                                whiteSpace: "nowrap" 
+                              }}>
+                                No file chosen
+                              </span>
+                              
+                              <button 
+                                type="submit" 
+                                disabled={isSubmitting}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                  padding: "10px 24px",
+                                  borderRadius: "24px",
+                                  background: "#1a73e8",
+                                  color: "white",
+                                  fontSize: "14px",
+                                  fontWeight: "600",
+                                  border: "none",
+                                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                                  boxShadow: "0 1px 2px rgba(60,64,67,0.3)",
+                                  transition: "all 0.2s",
+                                  marginLeft: "8px"
+                                }}
+                                className="gmail-send-btn"
+                              >
+                                <span>{isSubmitting ? "Sending..." : "Send"}</span>
+                                <div style={{ width: "20px", display: "flex", alignItems: "center" }}>
+                                  <Icon source={SendIcon} tone="inherit" />
+                                </div>
+                              </button>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#5f6368" }}>
+                              <Icon source={MagicIcon} tone="inherit" />
+                              <Text variant="bodySm" tone="subdued">Rich formatting enabled</Text>
+                            </div>
+                          </div>
+                        </div>
+
+                        <style>{`
+                          .message-container:focus-within {
+                            border-color: #1a73e8 !important;
+                            box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+                          }
+                          .attach-btn-hover:hover {
+                            background: #e8eaed !important;
+                            border-color: #d1d3d8 !important;
+                          }
+                          .gmail-send-btn:hover {
+                            background: #1765cc !important;
+                            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15) !important;
+                          }
+                          .gmail-send-btn:active {
+                            transform: scale(0.98);
+                          }
+                        `}</style>
+
+                        <div style={{ marginTop: "8px" }}>
                         </div>
                       </FormLayout>
                     </fetcher.Form>
@@ -400,6 +549,39 @@ export default function Support() {
           </footer>
         </BlockStack>
       </div>
+
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={modalConfig.title}
+        primaryAction={{
+          content: "Done",
+          onAction: () => setModalOpen(false),
+        }}
+      >
+        <Modal.Section>
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <div style={{ 
+              marginBottom: "20px", 
+              display: "inline-flex", 
+              padding: "20px", 
+              borderRadius: "50%", 
+              background: modalConfig.isError ? "#fef2f2" : "#f0fdf4",
+              color: modalConfig.isError ? "#dc2626" : "#16a34a" 
+            }}>
+              <div style={{ width: "48px" }}>
+                <Icon source={modalConfig.isError ? AlertCircleIcon : CheckCircleIcon} tone="inherit" />
+              </div>
+            </div>
+            <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "12px", color: "#1e293b" }}>
+              {modalConfig.title}
+            </h2>
+            <p style={{ color: "#64748b", fontSize: "15px", lineHeight: "1.6" }}>
+              {modalConfig.content}
+            </p>
+          </div>
+        </Modal.Section>
+      </Modal>
     </div>
   );
 }

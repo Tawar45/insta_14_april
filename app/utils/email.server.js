@@ -1,10 +1,8 @@
 import nodemailer from "nodemailer";
 
-export async function sendSupportEmail({ from, subject, message, shop }) {
+export async function sendSupportEmail({ from, subject, message, shop, attachments = [] }) {
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: process.env.SMTP_SECURE === "true",
+    service: "gmail",
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -16,6 +14,7 @@ export async function sendSupportEmail({ from, subject, message, shop }) {
     to: process.env.SUPPORT_EMAIL || "support@booststar.com",
     replyTo: from,
     subject: `[New Support Request] ${subject} - From ${shop}`,
+    attachments: attachments,
     text: `You have received a new support request.\n\nShop: ${shop}\nClient Email: ${from}\nSubject: ${subject}\n\nMessage:\n${message}`,
     html: `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #333; background-color: #f4f7f9; border-radius: 12px; max-width: 600px; margin: 0 auto;">
@@ -37,9 +36,9 @@ export async function sendSupportEmail({ from, subject, message, shop }) {
             </tr>
           </table>
 
-          <div style="margin-top: 25px; background: #fff5f8; padding: 20px; border-left: 4px solid #e1306c; border-radius: 4px;">
+          <div style="margin-top: 25px; background: #fff5f8; padding: 25px; border-left: 4px solid #e1306c; border-radius: 8px;">
             <p style="margin: 0; line-height: 1.6; color: #444; font-size: 15px;">
-              ${message.replace(/\n/g, '<br />')}
+              ${message}
             </p>
           </div>
           
