@@ -93,74 +93,46 @@ export const loader = async ({ request }) => {
 // ACTION - Create subscription via GraphQL directly (most reliable method)
 // ─────────────────────────────────────────────────────────────────────────────
 export const action = async ({ request }) => {
-  const { admin, session, billing } = await authenticate.admin(request);
+  const { billing } = await authenticate.admin(request);
   const formData = await request.formData();
   const planName = formData.get("planName");
-
-  // Plan Details (matches shopify.server.js)
-  const PLAN_DATA = {
-    "Pro Monthly":  { amount: 9,   interval: "EVERY_30_DAYS", trial: 3 },
-    "Pro Yearly":   { amount: 84,  interval: "ANNUAL",        trial: 3 },
-  };
 
   if (planName === "Starter") {
     const billingCheck = await billing.check({
       plans: ["Pro Monthly", "Pro Yearly"],
       isTest: true,
     });
+    
     if (billingCheck.hasActivePayment) {
-      await billing.cancel({
-        subscriptionId: billingCheck.appSubscriptions[0].id,
-        isTest: true,
-        prorate: true,
-      });
+      // Safely find and cancel the active premium subscription
+      const activeSub = billingCheck.appSubscriptions.find(
+        (s) => s.status === "ACTIVE"
+      );
+      if (activeSub) {
+        await billing.cancel({
+          subscriptionId: activeSub.id,
+          isTest: true,
+          prorate: true,
+        });
+      }
     }
     return { success: true };
   }
 
-  const plan = PLAN_DATA[planName];
-  if (!plan) return { error: "Plan not found" };
-
-  // Determine API Key carefully
-  const apiKey = process.env.SHOPIFY_API_KEY || "27bee79bfa6071d88605e515871d4a7d";
-  const returnUrl = `https://${session.shop}/admin/apps/${apiKey}/app/plans`;
-
-  const response = await admin.graphql(
-    `mutation appSubscriptionCreate($name: String!, $lineItems: [AppSubscriptionLineItemInput!]!, $returnUrl: URL!, $test: Boolean!, $trialDays: Int) {
-      appSubscriptionCreate(name: $name, lineItems: $lineItems, returnUrl: $returnUrl, test: $test, trialDays: $trialDays) {
-        appSubscription { id }
-        confirmationUrl
-        userErrors { field message }
-      }
-    }`,
-    {
-      variables: {
-        name: planName,
-        test: true,
-        returnUrl: returnUrl,
-        lineItems: [
-          {
-            plan: {
-              appRecurringPricingDetails: {
-                price: { amount: plan.amount, currencyCode: "USD" },
-                interval: plan.interval,
-              },
-            },
-          },
-        ],
-        ...(plan.trial ? { trialDays: plan.trial } : {})
-      },
-    }
-  );
-
-  const responseJson = await response.json();
-  const data = responseJson.data?.appSubscriptionCreate;
-
-  if (data?.userErrors?.length > 0) {
-    return { error: data.userErrors[0].message };
+  if (!["Pro Monthly", "Pro Yearly"].includes(planName)) {
+    return { error: "Plan not found" };
   }
 
-  return { confirmationUrl: data.confirmationUrl };
+  // Request billing using standard, highly compliant Shopify Billing helper.
+  // This automatically handles proper API keys, environment contexts,
+  // iframe breakouts, and redirects the merchant to the Shopify approval page.
+  await billing.request({
+    plan: planName,
+    isTest: true,
+    returnUrl: "/app/plans",
+  });
+
+  return null;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -181,11 +153,9 @@ export default function Plans() {
 
   const isPageLoading = navigation.state === "loading" || (fetcher.state === "submitting" && fetcher.formData?.get("planName"));
 
-  // Redirect logic
+  // Toast notifications for success/error
   useEffect(() => {
-    if (fetcher.data?.confirmationUrl) {
-      window.top.location.href = fetcher.data.confirmationUrl;
-    } else if (fetcher.data?.error) {
+    if (fetcher.data?.error) {
       shopify.toast.show(fetcher.data.error, { isError: true });
     } else if (fetcher.data?.success) {
       shopify.toast.show("Plan updated successfully");

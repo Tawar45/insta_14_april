@@ -49,7 +49,7 @@ export const loader = async ({ request }) => {
   return { 
     shop: session.shop,
     themeId,
-    clientId: process.env.SHOPIFY_API_KEY || "27bee79bfa6071d88605e515871d4a7d"
+    clientId: process.env.SHOPIFY_API_KEY
   };
 };
 
