@@ -79,7 +79,7 @@ export const loader = async ({ request }) => {
   let subscription = null;
   try {
     const billingCheck = await billing.check({
-      plans: ["Pro Monthly", "Pro Yearly"],
+      plans: ["Pro Monthly"],
       isTest: true,
     });
     // Ensure we only count ACTIVE subscriptions

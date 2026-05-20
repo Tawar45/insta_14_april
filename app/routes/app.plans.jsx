@@ -215,7 +215,7 @@ export default function Plans() {
     {
       name: "Starter", badge: "STARTER", tone: "new",
       description: "Essential tools for social proof.",
-      priceMonthly: 0, priceYearly: 0, 
+      priceMonthly: 0,
       features: [
         "Up to 12 Latest Posts",
         "Up to 4 Posts per Row",
