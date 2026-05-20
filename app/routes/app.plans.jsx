@@ -72,11 +72,11 @@ export const loader = async ({ request }) => {
   const { billing } = await authenticate.admin(request);
   try {
     const billingCheck = await billing.check({
-      plans: ["Pro Monthly", "Pro Yearly"],
+      plans: ["Pro Monthly"],
       isTest: true,
     });
-    
-    const activeSub = billingCheck.hasActivePayment 
+
+    const activeSub = billingCheck.hasActivePayment
       ? billingCheck.appSubscriptions.find(s => s.status === "ACTIVE")
       : null;
 
@@ -99,10 +99,10 @@ export const action = async ({ request }) => {
 
   if (planName === "Starter") {
     const billingCheck = await billing.check({
-      plans: ["Pro Monthly", "Pro Yearly"],
+      plans: ["Pro Monthly"],
       isTest: true,
     });
-    
+
     if (billingCheck.hasActivePayment) {
       // Safely find and cancel the active premium subscription
       const activeSub = billingCheck.appSubscriptions.find(
@@ -119,7 +119,7 @@ export const action = async ({ request }) => {
     return { success: true };
   }
 
-  if (!["Pro Monthly", "Pro Yearly"].includes(planName)) {
+  if (!["Pro Monthly"].includes(planName)) {
     return { error: "Plan not found" };
   }
 
@@ -144,7 +144,6 @@ export default function Plans() {
   const shopify = useAppBridge();
   const navigation = useNavigation();
   const navigate = useNavigate();
-  const [isYearly, setIsYearly] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -229,7 +228,7 @@ export default function Plans() {
     {
       name: "Pro", badge: "PRO", tone: "info",
       description: "Advanced controls with 3-Day Free Trial.",
-      priceMonthly: 9, priceYearly: 7, 
+      priceMonthly: 9,
       isPopular: true,
       features: [
         "Everything in Starter+",
@@ -241,13 +240,13 @@ export default function Plans() {
         "Priority 24/7 Support"
       ],
       isCurrent: currentPlanName.includes("Pro"),
-      monthlyName: "Pro Monthly", yearlyName: "Pro Yearly",
+      monthlyName: "Pro Monthly",
     },
   ];
 
   const handlePlan = (plan) => {
     if (plan.isCurrent) return;
-    const name = plan.name === "Starter" ? "Starter" : (isYearly ? plan.yearlyName : plan.monthlyName);
+    const name = plan.name === "Starter" ? "Starter" : plan.monthlyName;
     const fd = new FormData();
     fd.append("planName", name);
     fetcher.submit(fd, { method: "POST" });
@@ -330,50 +329,6 @@ export default function Plans() {
               </button>
             </div>
 
-            {/* --- INTEGRATED PRICING TOGGLE --- */}
-            <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1, justifyContent: "flex-end" }}>
-              <div 
-                onClick={() => setIsYearly(!isYearly)}
-                style={{ 
-                  background: "#f1f5f9", 
-                  padding: "3px", 
-                  borderRadius: "24px", 
-                  display: "flex", 
-                  alignItems: "center", 
-                  cursor: "pointer",
-                  position: "relative",
-                  width: "200px",
-                  height: "38px",
-                  border: "1px solid #e2e8f0",
-                  userSelect: "none"
-                }}
-              >
-                <div style={{
-                  position: "absolute",
-                  left: isYearly ? "calc(50% + 1px)" : "3px",
-                  width: "calc(50% - 4px)",
-                  height: "calc(100% - 6px)",
-                  background: "white",
-                  borderRadius: "20px",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  zIndex: 1
-                }} />
-                
-                <div style={{ 
-                  flex: 1, textAlign: "center", zIndex: 2, 
-                  color: !isYearly ? "#0f172a" : "#64748b",
-                  fontWeight: "700", fontSize: "12px"
-                }}>Monthly</div>
-                
-                <div style={{ 
-                  flex: 1, textAlign: "center", zIndex: 2, 
-                  color: isYearly ? "var(--premium-text-primary)" : "var(--premium-text-secondary)",
-                  fontWeight: "700", fontSize: "12px"
-                }}>Yearly <span style={{ color: "#10b981" }}>-25%</span></div>
-              </div>
-
-            </div>
           </div>
 
           {/* --- MAIN CONTENT AREA --- */}
@@ -427,7 +382,7 @@ export default function Plans() {
                       <>
                         <span style={{ fontSize: "28px", fontWeight: "700", color: "#94a3b8" }}>$</span>
                         <span style={{ fontSize: "48px", fontWeight: "900", color: "var(--premium-text-primary)" }}>
-                          {isYearly ? p.priceYearly : p.priceMonthly}
+                          {p.priceMonthly}
                         </span>
                         <span style={{ fontSize: "18px", fontWeight: "600", color: "#94a3b8" }}>/ month</span>
                       </>
