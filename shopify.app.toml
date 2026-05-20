@@ -1,27 +1,51 @@
-# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
-
 client_id = "27bee79bfa6071d88605e515871d4a7d"
 name = "AI Instafeed"
-application_url = "https://orlando-questions-roads-sagem.trycloudflare.com"
+application_url = "https://insta14april-production.up.railway.app"
 embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
 
 [webhooks]
 api_version = "2025-07"
 
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "products/update" ]
+  uri = "/webhooks/products/update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "products/create" ]
+  uri = "/webhooks/products/create"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/data_request"]
+  uri = "/webhooks/customers/data_request"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/redact"]
+  uri = "/webhooks/customers/redact"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["shop/redact"]
+  uri = "/webhooks/shop/redact"
 [access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "write_products,write_themes"
 
 [auth]
 redirect_urls = [
-  "https://orlando-questions-roads-sagem.trycloudflare.com/api/auth/callback",
+  "https://insta14april-production.up.railway.app/api/auth/callback",
   "http://localhost:3000/api/auth/callback"
 ]
 
 [app_proxy]
-url = "https://orlando-questions-roads-sagem.trycloudflare.com/api"
+url = "https://insta14april-production.up.railway.app/api"
 subpath = "instafeed"
 prefix = "apps"
-
-[build]
-automatically_update_urls_on_dev = true

@@ -17,6 +17,21 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
+  webhooks: {
+    CUSTOMERS_DATA_REQUEST: {
+      deliveryMethod: "http",
+      callbackUrl: "/webhooks/customers/data_request",
+    },
+    CUSTOMERS_REDACT: {
+      deliveryMethod: "http",
+      callbackUrl: "/webhooks/customers/redact",
+    },
+    SHOP_REDACT: {
+      deliveryMethod: "http",
+      callbackUrl: "/webhooks/shop/redact",
+    },
+  },
+
   billing: {
     "Pro Monthly": {
       lineItems: [
