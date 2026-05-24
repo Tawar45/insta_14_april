@@ -94,7 +94,7 @@ export const loader = async ({ request }) => {
 // ACTION - Create subscription via GraphQL directly (most reliable method)
 // ─────────────────────────────────────────────────────────────────────────────
 export const action = async ({ request }) => {
-  const { billing } = await authenticate.admin(request);
+  const { billing, admin } = await authenticate.admin(request);
   const formData = await request.formData();
   const planName = formData.get("planName");
   const isTest = process.env.NODE_ENV !== "production";
@@ -106,7 +106,6 @@ export const action = async ({ request }) => {
     });
 
     if (billingCheck.hasActivePayment) {
-      // Safely find and cancel the active premium subscription
       const activeSub = billingCheck.appSubscriptions.find(
         (s) => s.status === "ACTIVE"
       );
@@ -125,36 +124,76 @@ export const action = async ({ request }) => {
     return { error: "Plan not found" };
   }
 
-  // Build returnUrl from the canonical app URL (set in Railway env vars).
-  // We CANNOT use request.url here — behind Railway's reverse proxy the
-  // host header may be an internal address, causing a 401 when Shopify
-  // redirects back. SHOPIFY_APP_URL is always the public-facing domain.
   const appUrl = (
     process.env.SHOPIFY_APP_URL ||
     process.env.HOST ||
     new URL(request.url).origin
   ).replace(/\/$/, "");
 
-  // billing.request() internally throws a Response redirect to the Shopify
-  // billing confirmation page. We MUST let that redirect propagate — do NOT
-  // swallow it. Only catch non-redirect errors for proper error reporting.
   try {
-    await billing.request({
-      plan: planName,
-      isTest,
-      returnUrl: `${appUrl}/app/plans`,
-    });
-  } catch (err) {
-    // billing.request throws a redirect Response — re-throw it so the
-    // Shopify middleware and React Router can handle the redirect correctly.
-    // Swallowing this causes a 401 on the return trip.
-    if (err instanceof Response) throw err;
+    const response = await admin.graphql(
+      `#graphql
+      mutation AppSubscriptionCreate(
+        $name: String!
+        $returnUrl: URL!
+        $test: Boolean
+        $trialDays: Int
+        $replacementBehavior: AppSubscriptionReplacementBehavior
+        $lineItems: [AppSubscriptionLineItemInput!]!
+      ) {
+        appSubscriptionCreate(
+          name: $name
+          returnUrl: $returnUrl
+          test: $test
+          trialDays: $trialDays
+          replacementBehavior: $replacementBehavior
+          lineItems: $lineItems
+        ) {
+          appSubscription { id name status }
+          confirmationUrl
+          userErrors { field message }
+        }
+      }`,
+      {
+        variables: {
+          name: planName,
+          returnUrl: `${appUrl}/app/plans`,
+          test: isTest,
+          trialDays: 3,
+          replacementBehavior: "APPLY_IMMEDIATELY",
+          lineItems: [
+            {
+              plan: {
+                appRecurringPricingDetails: {
+                  interval: "EVERY_30_DAYS",
+                  price: { amount: 9.0, currencyCode: "USD" },
+                },
+              },
+            },
+          ],
+        },
+      }
+    );
 
-    console.error("[Billing] billing.request failed:", err?.message ?? err);
+    const { data, errors } = await response.json();
+
+    if (errors?.length) {
+      console.error("[Billing] GraphQL errors:", errors);
+      return { error: "Could not initiate subscription. Please try again." };
+    }
+
+    const { confirmationUrl, userErrors } = data.appSubscriptionCreate;
+
+    if (userErrors?.length) {
+      console.error("[Billing] userErrors:", userErrors);
+      return { error: userErrors[0]?.message || "Billing setup error occurred." };
+    }
+
+    return { confirmationUrl };
+  } catch (err) {
+    console.error("[Billing] Error:", err?.message ?? err);
     return { error: "Could not initiate subscription. Please try again." };
   }
-
-  return null;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -173,6 +212,13 @@ export default function Plans() {
   }, []);
 
   const isPageLoading = navigation.state === "loading" || (fetcher.state === "submitting" && fetcher.formData?.get("planName"));
+
+  // Navigate to Shopify billing confirmation page when URL is returned
+  useEffect(() => {
+    if (fetcher.data?.confirmationUrl) {
+      open(fetcher.data.confirmationUrl, "_top");
+    }
+  }, [fetcher.data]);
 
   // Toast notifications for success/error
   useEffect(() => {
