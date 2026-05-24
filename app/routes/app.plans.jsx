@@ -130,6 +130,10 @@ export const action = async ({ request }) => {
     new URL(request.url).origin
   ).replace(/\/$/, "");
 
+  const shopName = session.shop.replace(".myshopify.com", "");
+  const host = Buffer.from(`admin.shopify.com/store/${shopName}`).toString("base64url");
+  const returnUrl = `${appUrl}?shop=${session.shop}&host=${host}`;
+
   try {
     const response = await admin.graphql(
       `#graphql
@@ -157,7 +161,7 @@ export const action = async ({ request }) => {
       {
         variables: {
           name: planName,
-          returnUrl: `${appUrl}/app/plans?shop=${session.shop}`,
+          returnUrl,
           test: isTest,
           trialDays: 3,
           replacementBehavior: "APPLY_IMMEDIATELY",
