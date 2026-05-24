@@ -123,15 +123,34 @@ export const action = async ({ request }) => {
     return { error: "Plan not found" };
   }
 
-  // Request billing using standard, highly compliant Shopify Billing helper.
-  // returnUrl MUST be a fully-qualified absolute URL — Shopify's GraphQL
-  // schema types it as URL! and rejects relative paths at the API level.
-  const { origin } = new URL(request.url);
-  await billing.request({
-    plan: planName,
-    isTest: true,
-    returnUrl: `${origin}/app/plans`,
-  });
+  // Build returnUrl from the canonical app URL (set in Railway env vars).
+  // We CANNOT use request.url here — behind Railway's reverse proxy the
+  // host header may be an internal address, causing a 401 when Shopify
+  // redirects back. SHOPIFY_APP_URL is always the public-facing domain.
+  const appUrl = (
+    process.env.SHOPIFY_APP_URL ||
+    process.env.HOST ||
+    new URL(request.url).origin
+  ).replace(/\/$/, "");
+
+  // billing.request() internally throws a Response redirect to the Shopify
+  // billing confirmation page. We MUST let that redirect propagate — do NOT
+  // swallow it. Only catch non-redirect errors for proper error reporting.
+  try {
+    await billing.request({
+      plan: planName,
+      isTest: true,
+      returnUrl: `${appUrl}/app/plans`,
+    });
+  } catch (err) {
+    // billing.request throws a redirect Response — re-throw it so the
+    // Shopify middleware and React Router can handle the redirect correctly.
+    // Swallowing this causes a 401 on the return trip.
+    if (err instanceof Response) throw err;
+
+    console.error("[Billing] billing.request failed:", err?.message ?? err);
+    return { error: "Could not initiate subscription. Please try again." };
+  }
 
   return null;
 };
