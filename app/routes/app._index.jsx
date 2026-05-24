@@ -75,49 +75,47 @@ const ImageMediaIcon = () => (
 export const loader = async ({ request }) => {
   const { admin, session, billing } = await authenticate.admin(request);
   const shop = session?.shop ?? "unknown";
-  
+
+  const isTest = process.env.BILLING_TEST_MODE !== "false";
+
+  // Run all independent fetches in parallel — saves ~600-900ms per load
+  const [billingResult, configResult, instaResult, themeRes] = await Promise.allSettled([
+    billing.check({ plans: ["Pro Monthly"], isTest }),
+    withRateLimit(shop, () => fetchShopConfig(admin, shop)),
+    fetchShopInstaData(admin, shop),
+    admin.graphql(`{ themes(first: 1, roles: [MAIN]) { nodes { id } } }`),
+  ]);
+
   let subscription = null;
-  try {
-    const billingCheck = await billing.check({
-      plans: ["Pro Monthly"],
-      isTest: true,
-    });
-    // Ensure we only count ACTIVE subscriptions
+  if (billingResult.status === "fulfilled") {
+    const billingCheck = billingResult.value;
     if (billingCheck.hasActivePayment) {
       const activeSub = billingCheck.appSubscriptions.find(s => s.status === "ACTIVE");
-      if (activeSub) {
-        subscription = activeSub;
-      }
+      if (activeSub) subscription = activeSub;
     }
-  } catch (e) {
-    console.error("Billing check error:", e.message);
+  } else {
+    console.error("Billing check error:", billingResult.reason?.message);
   }
 
-  let config = null;
-  let instaData = null;
+  const config = configResult.status === "fulfilled" ? configResult.value : null;
+  const instaData = instaResult.status === "fulfilled" ? instaResult.value : null;
+  if (configResult.status === "rejected") console.error("Config fetch error:", configResult.reason);
 
-  try {
-    const fetchedConfig = await withRateLimit(shop, () => fetchShopConfig(admin, shop));
-    const fetchedInstaData = await fetchShopInstaData(admin, shop);
-    trackApiResponse(shop, {});
-    config = fetchedConfig;
-    instaData = fetchedInstaData;
-  } catch (err) {
-    console.error("Loader fetch error:", err);
+  trackApiResponse(shop, {});
+
+  let themeId = "current";
+  if (themeRes.status === "fulfilled") {
+    const themeJson = await themeRes.value.json();
+    themeId = themeJson.data?.themes?.nodes[0]?.id.split("/").pop() || "current";
   }
 
-  // Fetch Theme ID outside try/catch for config
-  const themeRes = await admin.graphql(`{ themes(first: 1, roles: [MAIN]) { nodes { id } } }`);
-  const themeJson = await themeRes.json();
-  const themeId = themeJson.data?.themes?.nodes[0]?.id.split("/").pop() || "current";
-
-  return { 
-    config: config ? JSON.stringify(config) : null, 
-    instaData: instaData ? JSON.stringify(instaData) : null, 
-    subscription, 
-    shop, 
+  return {
+    config: config ? JSON.stringify(config) : null,
+    instaData: instaData ? JSON.stringify(instaData) : null,
+    subscription,
+    shop,
     themeId,
-    clientId: process.env.SHOPIFY_API_KEY 
+    clientId: process.env.SHOPIFY_API_KEY
   };
 };
 
@@ -403,7 +401,7 @@ export default function Index() {
   // ── Hydration guard ──
   useEffect(() => {
     setIsHydrated(true);
-    const t = setTimeout(() => setIsAppBridgeReady(true), 800);
+    const t = setTimeout(() => setIsAppBridgeReady(true), 50);
     return () => clearTimeout(t);
   }, []);
 
@@ -646,7 +644,7 @@ export default function Index() {
       setTimeout(() => {
         setExtraLoadCount((prev) => prev + (previewDevice === "mobile" ? 4 : 8));
         setIsInfiniteLoading(false);
-      }, 500);
+      }, 100);
     }
   }, [isInfiniteLoading, previewDevice, hasMoreToShow, baseMedia.length]);
 

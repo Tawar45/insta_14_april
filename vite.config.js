@@ -53,7 +53,7 @@ export default defineConfig({
     dedupe: ["react", "react-dom", "react-router"]
   },
   build: {
-    assetsInlineLimit: 0,
+    assetsInlineLimit: 4096,
   },
   optimizeDeps: {
     include: ["@shopify/app-bridge-react", "@shopify/polaris"],

@@ -1,13 +1,16 @@
 import nodemailer from "nodemailer";
 
+// Singleton — created once per server process, reused for all emails
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  pool: true,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
 export async function sendSupportEmail({ from, subject, message, shop, attachments = [] }) {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
 
   const mailOptions = {
     from: `"AI Instafeed Support" <${process.env.SMTP_USER}>`,
@@ -61,13 +64,6 @@ export async function sendSupportEmail({ from, subject, message, shop, attachmen
 }
 
 export async function sendWelcomeEmail({ to, shop }) {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
 
   const mailOptions = {
     from: `"Shivdutt | AI Instafeed" <${process.env.SMTP_USER}>`,

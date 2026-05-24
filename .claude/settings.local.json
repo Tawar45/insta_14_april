@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm ci *)",
-      "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('prisma in deps:', pkg.dependencies.prisma\\); console.log\\('prisma in devDeps:', pkg.devDependencies.prisma\\);\")"
+      "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('prisma in deps:', pkg.dependencies.prisma\\); console.log\\('prisma in devDeps:', pkg.devDependencies.prisma\\);\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\shivd\\\\OneDrive\\\\Desktop\\\\ShopifyApp\\\\new_14\\\\ai-instafeed\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20)"
     ]
   }
 }

@@ -203,7 +203,7 @@ export async function fetchAllInstagramMedia(handle, shop, maxPages = 10) {
       }
 
       const pageMedia = discovery.media?.data || [];
-      allMedia = [...allMedia, ...pageMedia];
+      allMedia.push(...pageMedia);
       pagesFetched++;
 
       // Get next cursor if available
