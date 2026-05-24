@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm ci *)",
+      "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('prisma in deps:', pkg.dependencies.prisma\\); console.log\\('prisma in devDeps:', pkg.devDependencies.prisma\\);\")"
+    ]
+  }
+}
