@@ -94,7 +94,7 @@ export const loader = async ({ request }) => {
 // ACTION - Create subscription via GraphQL directly (most reliable method)
 // ─────────────────────────────────────────────────────────────────────────────
 export const action = async ({ request }) => {
-  const { billing, admin } = await authenticate.admin(request);
+  const { billing, admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
   const planName = formData.get("planName");
   const isTest = process.env.BILLING_TEST_MODE !== "false";
@@ -157,7 +157,7 @@ export const action = async ({ request }) => {
       {
         variables: {
           name: planName,
-          returnUrl: `${appUrl}/app/plans`,
+          returnUrl: `${appUrl}/app/plans?shop=${session.shop}`,
           test: isTest,
           trialDays: 3,
           replacementBehavior: "APPLY_IMMEDIATELY",
