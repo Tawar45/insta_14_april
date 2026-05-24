@@ -70,7 +70,7 @@ const FAQItem = ({ question, answer, isLast }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 export const loader = async ({ request }) => {
   const { billing } = await authenticate.admin(request);
-  const isTest = process.env.NODE_ENV !== "production";
+  const isTest = process.env.BILLING_TEST_MODE !== "false";
   try {
     const billingCheck = await billing.check({
       plans: ["Pro Monthly"],
@@ -97,7 +97,7 @@ export const action = async ({ request }) => {
   const { billing, admin } = await authenticate.admin(request);
   const formData = await request.formData();
   const planName = formData.get("planName");
-  const isTest = process.env.NODE_ENV !== "production";
+  const isTest = process.env.BILLING_TEST_MODE !== "false";
 
   if (planName === "Starter") {
     const billingCheck = await billing.check({
