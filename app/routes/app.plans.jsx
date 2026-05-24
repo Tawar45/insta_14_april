@@ -124,12 +124,13 @@ export const action = async ({ request }) => {
   }
 
   // Request billing using standard, highly compliant Shopify Billing helper.
-  // This automatically handles proper API keys, environment contexts,
-  // iframe breakouts, and redirects the merchant to the Shopify approval page.
+  // returnUrl MUST be a fully-qualified absolute URL — Shopify's GraphQL
+  // schema types it as URL! and rejects relative paths at the API level.
+  const { origin } = new URL(request.url);
   await billing.request({
     plan: planName,
     isTest: true,
-    returnUrl: "/app/plans",
+    returnUrl: `${origin}/app/plans`,
   });
 
   return null;
