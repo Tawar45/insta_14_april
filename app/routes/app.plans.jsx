@@ -397,6 +397,19 @@ export default function Plans() {
               </button>
             </div>
 
+            <div style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.25)",
+              borderRadius: "12px",
+              padding: "8px 20px",
+              color: "white",
+              fontSize: "16px",
+              fontWeight: "700",
+              backdropFilter: "blur(4px)",
+            }}>
+              Hi 👋
+            </div>
+
           </div>
 
           {/* --- MAIN CONTENT AREA --- */}
