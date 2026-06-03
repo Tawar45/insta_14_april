@@ -28,17 +28,17 @@ import {
 const FAQItem = ({ question, answer, isLast }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div 
+    <div
       onClick={() => setIsOpen(!isOpen)}
-      style={{ 
-        padding: "24px 0", 
+      style={{
+        padding: "24px 0",
         borderBottom: isLast ? "none" : "1px solid #f1f5f9",
         cursor: "pointer"
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Text variant="bodyLg" fontWeight="bold">{question}</Text>
-        <div style={{ 
+        <div style={{
           width: "32px", height: "32px", borderRadius: "50%", background: "#f8fafc",
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "all 0.3s ease",
@@ -52,9 +52,9 @@ const FAQItem = ({ question, answer, isLast }) => {
           </svg>
         </div>
       </div>
-      <div style={{ 
-        maxHeight: isOpen ? "300px" : "0", 
-        overflow: "hidden", 
+      <div style={{
+        maxHeight: isOpen ? "300px" : "0",
+        overflow: "hidden",
         transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         marginTop: isOpen ? "16px" : "0",
         opacity: isOpen ? 1 : 0
@@ -306,7 +306,6 @@ export default function Plans() {
         "Everything in Starter+",
         "Remove 'Ai-Instafeed' Watermark",
         "Infinite Scrolling Feature",
-        "Manual Hide Mode (Hide Posts)",
         "Premium Story Layouts",
         "Unlimited Posts & Columns",
         "Priority 24/7 Support"
@@ -338,7 +337,7 @@ export default function Plans() {
       `}</style>
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 16px" }}>
         <BlockStack gap="300">
-          
+
           {/* --- PREMIUM BANNER (ABSOLUTE TOP) --- */}
           <div className="premium-card" style={{
             background: "var(--premium-accent-gradient)",
@@ -363,8 +362,8 @@ export default function Plans() {
                 <Text variant="bodyMd" as="p" tone="inherit">Join 10,000+ merchants using Ai-Instafeed to boost credibility and sales.</Text>
               </BlockStack>
             </div>
-            <div style={{ 
-              background: "rgba(255,255,255,0.1)", padding: "12px 20px", borderRadius: "12px", 
+            <div style={{
+              background: "rgba(255,255,255,0.1)", padding: "12px 20px", borderRadius: "12px",
               border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(4px)",
               textAlign: "center"
             }}>
@@ -374,15 +373,15 @@ export default function Plans() {
           </div>
 
           {/* --- PREMIUM HEADER --- */}
-          <div className="premium-header" style={{ 
-            marginBottom: "24px", display: "flex", justifyContent: "space-between", 
+          <div className="premium-header" style={{
+            marginBottom: "24px", display: "flex", justifyContent: "space-between",
             alignItems: "center", padding: "16px 28px", gap: "16px"
           }}>
             <div className="brand-section">
-              <button 
+              <button
                 onClick={() => navigate("/app")}
-                style={{ 
-                  background: "transparent", border: "none", cursor: "pointer", 
+                style={{
+                  background: "transparent", border: "none", cursor: "pointer",
                   display: "flex", alignItems: "center", gap: "16px", padding: 0,
                   color: "white"
                 }}
@@ -420,8 +419,8 @@ export default function Plans() {
           <div style={{ width: "100%", marginTop: "24px" }}>
 
             {/* --- PLANS GRID --- */}
-            <div style={{ 
-              display: "grid", gridTemplateColumns: "repeat(2, 1fr)", 
+            <div style={{
+              display: "grid", gridTemplateColumns: "repeat(2, 1fr)",
               gap: "48px", width: "100%", marginBottom: "48px"
             }}>
               {plans.map((p) => (
@@ -446,7 +445,7 @@ export default function Plans() {
                   )}
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div className="status-badge" style={{ 
+                    <div className="status-badge" style={{
                       background: p.name === "Pro" ? "rgba(225, 48, 108, 0.1)" : "#f1f5f9",
                       color: p.name === "Pro" ? "var(--premium-accent)" : "#64748b",
                       border: "none",
@@ -479,8 +478,8 @@ export default function Plans() {
                   <BlockStack gap="400">
                     {p.features.map((feature, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <div style={{ 
-                          width: "24px", height: "24px", borderRadius: "50%", 
+                        <div style={{
+                          width: "24px", height: "24px", borderRadius: "50%",
                           background: p.name === "Pro" ? "#f5f3ff" : "#f0fdf4",
                           display: "flex", alignItems: "center", justifyContent: "center"
                         }}>
@@ -492,16 +491,15 @@ export default function Plans() {
                   </BlockStack>
 
                   <button
-                    className={`premium-button ${
-                      p.isCurrent 
-                        ? "button-success" 
-                        : (p.name === "Pro" ? "button-accent" : "button-primary")
-                    }`}
+                    className={`premium-button ${p.isCurrent
+                      ? "button-success"
+                      : (p.name === "Pro" ? "button-accent" : "button-primary")
+                      }`}
                     disabled={p.isCurrent || isSubmitting}
                     onClick={() => handlePlan(p)}
-                    style={{ 
-                      width: "100%", 
-                      height: "56px", 
+                    style={{
+                      width: "100%",
+                      height: "56px",
                       fontSize: "17px",
                       opacity: p.isCurrent ? 0.9 : 1,
                       cursor: p.isCurrent ? "default" : "pointer"
