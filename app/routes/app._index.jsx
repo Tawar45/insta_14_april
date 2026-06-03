@@ -1255,9 +1255,31 @@ export default function Index() {
                         </div>
                         {hasChanges && (
                           <div style={{ animation: "fadeInBlur 0.3s ease" }}>
-                            <Button variant="primary" size="small" onClick={applyChanges} loading={saveFetcher.state === "submitting"}>
-                              Save
-                            </Button>
+                            <button
+                              style={{
+                                background: "#1a1a1a",
+                                color: "#ffffff",
+                                border: "1px solid #1a1a1a",
+                                borderRadius: "8px",
+                                padding: "6px 14px",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                cursor: "pointer",
+                                boxShadow: "0px 1px 0px rgba(0, 0, 0, 0.05), inset 0px 1px 0px rgba(255, 255, 255, 0.15)",
+                                transition: "background 0.15s ease, border-color 0.15s ease",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                height: "30px",
+                                lineHeight: "1",
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = "#303030"; e.currentTarget.style.borderColor = "#303030"; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = "#1a1a1a"; e.currentTarget.style.borderColor = "#1a1a1a"; }}
+                              onClick={applyChanges}
+                              disabled={saveFetcher.state === "submitting"}
+                            >
+                              {saveFetcher.state === "submitting" ? "Saving..." : "Save"}
+                            </button>
                           </div>
                         )}
                       </div>
@@ -1398,9 +1420,31 @@ export default function Index() {
                         </div>
                         {hasChanges && (
                           <div style={{ animation: "fadeInBlur 0.3s ease" }}>
-                            <Button variant="primary" size="small" onClick={applyChanges} loading={saveFetcher.state === "submitting"}>
-                              Save
-                            </Button>
+                            <button
+                              style={{
+                                background: "#1a1a1a",
+                                color: "#ffffff",
+                                border: "1px solid #1a1a1a",
+                                borderRadius: "8px",
+                                padding: "6px 14px",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                cursor: "pointer",
+                                boxShadow: "0px 1px 0px rgba(0, 0, 0, 0.05), inset 0px 1px 0px rgba(255, 255, 255, 0.15)",
+                                transition: "background 0.15s ease, border-color 0.15s ease",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                height: "30px",
+                                lineHeight: "1",
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = "#303030"; e.currentTarget.style.borderColor = "#303030"; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = "#1a1a1a"; e.currentTarget.style.borderColor = "#1a1a1a"; }}
+                              onClick={applyChanges}
+                              disabled={saveFetcher.state === "submitting"}
+                            >
+                              {saveFetcher.state === "submitting" ? "Saving..." : "Save"}
+                            </button>
                           </div>
                         )}
                       </div>
