@@ -1030,10 +1030,10 @@ export default function Index() {
         </div>
 
         {/* ── Main Two-Column Grid ── */}
-        <div className="main-content-grid" style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "24px", alignItems: "start" }}>
-
+        <Layout>
           {/* ── LEFT: Settings Panel ── */}
-          <div className="premium-card" style={{ padding: "24px" }}>
+          <Layout.Section>
+            <div className="premium-card" style={{ padding: "24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "10px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <div style={{ width: "8px", height: "8px", background: "var(--premium-accent)", borderRadius: "50%" }} />
@@ -1483,11 +1483,13 @@ export default function Index() {
                 <button className="premium-button button-success" style={{ minWidth: "160px" }} onClick={applyChanges}>Apply Configuration</button>
               </div>
             )}
-          </div>
+            </div>
+          </Layout.Section>
 
           {/* ── RIGHT: Preview Panel ── */}
-          <div style={{ position: "sticky", top: "24px" }}>
-            <div className="premium-card" style={{ padding: "24px", background: "#f8fafc" }}>
+          <Layout.Section variant="oneThird">
+            <div style={{ position: "sticky", top: "24px" }}>
+              <div className="premium-card" style={{ padding: "24px", background: "#f8fafc" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <h2 style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: "var(--premium-text-secondary)" }}>LIVE RENDERING</h2>
                 <div style={{ display: "flex", gap: "6px", background: "white", padding: "4px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
@@ -1813,8 +1815,9 @@ export default function Index() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </Layout.Section>
+      </Layout>
+    </div>
 
       {/* ── Premium Post Modal ── */}
       {selectedPost && (
