@@ -1248,9 +1248,18 @@ export default function Index() {
 
 
                     <div className="config-visual-card">
-                      <div className="input-group-header">
-                        <Icon source={ColorIcon} tone="base" />
-                        <h4>Branding & Typography</h4>
+                      <div className="input-group-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <Icon source={ColorIcon} tone="base" />
+                          <h4>Branding & Typography</h4>
+                        </div>
+                        {hasChanges && (
+                          <div style={{ animation: "fadeInBlur 0.3s ease" }}>
+                            <Button variant="primary" size="small" onClick={applyChanges} loading={saveFetcher.state === "submitting"}>
+                              Save
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ marginBottom: "24px" }}>
@@ -1382,9 +1391,18 @@ export default function Index() {
                   <div className="visual-architecture" style={{ marginTop: "32px", animation: "slideInUp 0.3s ease-out 0.2s both" }}>
 
                     <div className="config-visual-card">
-                      <div className="input-group-header">
-                        <Icon source={ColorIcon} tone="base" />
-                        <h4>Branding & Typography</h4>
+                      <div className="input-group-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <Icon source={ColorIcon} tone="base" />
+                          <h4>Branding & Typography</h4>
+                        </div>
+                        {hasChanges && (
+                          <div style={{ animation: "fadeInBlur 0.3s ease" }}>
+                            <Button variant="primary" size="small" onClick={applyChanges} loading={saveFetcher.state === "submitting"}>
+                              Save
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ marginBottom: "24px" }}>
