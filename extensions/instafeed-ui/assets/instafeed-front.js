@@ -383,7 +383,7 @@
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg>
             </button>
           ` : ''}
-          <div id="${trackId}" class="ai-fw-track" style="display:flex;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:16px;padding:8px 4px 12px;">`;
+          <div id="${trackId}" class="ai-fw-track" style="display:flex;justify-content:${s.alignment === 'center' ? 'center' : s.alignment === 'right' ? 'flex-end' : 'flex-start'};justify-content:${s.alignment === 'center' ? 'safe center' : s.alignment === 'right' ? 'safe flex-end' : 'flex-start'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:16px;padding:8px 4px 12px;">`;
 
       storyItems.forEach((item, i) => {
         const isVideo  = item.media_type === "VIDEO";

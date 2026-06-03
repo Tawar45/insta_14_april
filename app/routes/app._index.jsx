@@ -1598,7 +1598,7 @@ export default function Index() {
                                     <Icon source={ChevronLeftIcon} />
                                   </button>
                                 )}
-                                <div className="carousel-container" ref={mobileStoryRef} style={{ gap: "12px", padding: "0 4px 10px" }}>
+                                <div className="carousel-container" ref={mobileStoryRef} style={{ justifyContent: config.stories.alignment === "center" ? "safe center" : config.stories.alignment === "right" ? "safe flex-end" : "flex-start", gap: "12px", padding: "0 4px 10px" }}>
                                   {(instaData?.media?.data || baseMedia).slice(0, 12).map((item, i) => (
                                     <div 
                                       key={i} 
@@ -1702,7 +1702,7 @@ export default function Index() {
                                         <Icon source={ChevronLeftIcon} />
                                       </button>
                                     )}
-                                    <div className="carousel-container" ref={desktopStoryRef} style={{ justifyContent: "flex-start", gap: "16px", padding: "8px 4px 12px" }}>
+                                    <div className="carousel-container" ref={desktopStoryRef} style={{ justifyContent: config.stories.alignment === "center" ? "safe center" : config.stories.alignment === "right" ? "safe flex-end" : "flex-start", gap: "16px", padding: "8px 4px 12px" }}>
                                       {(instaData?.media?.data || baseMedia).slice(0, 8).map((item, i) => (
                                         <div 
                                           key={i} 
