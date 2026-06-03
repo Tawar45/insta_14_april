@@ -85,8 +85,19 @@
 }
 
 /* ── Hide scrollbars on tracking containers ──────────────────────────────── */
-.ai-fw-track::-webkit-scrollbar { display: none; }
-.ai-fw-track { -ms-overflow-style: none; scrollbar-width: none; }
+.ai-fw-carousel-wrapper .ai-fw-track::-webkit-scrollbar,
+.ai-fw-track::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+.ai-fw-carousel-wrapper .ai-fw-track,
+.ai-fw-track {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
 
 /* ── Carousel nav buttons ────────────────────────────────────────────────── */
 .ai-fw-nav {

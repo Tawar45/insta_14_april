@@ -591,17 +591,22 @@ input[type="color"].premium-input {
   width: 100%;
 }
 
+.carousel-container::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
 .carousel-container {
   display: flex !important;
   overflow-x: auto;
   scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE 10+ */
+  -webkit-overflow-scrolling: touch !important;
   gap: var(--carousel-gap, 16px);
   padding-bottom: 4px;
-}
-
-.carousel-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
 }
 
 .carousel-item {
