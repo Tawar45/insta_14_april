@@ -427,7 +427,39 @@
     bindCarouselNav(container);
   }
 
+  function checkTrackOverflow(track, wrapper) {
+    if (!track || !wrapper) return;
+    const hasOverflow = track.scrollWidth > track.clientWidth;
+    const navButtons = wrapper.querySelectorAll(".ai-fw-nav");
+    navButtons.forEach(btn => {
+      btn.style.setProperty("display", hasOverflow ? "flex" : "none", "important");
+    });
+  }
+
   function bindCarouselNav(root) {
+    const wrapper = root.querySelector(".ai-fw-carousel-wrapper");
+    const track = root.querySelector(".ai-fw-track");
+    
+    if (track && wrapper) {
+      // Check immediately and after a short delay (for rendering/fonts/images loading)
+      setTimeout(() => checkTrackOverflow(track, wrapper), 50);
+      setTimeout(() => checkTrackOverflow(track, wrapper), 300);
+      
+      // Monitor resize of container dynamically
+      if (window.ResizeObserver) {
+        const observer = new ResizeObserver(() => {
+          checkTrackOverflow(track, wrapper);
+        });
+        observer.observe(track);
+        if (track.__resizeObserver) {
+          track.__resizeObserver.disconnect();
+        }
+        track.__resizeObserver = observer;
+      } else {
+        window.addEventListener("resize", () => checkTrackOverflow(track, wrapper));
+      }
+    }
+
     root.querySelectorAll(".ai-fw-nav").forEach((btn) => {
       btn.addEventListener("click", () => {
         const trackId = btn.getAttribute("data-track-id");

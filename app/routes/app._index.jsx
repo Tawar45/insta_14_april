@@ -629,6 +629,41 @@ export default function Index() {
   const configRef = useRef(config);
   useEffect(() => { configRef.current = config; }, [config]);
 
+  // Dynamically hide/show navigation buttons based on track overflow
+  useEffect(() => {
+    const containers = document.querySelectorAll(".carousel-container");
+    const observers = [];
+
+    const checkOverflow = (container) => {
+      const wrapper = container.closest(".carousel-wrapper");
+      if (!wrapper) return;
+      const hasOverflow = container.scrollWidth > container.clientWidth;
+      const navButtons = wrapper.querySelectorAll(".carousel-nav");
+      navButtons.forEach(btn => {
+        btn.style.setProperty("display", hasOverflow ? "flex" : "none", "important");
+      });
+    };
+
+    containers.forEach((container) => {
+      // Check immediately and with small delays for rendering/image load adjustments
+      checkOverflow(container);
+      setTimeout(() => checkOverflow(container), 50);
+      setTimeout(() => checkOverflow(container), 300);
+
+      if (window.ResizeObserver) {
+        const observer = new ResizeObserver(() => {
+          checkOverflow(container);
+        });
+        observer.observe(container);
+        observers.push(observer);
+      }
+    });
+
+    return () => {
+      observers.forEach(obs => obs.disconnect());
+    };
+  }, [config, activeTab, simulatedInfiniteMedia]);
+
   const handleScroll = useCallback((e, orientation = "vertical") => {
     if (!configRef.current.postFeed.load || isInfiniteLoading) return;
     const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } = e.currentTarget;
