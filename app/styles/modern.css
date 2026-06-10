@@ -883,3 +883,443 @@ input[type="color"].premium-input {
     z-index: 10;
   }
 }
+
+/* ── Hide Mode Instructional UI ──────────────────────────────────────────── */
+
+/* Gradient border rotation for the instruction card */
+@keyframes hideModeBorderRotate {
+  0%   { --hm-angle: 0deg; }
+  100% { --hm-angle: 360deg; }
+}
+
+@keyframes hideModeSlideIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes hideModePulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+@keyframes tapFingerBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-4px) rotate(-5deg); }
+  75%      { transform: translateY(-2px) rotate(5deg); }
+}
+
+@keyframes shimmerScan {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes stepFadeIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes liveDotPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6); }
+  70%  { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
+@keyframes hiddenStamp {
+  from { opacity: 0; transform: scale(1.4) rotate(-8deg); }
+  to   { opacity: 1; transform: scale(1) rotate(-4deg); }
+}
+
+@keyframes glowBorder {
+  0%, 100% { box-shadow: 0 0 12px rgba(225, 48, 108, 0.2), inset 0 0 12px rgba(225, 48, 108, 0.05); }
+  50%      { box-shadow: 0 0 24px rgba(225, 48, 108, 0.4), inset 0 0 24px rgba(225, 48, 108, 0.08); }
+}
+
+/* ── Instruction Card (Settings Panel) ──────────────────────────────────── */
+.hide-mode-instruction-card {
+  position: relative;
+  background: linear-gradient(145deg, rgba(255, 240, 245, 0.95) 0%, rgba(255, 228, 238, 0.9) 50%, rgba(254, 215, 226, 0.85) 100%);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(225, 48, 108, 0.2);
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  margin-top: 12px;
+  animation: hideModeSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  overflow: hidden;
+  box-shadow:
+    0 8px 32px rgba(225, 48, 108, 0.12),
+    0 2px 8px rgba(225, 48, 108, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Animated shimmer scan */
+.hide-mode-instruction-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmerScan 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Decorative gradient accent bar */
+.hide-mode-instruction-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--premium-accent-gradient);
+  border-radius: 16px 16px 0 0;
+  z-index: 2;
+}
+
+.hide-mode-instruction-card .hide-mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 3;
+}
+
+.hide-mode-instruction-card .hide-mode-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #be123c;
+  margin-bottom: 0;
+  letter-spacing: 0.01em;
+}
+
+.hide-mode-instruction-card .hide-mode-title .finger-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  background: var(--premium-accent-gradient);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  animation: tapFingerBounce 2s ease-in-out infinite;
+  box-shadow: 0 4px 12px rgba(225, 48, 108, 0.25);
+}
+
+.hide-mode-instruction-card .hide-mode-live-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(225, 48, 108, 0.12);
+  color: #e1306c;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hide-mode-instruction-card .hide-mode-live-badge .live-dot {
+  width: 6px;
+  height: 6px;
+  background: #e1306c;
+  border-radius: 50%;
+  animation: hideModePulse 1.5s ease-in-out infinite;
+}
+
+.hide-mode-instruction-card .hide-mode-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  z-index: 3;
+}
+
+/* Vertical connector line */
+.hide-mode-instruction-card .hide-mode-steps::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 22px;
+  bottom: 22px;
+  width: 2px;
+  background: linear-gradient(to bottom, rgba(225, 48, 108, 0.3), rgba(225, 48, 108, 0.08));
+  border-radius: 2px;
+}
+
+.hide-mode-instruction-card .hide-mode-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #6b2138;
+  line-height: 1.5;
+  padding: 8px 0;
+  position: relative;
+}
+
+.hide-mode-instruction-card .hide-mode-step:nth-child(1) { animation: stepFadeIn 0.4s ease-out 0.1s both; }
+.hide-mode-instruction-card .hide-mode-step:nth-child(2) { animation: stepFadeIn 0.4s ease-out 0.2s both; }
+.hide-mode-instruction-card .hide-mode-step:nth-child(3) { animation: stepFadeIn 0.4s ease-out 0.3s both; }
+.hide-mode-instruction-card .hide-mode-step:nth-child(4) { animation: stepFadeIn 0.4s ease-out 0.4s both; }
+
+.hide-mode-instruction-card .hide-mode-step .step-number {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  background: var(--premium-accent);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(225, 48, 108, 0.3);
+  transition: all 0.2s ease;
+}
+
+.hide-mode-instruction-card .hide-mode-step:hover .step-number {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(225, 48, 108, 0.4);
+}
+
+.hide-mode-instruction-card .hide-mode-step .step-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.hide-mode-instruction-card .hide-mode-step .step-text {
+  flex: 1;
+  font-weight: 500;
+}
+
+.hide-mode-instruction-card .hide-mode-step .step-text strong {
+  font-weight: 700;
+  color: #9f1239;
+}
+
+/* Hidden count footer */
+.hide-mode-instruction-card .hide-mode-hidden-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(225, 48, 108, 0.08);
+  border-radius: 10px;
+  font-size: 12px;
+  color: #9f1239;
+  font-weight: 600;
+  position: relative;
+  z-index: 3;
+  animation: stepFadeIn 0.4s ease-out 0.5s both;
+}
+
+.hide-mode-instruction-card .hide-mode-hidden-count .count-badge {
+  background: var(--premium-accent-gradient);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(225, 48, 108, 0.3);
+  letter-spacing: 0.02em;
+}
+
+.hide-mode-instruction-card .hide-mode-no-hidden {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(34, 197, 94, 0.08);
+  border-radius: 10px;
+  font-size: 12px;
+  color: #166534;
+  font-weight: 600;
+  position: relative;
+  z-index: 3;
+  animation: stepFadeIn 0.4s ease-out 0.5s both;
+}
+
+/* ── Preview Panel Floating Banner ──────────────────────────────────────── */
+.hide-mode-preview-banner {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 50;
+  background: linear-gradient(135deg, rgba(225, 48, 108, 0.97), rgba(157, 23, 77, 0.97));
+  backdrop-filter: blur(12px);
+  border-radius: 14px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: hideModeSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    0 8px 32px rgba(225, 48, 108, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animated shimmer on banner */
+.hide-mode-preview-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  animation: shimmerScan 4s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: 14px;
+}
+
+.hide-mode-preview-banner .banner-icon {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  animation: tapFingerBounce 2s ease-in-out infinite;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 2;
+}
+
+.hide-mode-preview-banner .banner-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+  position: relative;
+  z-index: 2;
+}
+
+.hide-mode-preview-banner .banner-text strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 2px;
+  color: white;
+}
+
+.hide-mode-preview-banner .banner-text strong .live-indicator {
+  width: 7px;
+  height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: liveDotPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.5);
+}
+
+.hide-mode-preview-banner .banner-count-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ── Hide Mode Active State on Grid Items ───────────────────────────────── */
+.hide-mode-active .grid-item {
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hide-mode-active .grid-item:hover {
+  transform: scale(0.94);
+  box-shadow: 0 0 0 2px rgba(225, 48, 108, 0.5), 0 4px 16px rgba(225, 48, 108, 0.2);
+}
+
+.hide-mode-active .grid-item::after {
+  border: 2px dashed rgba(225, 48, 108, 0.4) !important;
+  background: transparent !important;
+  border-radius: inherit;
+}
+
+.hide-mode-active .grid-item:hover::after {
+  border-color: rgba(225, 48, 108, 0.8) !important;
+  background: rgba(225, 48, 108, 0.06) !important;
+}
+
+/* ── Hidden Post Overlay ────────────────────────────────────────────────── */
+.hidden-post-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 8px,
+      rgba(225, 48, 108, 0.04) 8px,
+      rgba(225, 48, 108, 0.04) 16px
+    ),
+    linear-gradient(135deg, rgba(0, 0, 0, 0.55), rgba(100, 10, 40, 0.55));
+  backdrop-filter: blur(1px);
+  animation: fadeInBlur 0.25s ease-out;
+}
+
+.hidden-post-stamp {
+  background: rgba(225, 48, 108, 0.9);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 14px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 16px rgba(225, 48, 108, 0.4);
+  animation: hiddenStamp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hidden-post-hint {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+/* ── Mobile Frame Glow when Hide Mode is Active ─────────────────────────── */
+.hide-mode-device-frame {
+  animation: glowBorder 2.5s ease-in-out infinite;
+  border-color: rgba(225, 48, 108, 0.7) !important;
+}
+

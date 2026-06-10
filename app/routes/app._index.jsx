@@ -813,10 +813,11 @@ export default function Index() {
         }}
       >
         {isHideMode && isHidden && (
-          <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)" }}>
-            <span style={{ background: "rgba(0,0,0,0.8)", color: "white", padding: "4px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: "600", display: "flex", alignItems: "center", gap: "4px" }}>
-              <Icon source={ViewIcon} tone="inherit" /> Hidden
+          <div className="hidden-post-overlay">
+            <span className="hidden-post-stamp">
+              <Icon source={ViewIcon} tone="inherit" /> HIDDEN
             </span>
+            <span className="hidden-post-hint">tap to unhide</span>
           </div>
         )}
         {isVideo && config.postFeed.autoplay ? (
@@ -1174,7 +1175,7 @@ export default function Index() {
                     { id: "modalSound", label: "Video Modal Sound", sub: "Enable audio in popup videos", icon: PlayIcon, isPremium: true },
                     { id: "showInstagramIcon", label: "Instagram Icon", sub: "Branding badge on posts", icon: InstagramIcon },
                     { id: "removeWatermark", label: "Remove Watermark", sub: "Hide 'By BOOST STAR' badge", icon: StarIcon, isPremium: true },
-                    { id: "isHideMode", label: "Manual Hide Mode", sub: "Hide specific posts from feed", icon: ViewIcon, isPremium: true, isLocal: true },
+                    { id: "isHideMode", label: "Manual Hide Mode", sub: "Click posts in preview to hide them", icon: ViewIcon, isPremium: true, isLocal: true },
                   ].map((item, idx) => (
                     <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both`, opacity: (!isPaid && item.isPremium) ? 0.7 : 1 }}>
                       <div className="setting-info">
@@ -1201,6 +1202,12 @@ export default function Index() {
                             }
                             if (item.isLocal) {
                               setIsHideMode(e.target.checked);
+                              setActiveTab("post");
+                              if (e.target.checked) {
+                                shopify.toast.show("👆 Hide Mode ON — Click any post in the preview to hide it");
+                              } else {
+                                shopify.toast.show("Hide Mode turned off");
+                              }
                             } else {
                               updateConfig("postFeed", item.id, e.target.checked);
                             }
@@ -1210,6 +1217,55 @@ export default function Index() {
                       </label>
                     </div>
                   ))}
+
+                  {/* ── Hide Mode Instructions (visible when mode is ON) ── */}
+                  {isHideMode && (
+                    <div className="hide-mode-instruction-card">
+                      <div className="hide-mode-header">
+                        <div className="hide-mode-title">
+                          <span className="finger-icon">👆</span>
+                          How to Hide Posts
+                        </div>
+                        <div className="hide-mode-live-badge">
+                          <span className="live-dot" />
+                          ACTIVE
+                        </div>
+                      </div>
+                      <div className="hide-mode-steps">
+                        <div className="hide-mode-step">
+                          <span className="step-number">1</span>
+                          <span className="step-icon">👀</span>
+                          <span className="step-text">Look at the <strong>Live Preview</strong> on the right side</span>
+                        </div>
+                        <div className="hide-mode-step">
+                          <span className="step-number">2</span>
+                          <span className="step-icon">👆</span>
+                          <span className="step-text"><strong>Click any post</strong> you want to hide from your store</span>
+                        </div>
+                        <div className="hide-mode-step">
+                          <span className="step-number">3</span>
+                          <span className="step-icon">🙈</span>
+                          <span className="step-text">Hidden posts get a <strong>badge</strong> — click again to <strong>unhide</strong></span>
+                        </div>
+                        <div className="hide-mode-step">
+                          <span className="step-number">4</span>
+                          <span className="step-icon">💾</span>
+                          <span className="step-text">Hit <strong>"Apply"</strong> to save — changes go live instantly</span>
+                        </div>
+                      </div>
+                      {config.postFeed.hiddenPostIds?.length > 0 ? (
+                        <div className="hide-mode-hidden-count">
+                          <Icon source={ViewIcon} tone="critical" />
+                          <span>Currently hidden:</span>
+                          <span className="count-badge">{config.postFeed.hiddenPostIds.length} post{config.postFeed.hiddenPostIds.length !== 1 ? 's' : ''}</span>
+                        </div>
+                      ) : (
+                        <div className="hide-mode-no-hidden">
+                          ✨ No posts hidden yet — click any post in the preview to start!
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="visual-architecture">
                     <h3 className="input-label">Grid Architecture</h3>
@@ -1681,10 +1737,29 @@ export default function Index() {
                   </div>
                 )}
 
+                {/* ── Hide Mode Preview Banner ── */}
+                {isHideMode && activeTab === "post" && (
+                  <div className="hide-mode-preview-banner">
+                    <div className="banner-icon">👆</div>
+                    <div className="banner-text">
+                      <strong>
+                        <span className="live-indicator" />
+                        Hide Mode Active
+                      </strong>
+                      Tap any post below to hide / unhide it
+                      {config.postFeed.hiddenPostIds?.length > 0 && (
+                        <span className="banner-count-pill">
+                          🙈 {config.postFeed.hiddenPostIds.length} hidden
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* ── Mobile Device Frame ── */}
                 {previewDevice === "mobile" ? (
                   <div style={{ animation: "fadeInBlur 0.4s ease-out", display: "flex", justifyContent: "center", width: "100%" }}>
-                    <div style={{ width: "280px", height: "580px", background: "white", borderRadius: "44px", border: "12px solid #1e293b", boxShadow: "0 35px 60px -15px rgba(0,0,0,0.3)", position: "relative", overflow: "hidden", flexShrink: 0 }}>
+                    <div className={isHideMode && activeTab === "post" ? "hide-mode-device-frame" : ""} style={{ width: "280px", height: "580px", background: "white", borderRadius: "44px", border: "12px solid #1e293b", boxShadow: "0 35px 60px -15px rgba(0,0,0,0.3)", position: "relative", overflow: "hidden", flexShrink: 0 }}>
                       {/* Status bar */}
                       <div style={{ height: "40px", padding: "14px 20px 0", display: "flex", justifyContent: "space-between", fontSize: "10px", fontWeight: "700", background: "white" }}>
                         <span>9:41</span>
@@ -1697,7 +1772,7 @@ export default function Index() {
                         onScroll={(e) => handleScroll(e, "vertical")}
                       >
                         {activeTab === "post" ? (
-                          <div style={{ animation: "fadeInBlur 0.4s ease-out", paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
+                          <div className={isHideMode ? "hide-mode-active" : ""} style={{ animation: "fadeInBlur 0.4s ease-out", paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
                             {/* Header */}
                             {config.postFeed.header && (
                               <div style={{ padding: "12px 16px 0", textAlign: config.postFeed.alignment }}>
@@ -1925,7 +2000,7 @@ export default function Index() {
                               </div>
                             ) : (
                               /* Feed Grid desktop preview */
-                              <div style={{ paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
+                              <div className={isHideMode ? "hide-mode-active" : ""} style={{ paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
                                 {config.postFeed.header && (
                                   <div style={{ marginBottom: "16px", textAlign: config.postFeed.alignment }}>
                                     <h4 style={{ fontSize: `${config.postFeed.typography.heading.size + 2}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
