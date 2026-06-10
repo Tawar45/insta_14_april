@@ -874,3 +874,12 @@ input[type="color"].premium-input {
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
+
+@media (min-width: 768px) {
+  .dashboard-main-layout .Polaris-Layout__Section--oneThird {
+    position: sticky !important;
+    top: 24px !important;
+    align-self: start !important;
+    z-index: 10;
+  }
+}

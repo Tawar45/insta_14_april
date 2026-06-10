@@ -77,6 +77,7 @@ export const loader = async ({ request }) => {
           removeWatermark: false,
           showInstagramIcon: true,
           hiddenPostIds: [],
+          mediaTypeFilter: "all",
         },
         stories: {
           enable: true,
@@ -94,6 +95,7 @@ export const loader = async ({ request }) => {
           activeRing: true,
           ringColor: "#6366f1",
           showNavigation: true,
+          mediaTypeFilter: "all",
         },
       };
     }

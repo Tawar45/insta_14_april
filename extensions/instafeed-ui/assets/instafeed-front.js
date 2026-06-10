@@ -18,6 +18,10 @@
 
   let currentConfig = null;
   let currentMedia = [];
+  let currentGridMedia = [];
+  let currentStoryMedia = [];
+  let activeModalMedia = [];
+  let activeModalSource = "grid";
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   async function init() {
@@ -94,6 +98,41 @@
         mediaData = mediaData.filter(item => !config.postFeed.hiddenPostIds.includes(item.id || item.media_url));
       }
 
+      let gridMedia = mediaData;
+      let storyMedia = mediaData;
+
+      // Filter gridMedia by grid mediaTypeFilter
+      const gridFilter = config.postFeed?.mediaTypeFilter || "all";
+      if (gridFilter === "images") {
+        gridMedia = gridMedia.filter(item => {
+          const rawType = (item.media_type || "").toUpperCase();
+          const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+          return !isVideo;
+        });
+      } else if (gridFilter === "videos") {
+        gridMedia = gridMedia.filter(item => {
+          const rawType = (item.media_type || "").toUpperCase();
+          const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+          return isVideo;
+        });
+      }
+
+      // Filter storyMedia by story mediaTypeFilter
+      const storyFilter = config.stories?.mediaTypeFilter || "all";
+      if (storyFilter === "images") {
+        storyMedia = storyMedia.filter(item => {
+          const rawType = (item.media_type || "").toUpperCase();
+          const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+          return !isVideo;
+        });
+      } else if (storyFilter === "videos") {
+        storyMedia = storyMedia.filter(item => {
+          const rawType = (item.media_type || "").toUpperCase();
+          const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+          return isVideo;
+        });
+      }
+
       // Only re-render if config or data changed (prevents flicker)
       const isSame =
         newConfigStr === JSON.stringify(currentConfig) &&
@@ -102,9 +141,11 @@
       if (!isSame) {
         currentConfig = config;
         currentMedia  = mediaData;
+        currentGridMedia = gridMedia;
+        currentStoryMedia = storyMedia;
 
-        if (gridRoot  && config.postFeed) renderFeedGrid(gridRoot, config, mediaData);
-        if (storyRoot && config.stories)  renderStoryLayout(storyRoot, config, mediaData);
+        if (gridRoot  && config.postFeed) renderFeedGrid(gridRoot, config, gridMedia);
+        if (storyRoot && config.stories)  renderStoryLayout(storyRoot, config, storyMedia);
         
         // Ensure Modal container exists
         if (!document.getElementById("ai-instafeed-modal-root")) {
@@ -512,14 +553,17 @@
     // Stop any existing video
     root.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; });
 
-    const item = currentMedia[index];
+    activeModalSource = source;
+    activeModalMedia = source === 'story' ? currentStoryMedia : currentGridMedia;
+
+    const item = activeModalMedia[index];
     if (!item) return;
 
     currentModalIndex = index;
 
     const showNav    = currentConfig.postFeed?.modalNavigation !== false;
     const hasPrev    = showNav && index > 0;
-    const hasNext    = showNav && index < currentMedia.length - 1;
+    const hasNext    = showNav && index < activeModalMedia.length - 1;
 
     const isVideo     = item.media_type === 'VIDEO';
     const enableSound = currentConfig.postFeed?.modalSound;
@@ -556,7 +600,7 @@
       : '';
 
     const counterBadge = showNav
-      ? '<div class="ai-modal-counter">' + (index + 1) + ' / ' + currentMedia.length + '</div>'
+      ? '<div class="ai-modal-counter">' + (index + 1) + ' / ' + activeModalMedia.length + '</div>'
       : '';
 
     root.innerHTML =
@@ -607,8 +651,8 @@
     root.onclick = function(e) { if (e.target === root) aiCloseModal(); };
     document.onkeydown = function(e) {
       if (e.key === 'Escape') aiCloseModal();
-      if (e.key === 'ArrowRight' && hasNext) aiModalNav(1);
-      if (e.key === 'ArrowLeft'  && hasPrev) aiModalNav(-1);
+      if (e.key === 'ArrowRight' && hasNext) window.aiModalNav(1);
+      if (e.key === 'ArrowLeft'  && hasPrev) window.aiModalNav(-1);
     };
 
     root.style.display = 'flex';
@@ -617,12 +661,13 @@
 
   window.aiModalNav = function(dir) {
     const newIndex = currentModalIndex + dir;
-    if (newIndex < 0 || newIndex >= currentMedia.length) return;
-    aiRenderModal(newIndex);
+    if (newIndex < 0 || newIndex >= activeModalMedia.length) return;
+    aiRenderModal(newIndex, activeModalSource);
   };
 
   window.aiOpenInstaModal = function(id, source = 'grid') {
-    const index = currentMedia.findIndex(m => (m.id || (m.media_url ? m.media_url.slice(-20) : '')) === id);
+    const mediaList = source === 'story' ? currentStoryMedia : currentGridMedia;
+    const index = mediaList.findIndex(m => (m.id || (m.media_url ? m.media_url.slice(-20) : '')) === id);
     if (index === -1) return;
     const root = document.getElementById('ai-instafeed-modal-root');
     if (!root) return;

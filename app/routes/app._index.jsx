@@ -260,6 +260,7 @@ const DEFAULT_CONFIG = {
     hiddenPostIds: [],
     paddingTop: 32,
     paddingBottom: 32,
+    mediaTypeFilter: "all",
   },
   stories: {
     enable: true,
@@ -281,6 +282,7 @@ const DEFAULT_CONFIG = {
     paddingBottom: 24,
     openPopup: false,
     removeWatermark: false,
+    mediaTypeFilter: "all",
   },
 };
 
@@ -345,6 +347,44 @@ export default function Index() {
     return media;
   }, [instaData?.media?.data, PLACEHOLDER_MEDIA, config?.postFeed?.hiddenPostIds, isHideMode]);
 
+  const filteredGridMedia = useMemo(() => {
+    let media = baseMedia;
+    const filter = config?.postFeed?.mediaTypeFilter || "all";
+    if (filter === "images") {
+      media = media.filter(item => {
+        const rawType = (item.media_type || "").toUpperCase();
+        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+        return !isVideo;
+      });
+    } else if (filter === "videos") {
+      media = media.filter(item => {
+        const rawType = (item.media_type || "").toUpperCase();
+        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+        return isVideo;
+      });
+    }
+    return media;
+  }, [baseMedia, config?.postFeed?.mediaTypeFilter]);
+
+  const filteredStoriesMedia = useMemo(() => {
+    let media = baseMedia;
+    const filter = config?.stories?.mediaTypeFilter || "all";
+    if (filter === "images") {
+      media = media.filter(item => {
+        const rawType = (item.media_type || "").toUpperCase();
+        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+        return !isVideo;
+      });
+    } else if (filter === "videos") {
+      media = media.filter(item => {
+        const rawType = (item.media_type || "").toUpperCase();
+        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+        return isVideo;
+      });
+    }
+    return media;
+  }, [baseMedia, config?.stories?.mediaTypeFilter]);
+
   const handleToggleHidePost = (itemIdentifier) => {
     setConfig(prev => {
       const isHidden = prev.postFeed.hiddenPostIds.includes(itemIdentifier);
@@ -375,11 +415,11 @@ export default function Index() {
     ? baseDeviceLimit + extraLoadCount 
     : baseDeviceLimit;
 
-  const hasMoreToShow = totalVisibleCount < baseMedia.length;
+  const hasMoreToShow = totalVisibleCount < filteredGridMedia.length;
 
   const simulatedInfiniteMedia = useMemo(
-    () => baseMedia.slice(0, totalVisibleCount),
-    [baseMedia, totalVisibleCount]
+    () => filteredGridMedia.slice(0, totalVisibleCount),
+    [filteredGridMedia, totalVisibleCount]
   );
 
 
@@ -681,7 +721,7 @@ export default function Index() {
         setIsInfiniteLoading(false);
       }, 100);
     }
-  }, [isInfiniteLoading, previewDevice, hasMoreToShow, baseMedia.length]);
+  }, [isInfiniteLoading, previewDevice, hasMoreToShow, filteredGridMedia.length]);
 
   // ── Carousel scroll helper ──
   const scrollCarousel = useCallback((ref, direction) => {
@@ -1065,9 +1105,10 @@ export default function Index() {
         </div>
 
         {/* ── Main Two-Column Grid ── */}
-        <Layout>
-          {/* ── LEFT: Settings Panel ── */}
-          <Layout.Section>
+        <div className="dashboard-main-layout">
+          <Layout>
+            {/* ── LEFT: Settings Panel ── */}
+            <Layout.Section>
             <div className="premium-card" style={{ padding: "24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "10px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1108,6 +1149,20 @@ export default function Index() {
               {/* ── Feed Grid Settings ── */}
               {activeTab === "post" ? (
                 <>
+                  <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                    <label className="input-label" style={{ fontSize: "11px", fontWeight: "700" }}>Show Media Type</label>
+                    <select
+                      className="premium-input"
+                      value={config.postFeed.mediaTypeFilter || "all"}
+                      onChange={(e) => updateConfig("postFeed", "mediaTypeFilter", e.target.value)}
+                      style={{ width: "100%", background: "#f8fafc", marginTop: "6px", border: "1px solid #e2e8f0" }}
+                    >
+                      <option value="all">Show All (Images & Videos)</option>
+                      <option value="images">Only Images</option>
+                      <option value="videos">Only Videos</option>
+                    </select>
+                  </div>
+
                   <h3 className="input-label" style={{ marginBottom: "12px" }}>Dynamic Modules</h3>
                   {[
                     { id: "header",   label: "Profile Header",  sub: "Show store bio & icon",       icon: ProfileIcon },
@@ -1386,6 +1441,20 @@ export default function Index() {
               ) : (
                 /* ── Story & Layouts Settings ── */
                 <>
+                  <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                    <label className="input-label" style={{ fontSize: "11px", fontWeight: "700" }}>Show Media Type</label>
+                    <select
+                      className="premium-input"
+                      value={config.stories.mediaTypeFilter || "all"}
+                      onChange={(e) => updateConfig("stories", "mediaTypeFilter", e.target.value)}
+                      style={{ width: "100%", background: "#f8fafc", marginTop: "6px", border: "1px solid #e2e8f0" }}
+                    >
+                      <option value="all">Show All (Images & Videos)</option>
+                      <option value="images">Only Images</option>
+                      <option value="videos">Only Videos</option>
+                    </select>
+                  </div>
+
                   <h3 className="input-label" style={{ marginBottom: "12px" }}>Highlight Modules</h3>
                   <div style={{ marginBottom: "32px" }}>
                     {[
@@ -1698,7 +1767,7 @@ export default function Index() {
                                   </button>
                                 )}
                                 <div className="carousel-container" ref={mobileStoryRef} style={{ display: "flex", width: "max-content", maxWidth: "100%", margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0 auto 0 0", gap: "12px", padding: "0 4px 10px" }}>
-                                  {(instaData?.media?.data || baseMedia).slice(0, 12).map((item, i) => (
+                                  {filteredStoriesMedia.slice(0, 12).map((item, i) => (
                                     <div 
                                       key={i} 
                                       style={{ flexShrink: 0, width: "60px", textAlign: "center", cursor: config.stories.openPopup ? "pointer" : "default" }}
@@ -1802,7 +1871,7 @@ export default function Index() {
                                       </button>
                                     )}
                                     <div className="carousel-container" ref={desktopStoryRef} style={{ display: "flex", width: "max-content", maxWidth: "100%", margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0 auto 0 0", gap: "16px", padding: "8px 4px 12px" }}>
-                                      {(instaData?.media?.data || baseMedia).slice(0, 8).map((item, i) => (
+                                      {filteredStoriesMedia.slice(0, 8).map((item, i) => (
                                         <div 
                                           key={i} 
                                           style={{ textAlign: "center", width: "72px", flexShrink: 0, cursor: config.stories.openPopup ? "pointer" : "default" }}
@@ -1914,6 +1983,7 @@ export default function Index() {
           </div>
         </Layout.Section>
       </Layout>
+      </div>
     </div>
 
       {/* ── Premium Post Modal ── */}
