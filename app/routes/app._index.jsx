@@ -1742,7 +1742,7 @@ export default function Index() {
 
                             {!config.postFeed.removeWatermark && (
                               <div style={{ textAlign: "center", padding: "12px", fontSize: "10px", color: "#9ca3af" }}>
-                                Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: "700", color: "#64748b", textDecoration: "none" }}>BOOST STAR Experts</a>
+                                Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block", marginLeft: "4px" }} alt="BOOST STAR Experts" /></a>
                               </div>
                             )}
                           </div>
@@ -1813,7 +1813,7 @@ export default function Index() {
                                 )}
                                 {!config.stories.removeWatermark && (
                                   <div style={{ textAlign: "center", padding: "10px 0 0", fontSize: "10px", color: "#9ca3af" }}>
-                                    Powered by BOOST STAR Experts
+                                    Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block", marginLeft: "4px" }} alt="BOOST STAR Experts" /></a>
                                   </div>
                                 )}
                               </div>
@@ -1919,7 +1919,7 @@ export default function Index() {
                                 )}
                                 {!config.stories.removeWatermark && (
                                    <div style={{ textAlign: "center", padding: "10px 0 0", fontSize: "11px", color: "#9ca3af" }}>
-                                     Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: "700", color: "#64748b", textDecoration: "none" }}>BOOST STAR Experts</a>
+                                     Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block", marginLeft: "4px" }} alt="BOOST STAR Experts" /></a>
                                    </div>
                                 )}
                               </div>
@@ -1968,7 +1968,7 @@ export default function Index() {
 
                                 {!config.postFeed.removeWatermark && (
                                   <div style={{ textAlign: "center", padding: "16px", fontSize: "12px", color: "#9ca3af" }}>
-                                    Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: "700", color: "#64748b", textDecoration: "none" }}>BOOST STAR Experts</a>
+                                    Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block", marginLeft: "4px" }} alt="BOOST STAR Experts" /></a>
                                   </div>
                                 )}
                               </div>
@@ -2081,7 +2081,7 @@ export default function Index() {
                 </a>
                 {((modalSource === "story" && !config.stories.removeWatermark) || (modalSource === "grid" && !config.postFeed.removeWatermark)) && (
                    <div style={{ textAlign: "center", padding: "12px 0 0", fontSize: "11px", color: "#9ca3af" }}>
-                     Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: "700", color: "#64748b", textDecoration: "none" }}>BOOST STAR Experts</a>
+                     Powered by <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block", marginLeft: "4px" }} alt="BOOST STAR Experts" /></a>
                    </div>
                 )}
               </div>
