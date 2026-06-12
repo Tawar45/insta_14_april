@@ -17,7 +17,7 @@
  *   via fetchAllInstagramMedia and re-save to metafield automatically.
  */
 
-import { authenticate } from "../shopify.server.js";
+import { authenticate, unauthenticated } from "../shopify.server.js";
 import {
   fetchShopInstaData,
   fetchShopConfig,
@@ -32,13 +32,22 @@ const REFRESH_THRESHOLD_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 export const loader = async ({ request }) => {
   // ── 1. Authenticate as app-proxy ─────────────────────────────────────────
-  const { admin, session } = await authenticate.public.appProxy(request);
+  let { admin, session } = await authenticate.public.appProxy(request);
 
   if (!session) {
-    return Response.json(
-      { error: "Unauthorized: App Proxy session missing." },
-      { status: 401 }
-    );
+    // HMAC is valid but offline token is missing (expired token or DB reset).
+    // Fall back to unauthenticated.admin using the shop param Shopify provides.
+    const shopParam = new URL(request.url).searchParams.get("shop");
+    if (!shopParam) {
+      return Response.json({ error: "Unauthorized: No session." }, { status: 401 });
+    }
+    try {
+      const fallback = await unauthenticated.admin(shopParam);
+      admin = fallback.admin;
+      session = fallback.session;
+    } catch {
+      return Response.json({ config: null, instaData: null }, { status: 200 });
+    }
   }
 
   const shop = session.shop;
