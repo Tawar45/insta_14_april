@@ -15,7 +15,9 @@
 #ai-instafeed-story-root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ── Keyframes ─────────────────────────────────────────────────────────────── */
@@ -82,6 +84,8 @@
   position: relative;
   /* Padding makes room for the nav buttons that sit outside the track */
   padding: 0 20px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 /* ── Hide scrollbars on tracking containers ──────────────────────────────── */
@@ -245,10 +249,17 @@
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .ai-fw-carousel-wrapper {
-    padding: 0 12px;
+    padding: 0 8px;
+    overflow: hidden;
   }
   .ai-fw-prev { left: -2px; }
   .ai-fw-next { right: -2px; }
+
+  /* Prevent story carousel from causing page-level horizontal scroll */
+  #ai-instafeed-story-root {
+    overflow-x: hidden !important;
+    max-width: 100vw;
+  }
 }
 
 @media (max-width: 480px) {
