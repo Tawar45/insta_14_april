@@ -410,7 +410,8 @@
     const isActiveRing = s.activeRing !== false;
     const trackId = "ai-story-track-" + Date.now();
 
-    let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;padding-top:${s.paddingTop ?? 24}px;padding-bottom:${s.paddingBottom ?? 24}px;">`;
+    let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:100%;margin:0 auto;box-sizing:border-box;overflow:hidden;padding-top:${s.paddingTop ?? 24}px;padding-bottom:${s.paddingBottom ?? 24}px;">`;
+
 
     if (s.showHeader) {
       html += `
@@ -423,13 +424,13 @@
     if (s.enable) {
       const isShowNav = s.showNavigation !== false;
       html += `
-        <div class="ai-fw-carousel-wrapper" style="position:relative;width:100%;padding:0 24px;">
+        <div class="ai-fw-carousel-wrapper" style="position:relative;width:100%;max-width:100%;overflow:hidden;padding:0 28px;box-sizing:border-box;">
           ${isShowNav ? `
             <button class="ai-fw-nav ai-fw-prev" data-track-id="${trackId}" aria-label="Previous" style="width:28px;height:28px;left:0px;top:32px;transform:translateY(-50%);">
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg>
             </button>
           ` : ''}
-          <div id="${trackId}" class="ai-fw-track" style="display:flex;width:max-content;max-width:100%;${s.alignment === 'center' ? 'margin:0 auto;' : s.alignment === 'right' ? 'margin:0 0 0 auto;' : 'margin:0 auto 0 0;'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:16px;padding:8px 4px 12px;">`;
+          <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;${s.alignment === 'center' ? 'margin:0 auto;' : s.alignment === 'right' ? 'margin:0 0 0 auto;' : 'margin:0 auto 0 0;'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 12px;">`;
 
       storyItems.forEach((item, i) => {
         const isVideo  = item.media_type === "VIDEO";
