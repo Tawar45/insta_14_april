@@ -87,6 +87,7 @@ export const loader = async ({ request }) => {
           showInstagramIcon: true,
           hiddenPostIds: [],
           mediaTypeFilter: "all",
+          sortBy: "latest",
         },
         stories: {
           enable: true,
@@ -105,6 +106,7 @@ export const loader = async ({ request }) => {
           ringColor: "#6366f1",
           showNavigation: true,
           mediaTypeFilter: "all",
+          sortBy: "latest",
         },
       };
     }
@@ -114,8 +116,12 @@ export const loader = async ({ request }) => {
       if (config.postFeed) {
         config.postFeed.removeWatermark = false; // Force watermark
         config.postFeed.load = false;           // Force no infinite scroll
+        config.postFeed.sortBy = "latest";       // Force latest
         if (config.postFeed.desktopColumns > 4) config.postFeed.desktopColumns = 4;
         if (config.postFeed.desktopLimit > 12)  config.postFeed.desktopLimit = 12;
+      }
+      if (config.stories) {
+        config.stories.sortBy = "latest";       // Force latest
       }
     }
 

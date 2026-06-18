@@ -36,7 +36,8 @@ import {
   ViewIcon,
   StoreIcon,
   DesktopIcon,
-  CollectionIcon
+  CollectionIcon,
+  CheckIcon
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -261,6 +262,7 @@ const DEFAULT_CONFIG = {
     paddingTop: 32,
     paddingBottom: 32,
     mediaTypeFilter: "all",
+    sortBy: "latest",
   },
   stories: {
     enable: true,
@@ -283,6 +285,7 @@ const DEFAULT_CONFIG = {
     openPopup: false,
     removeWatermark: false,
     mediaTypeFilter: "all",
+    sortBy: "latest",
   },
 };
 
@@ -513,8 +516,12 @@ export default function Index() {
         return isVideo;
       });
     }
+    if (config?.postFeed?.sortBy === "engaging") {
+      const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
+      media = [...media].sort((a, b) => getEngagement(b) - getEngagement(a));
+    }
     return media;
-  }, [baseMedia, config?.postFeed?.mediaTypeFilter]);
+  }, [baseMedia, config?.postFeed?.mediaTypeFilter, config?.postFeed?.sortBy]);
 
   const filteredStoriesMedia = useMemo(() => {
     let media = baseMedia;
@@ -532,8 +539,12 @@ export default function Index() {
         return isVideo;
       });
     }
+    if (config?.stories?.sortBy === "engaging") {
+      const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
+      media = [...media].sort((a, b) => getEngagement(b) - getEngagement(a));
+    }
     return media;
-  }, [baseMedia, config?.stories?.mediaTypeFilter]);
+  }, [baseMedia, config?.stories?.mediaTypeFilter, config?.stories?.sortBy]);
 
   const handleToggleHidePost = (itemIdentifier) => {
     setConfig(prev => {
@@ -1088,46 +1099,6 @@ export default function Index() {
         </div>
       </div>
 
-      {!isPaid && isConnected && (
-        <div style={{ 
-          margin: "0 auto 24px", 
-          maxWidth: "1300px", 
-          background: "var(--premium-accent-gradient)", 
-          boxShadow: "0 10px 25px -5px rgba(225, 48, 108, 0.3)",
-          borderRadius: "16px", 
-          padding: "16px 24px", 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "space-between",
-          animation: "fadeInBlur 0.6s ease-out",
-          border: "1px solid rgba(255, 255, 255, 0.1)"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <div style={{ background: "rgba(255, 255, 255, 0.2)", color: "white", padding: "8px", borderRadius: "12px" }}>
-              <Icon source={StarIcon} />
-            </div>
-            <div>
-              <p style={{ fontWeight: "700", color: "white", margin: 0 }}>Unlock PRO Features</p>
-              <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.85)", margin: 0 }}>Hiding posts, removing watermark, and infinite scroll are PRO features.</p>
-            </div>
-          </div>
-          <button 
-            className="premium-button" 
-            style={{ 
-              padding: "8px 20px",
-              background: "white",
-              color: "#e1306c",
-              fontWeight: "800",
-              fontSize: "12px",
-              borderRadius: "10px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-            }}
-            onClick={() => navigate("/app/plans")}
-          >
-            Upgrade Now
-          </button>
-        </div>
-      )}
 
       <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
 
@@ -1316,7 +1287,34 @@ export default function Index() {
                   >
                     Discard
                   </button>
-                  <button className="premium-button button-success" style={{ padding: "6px 16px", fontSize: "12px" }} onClick={applyChanges}>
+                  <button
+                    className="premium-button"
+                    style={{
+                      padding: "8px 20px",
+                      fontSize: "12px",
+                      fontWeight: "700",
+                      background: "var(--premium-accent-gradient)",
+                      color: "white",
+                      boxShadow: "0 4px 12px rgba(225, 48, 108, 0.3)",
+                      borderRadius: "20px",
+                      border: "none",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 6px 16px rgba(225, 48, 108, 0.45)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(225, 48, 108, 0.3)";
+                    }}
+                    onClick={applyChanges}
+                  >
+                    <Icon source={CheckIcon} tone="inherit" />
                     Apply
                   </button>
                 </div>
@@ -1342,17 +1340,96 @@ export default function Index() {
               {activeTab === "post" ? (
                 <>
                   <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <label className="input-label" style={{ fontSize: "11px", fontWeight: "700" }}>Show Media Type</label>
-                    <select
-                      className="premium-input"
-                      value={config.postFeed.mediaTypeFilter || "all"}
-                      onChange={(e) => updateConfig("postFeed", "mediaTypeFilter", e.target.value)}
-                      style={{ width: "100%", background: "#f8fafc", marginTop: "6px", border: "1px solid #e2e8f0" }}
-                    >
-                      <option value="all">Show All (Images & Videos)</option>
-                      <option value="images">Only Images</option>
-                      <option value="videos">Only Videos</option>
-                    </select>
+                    <label className="input-label" style={{ fontSize: "11px", fontWeight: "700", marginBottom: "8px", display: "block" }}>Show Media Type</label>
+                    <div style={{ display: "flex", gap: "6px", background: "#f8fafc", padding: "4px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                      <button
+                        type="button"
+                        onClick={() => updateConfig("postFeed", "mediaTypeFilter", "all")}
+                        style={{
+                          flex: 1,
+                          padding: "8px 8px",
+                          borderRadius: "8px",
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          border: "none",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                          background: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "var(--premium-accent-gradient)" : "transparent",
+                          color: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "white" : "#64748b",
+                          boxShadow: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                        }}
+                      >
+                        All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateConfig("postFeed", "mediaTypeFilter", "images")}
+                        style={{
+                          flex: 1,
+                          padding: "8px 8px",
+                          borderRadius: "8px",
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          border: "none",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                          background: config.postFeed.mediaTypeFilter === "images" ? "var(--premium-accent-gradient)" : "transparent",
+                          color: config.postFeed.mediaTypeFilter === "images" ? "white" : "#64748b",
+                          boxShadow: config.postFeed.mediaTypeFilter === "images" ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                        }}
+                      >
+                        Images
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateConfig("postFeed", "mediaTypeFilter", "videos")}
+                        style={{
+                          flex: 1,
+                          padding: "8px 8px",
+                          borderRadius: "8px",
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          border: "none",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                          background: config.postFeed.mediaTypeFilter === "videos" ? "var(--premium-accent-gradient)" : "transparent",
+                          color: config.postFeed.mediaTypeFilter === "videos" ? "white" : "#64748b",
+                          boxShadow: config.postFeed.mediaTypeFilter === "videos" ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                        }}
+                      >
+                        Videos
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                    <div className="setting-row" style={{ opacity: !isPaid ? 0.7 : 1 }}>
+                      <div className="setting-info">
+                        <div className="setting-icon" style={{ color: "#e1306c" }}><Icon source={MagicIcon} color="inherit" /></div>
+                        <div>
+                          <div style={{ fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+                            AI Smart Sorting
+                            {!isPaid && <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>}
+                          </div>
+                          <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "2px" }}>Sort feed dynamically by top engagement using AI-powered metrics.</div>
+                        </div>
+                      </div>
+                      <label className="premium-switch" title={!isPaid ? "Upgrade to PRO to enable this feature" : ""}>
+                        <input
+                          type="checkbox"
+                          checked={!isPaid ? false : config.postFeed.sortBy === "engaging"}
+                          onChange={(e) => {
+                            if (!isPaid) {
+                              shopify.toast.show("AI Smart Sorting is a PRO feature", { isError: true });
+                              navigate("/app/plans");
+                              return;
+                            }
+                            updateConfig("postFeed", "sortBy", e.target.checked ? "engaging" : "latest");
+                          }}
+                        />
+                        <span className="slider" />
+                      </label>
+                    </div>
                   </div>
 
                   <h3 className="input-label" style={{ marginBottom: "12px" }}>Dynamic Modules</h3>
@@ -1735,17 +1812,96 @@ export default function Index() {
                 /* ── Story & Layouts Settings ── */
                 <>
                   <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <label className="input-label" style={{ fontSize: "11px", fontWeight: "700" }}>Show Media Type</label>
-                    <select
-                      className="premium-input"
-                      value={config.stories.mediaTypeFilter || "all"}
-                      onChange={(e) => updateConfig("stories", "mediaTypeFilter", e.target.value)}
-                      style={{ width: "100%", background: "#f8fafc", marginTop: "6px", border: "1px solid #e2e8f0" }}
-                    >
-                      <option value="all">Show All (Images & Videos)</option>
-                      <option value="images">Only Images</option>
-                      <option value="videos">Only Videos</option>
-                    </select>
+                    <label className="input-label" style={{ fontSize: "11px", fontWeight: "700", marginBottom: "8px", display: "block" }}>Show Media Type</label>
+                    <div style={{ display: "flex", gap: "6px", background: "#f8fafc", padding: "4px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                      <button
+                        type="button"
+                        onClick={() => updateConfig("stories", "mediaTypeFilter", "all")}
+                        style={{
+                          flex: 1,
+                          padding: "8px 8px",
+                          borderRadius: "8px",
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          border: "none",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                          background: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "var(--premium-accent-gradient)" : "transparent",
+                          color: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "white" : "#64748b",
+                          boxShadow: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                        }}
+                      >
+                        All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateConfig("stories", "mediaTypeFilter", "images")}
+                        style={{
+                          flex: 1,
+                          padding: "8px 8px",
+                          borderRadius: "8px",
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          border: "none",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                          background: config.stories.mediaTypeFilter === "images" ? "var(--premium-accent-gradient)" : "transparent",
+                          color: config.stories.mediaTypeFilter === "images" ? "white" : "#64748b",
+                          boxShadow: config.stories.mediaTypeFilter === "images" ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                        }}
+                      >
+                        Images
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateConfig("stories", "mediaTypeFilter", "videos")}
+                        style={{
+                          flex: 1,
+                          padding: "8px 8px",
+                          borderRadius: "8px",
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          border: "none",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                          background: config.stories.mediaTypeFilter === "videos" ? "var(--premium-accent-gradient)" : "transparent",
+                          color: config.stories.mediaTypeFilter === "videos" ? "white" : "#64748b",
+                          boxShadow: config.stories.mediaTypeFilter === "videos" ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                        }}
+                      >
+                        Videos
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                    <div className="setting-row" style={{ opacity: !isPaid ? 0.7 : 1 }}>
+                      <div className="setting-info">
+                        <div className="setting-icon" style={{ color: "#e1306c" }}><Icon source={MagicIcon} color="inherit" /></div>
+                        <div>
+                          <div style={{ fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+                            AI Smart Sorting
+                            {!isPaid && <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>}
+                          </div>
+                          <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "2px" }}>Sort feed dynamically by top engagement using AI-powered metrics.</div>
+                        </div>
+                      </div>
+                      <label className="premium-switch" title={!isPaid ? "Upgrade to PRO to enable this feature" : ""}>
+                        <input
+                          type="checkbox"
+                          checked={!isPaid ? false : config.stories.sortBy === "engaging"}
+                          onChange={(e) => {
+                            if (!isPaid) {
+                              shopify.toast.show("AI Smart Sorting is a PRO feature", { isError: true });
+                              navigate("/app/plans");
+                              return;
+                            }
+                            updateConfig("stories", "sortBy", e.target.checked ? "engaging" : "latest");
+                          }}
+                        />
+                        <span className="slider" />
+                      </label>
+                    </div>
                   </div>
 
                   <h3 className="input-label" style={{ marginBottom: "12px" }}>Highlight Modules</h3>
@@ -1985,7 +2141,37 @@ export default function Index() {
             {hasChanges && (
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "32px", borderTop: "1px solid #f1f5f9", paddingTop: "24px", animation: "slideInUp 0.3s ease-out" }}>
                 <button className="premium-button" style={{ color: "var(--premium-text-secondary)", background: "transparent" }} onClick={discardChanges}>Discard Changes</button>
-                <button className="premium-button button-success" style={{ minWidth: "160px" }} onClick={applyChanges}>Apply Configuration</button>
+                <button
+                  className="premium-button"
+                  style={{
+                    minWidth: "180px",
+                    padding: "12px 28px",
+                    background: "var(--premium-accent-gradient)",
+                    color: "white",
+                    fontWeight: "800",
+                    fontSize: "14px",
+                    boxShadow: "0 6px 20px rgba(225, 48, 108, 0.35)",
+                    borderRadius: "30px",
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 8px 24px rgba(225, 48, 108, 0.45)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(225, 48, 108, 0.35)";
+                  }}
+                  onClick={applyChanges}
+                >
+                  <Icon source={CheckIcon} tone="inherit" />
+                  Apply Configuration
+                </button>
               </div>
             )}
             </div>
@@ -2100,7 +2286,7 @@ export default function Index() {
 
                             {!config.postFeed.removeWatermark && (
                               <div style={{ textAlign: "center", padding: "12px", fontSize: "10px", color: "#9ca3af" }}>
-                                <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
+                                <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
                               </div>
                             )}
                           </div>
@@ -2173,7 +2359,7 @@ export default function Index() {
                             )}
                             {!config.stories.removeWatermark && (
                               <div style={{ textAlign: "center", padding: "10px 0 0", fontSize: "10px", color: "#9ca3af" }}>
-                                <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
+                                <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
                               </div>
                             )}
                           </div>
@@ -2277,7 +2463,7 @@ export default function Index() {
                                 )}
                                 {!config.stories.removeWatermark && (
                                    <div style={{ textAlign: "center", padding: "10px 0 0", fontSize: "11px", color: "#9ca3af" }}>
-                                     <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
+                                     <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
                                    </div>
                                 )}
                               </div>
@@ -2326,7 +2512,7 @@ export default function Index() {
 
                                 {!config.postFeed.removeWatermark && (
                                   <div style={{ textAlign: "center", padding: "16px", fontSize: "12px", color: "#9ca3af" }}>
-                                    <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
+                                    <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
                                   </div>
                                 )}
                               </div>
@@ -2440,7 +2626,7 @@ export default function Index() {
                 </a>
                 {((modalSource === "story" && !config.stories.removeWatermark) || (modalSource === "grid" && !config.postFeed.removeWatermark)) && (
                    <div style={{ textAlign: "center", padding: "12px 0 0", fontSize: "11px", color: "#9ca3af" }}>
-                     <a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
+                     <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
                    </div>
                 )}
               </div>
@@ -2448,9 +2634,61 @@ export default function Index() {
           </div>
         </div>
       )}
+
+      {!isPaid && isConnected && (
+        <div style={{ 
+          margin: "24px auto 24px", 
+          maxWidth: "1300px", 
+          background: "var(--premium-accent-gradient)", 
+          boxShadow: "0 10px 25px -5px rgba(225, 48, 108, 0.3)",
+          borderRadius: "16px", 
+          padding: "16px 24px", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "space-between",
+          animation: "fadeInBlur 0.6s ease-out",
+          border: "1px solid rgba(255, 255, 255, 0.1)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ background: "rgba(255, 255, 255, 0.2)", color: "white", padding: "8px", borderRadius: "12px" }}>
+              <Icon source={StarIcon} />
+            </div>
+            <div>
+              <p style={{ fontWeight: "700", color: "white", margin: 0 }}>Unlock PRO Features</p>
+              <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.85)", margin: 0 }}>Hiding posts, removing watermark, and infinite scroll are PRO features.</p>
+            </div>
+          </div>
+          <button 
+            className="premium-button" 
+            style={{ 
+              padding: "8px 20px",
+              background: "white",
+              color: "#e1306c",
+              fontWeight: "800",
+              fontSize: "12px",
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+            }}
+            onClick={() => navigate("/app/plans")}
+          >
+            Upgrade Now
+          </button>
+        </div>
+      )}
+
       <footer style={{ textAlign: "center", padding: "40px 0", marginTop: "24px" }}>
         <BlockStack gap="200">
-          <Text variant="bodySm" tone="subdued">© 2026 AI Instafeed by BOOST STAR Experts</Text>
+          <Text variant="bodySm" tone="subdued">
+            © 2026 AI Instafeed by{" "}
+            <a 
+              href="https://apps.shopify.com/partners/boost-star" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              style={{ color: "inherit", textDecoration: "underline" }}
+            >
+              BOOST STAR Experts
+            </a>
+          </Text>
           <InlineStack gap="200" align="center">
             <Text variant="bodySm" tone="subdued">Terms of Service</Text>
             <Text variant="bodySm" tone="subdued">•</Text>

@@ -116,6 +116,10 @@
           return isVideo;
         });
       }
+      if (config.postFeed?.sortBy === "engaging") {
+        const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
+        gridMedia = [...gridMedia].sort((a, b) => getEngagement(b) - getEngagement(a));
+      }
 
       // Filter storyMedia by story mediaTypeFilter
       const storyFilter = config.stories?.mediaTypeFilter || "all";
@@ -131,6 +135,10 @@
           const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
           return isVideo;
         });
+      }
+      if (config.stories?.sortBy === "engaging") {
+        const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
+        storyMedia = [...storyMedia].sort((a, b) => getEngagement(b) - getEngagement(a));
       }
 
       // Only re-render if config or data changed (prevents flicker)
