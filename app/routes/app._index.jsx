@@ -248,7 +248,7 @@ const DEFAULT_CONFIG = {
       heading:    { size: 18, weight: "800", color: "var(--premium-text-primary)" },
       subheading: { size: 12, weight: "500", color: "var(--premium-text-secondary)" },
     },
-    alignment: "left",
+    alignment: "center",
     desktopColumns: 4,
     mobileColumns: 2,
     desktopLimit: 8,
@@ -284,6 +284,156 @@ const DEFAULT_CONFIG = {
     removeWatermark: false,
     mediaTypeFilter: "all",
   },
+};
+
+const FEED_TYPOGRAPHY_PRESETS = [
+  {
+    name: "Modern Shoppable",
+    desc: "Default bold look with shop instructions.",
+    textHeading: "SHOP OUR INSTAGRAM",
+    textSubheading: "Click on any post to shop the look instantly.",
+    heading: { size: 24, weight: "800", color: "#1a1a1a" },
+    subheading: { size: 14, weight: "500", color: "#4b5563" }
+  },
+  {
+    name: "Social Proof",
+    desc: "Clean customer showcase and lifestyle focus.",
+    textHeading: "AS SEEN ON SOCIAL",
+    textSubheading: "See how our community styles their favorite pieces.",
+    heading: { size: 24, weight: "800", color: "#111827" },
+    subheading: { size: 13, weight: "400", color: "#6b7280" }
+  },
+  {
+    name: "Community Feed",
+    desc: "Encouraging tagging and sharing.",
+    textHeading: "JOIN THE COMMUNITY",
+    textSubheading: "Tag us on Instagram to be featured on our page!",
+    heading: { size: 22, weight: "800", color: "#0f172a" },
+    subheading: { size: 13, weight: "500", color: "#475569" }
+  },
+  {
+    name: "Minimalist Style",
+    desc: "Subtle headings for clean design aesthetics.",
+    textHeading: "Insta Gallery",
+    textSubheading: "Curated moments from our daily feed.",
+    heading: { size: 18, weight: "600", color: "#374151" },
+    subheading: { size: 12, weight: "400", color: "#9ca3af" }
+  },
+  {
+    name: "Luxury Lookbook",
+    desc: "Sophisticated editorial serif vibe.",
+    textHeading: "THE LOOKBOOK",
+    textSubheading: "A visual journal of modern luxury and craftsmanship.",
+    heading: { size: 28, weight: "800", color: "#000000" },
+    subheading: { size: 15, weight: "400", color: "#1f2937" }
+  },
+  {
+    name: "Vibrant Brand",
+    desc: "Vivid Instagram-themed pink highlights.",
+    textHeading: "FOLLOW US ON INSTAGRAM",
+    textSubheading: "Get daily inspiration, updates, and behind-the-scenes access.",
+    heading: { size: 24, weight: "800", color: "#e1306c" },
+    subheading: { size: 13, weight: "500", color: "#c13584" }
+  },
+  {
+    name: "Bold Culture",
+    desc: "High energy streetwear look with red accent.",
+    textHeading: "CULTURE & STYLE",
+    textSubheading: "Real people. Real styles. Everyday inspiration.",
+    heading: { size: 26, weight: "800", color: "#111111" },
+    subheading: { size: 14, weight: "700", color: "#dc2626" }
+  },
+  {
+    name: "Inspiration Board",
+    desc: "Balanced layout for lifestyle and decor.",
+    textHeading: "LIFESTYLE INSPIRATION",
+    textSubheading: "Elevate your everyday with curated stories from our feed.",
+    heading: { size: 20, weight: "600", color: "#1e293b" },
+    subheading: { size: 13, weight: "400", color: "#64748b" }
+  }
+];
+
+const STORY_TYPOGRAPHY_PRESETS = [
+  {
+    name: "Modern Shoppable",
+    desc: "Default bold look with shop instructions.",
+    textHeading: "SHOP OUR INSTAGRAM",
+    textSubheading: "Click on any post to shop the look instantly.",
+    heading: { size: 28, weight: "800", color: "#1a1a1a" },
+    subheading: { size: 14, weight: "500", color: "#4b5563" }
+  },
+  {
+    name: "Social Proof",
+    desc: "Clean customer showcase and lifestyle focus.",
+    textHeading: "AS SEEN ON SOCIAL",
+    textSubheading: "See how our community styles their favorite pieces.",
+    heading: { size: 28, weight: "800", color: "#111827" },
+    subheading: { size: 13, weight: "400", color: "#6b7280" }
+  },
+  {
+    name: "Community Feed",
+    desc: "Encouraging tagging and sharing.",
+    textHeading: "JOIN THE COMMUNITY",
+    textSubheading: "Tag us on Instagram to be featured on our page!",
+    heading: { size: 26, weight: "800", color: "#0f172a" },
+    subheading: { size: 13, weight: "500", color: "#475569" }
+  },
+  {
+    name: "Minimalist Style",
+    desc: "Subtle headings for clean design aesthetics.",
+    textHeading: "Insta Gallery",
+    textSubheading: "Curated moments from our daily feed.",
+    heading: { size: 22, weight: "600", color: "#374151" },
+    subheading: { size: 12, weight: "400", color: "#9ca3af" }
+  },
+  {
+    name: "Luxury Lookbook",
+    desc: "Sophisticated editorial serif vibe.",
+    textHeading: "THE LOOKBOOK",
+    textSubheading: "A visual journal of modern luxury and craftsmanship.",
+    heading: { size: 32, weight: "800", color: "#000000" },
+    subheading: { size: 16, weight: "400", color: "#1f2937" }
+  },
+  {
+    name: "Vibrant Brand",
+    desc: "Vivid Instagram-themed pink highlights.",
+    textHeading: "FOLLOW US ON INSTAGRAM",
+    textSubheading: "Get daily inspiration, updates, and behind-the-scenes access.",
+    heading: { size: 28, weight: "800", color: "#e1306c" },
+    subheading: { size: 14, weight: "500", color: "#c13584" }
+  },
+  {
+    name: "Bold Culture",
+    desc: "High energy streetwear look with red accent.",
+    textHeading: "CULTURE & STYLE",
+    textSubheading: "Real people. Real styles. Everyday inspiration.",
+    heading: { size: 30, weight: "800", color: "#111111" },
+    subheading: { size: 14, weight: "700", color: "#dc2626" }
+  },
+  {
+    name: "Inspiration Board",
+    desc: "Balanced layout for lifestyle and decor.",
+    textHeading: "LIFESTYLE INSPIRATION",
+    textSubheading: "Elevate your everyday with curated stories from our feed.",
+    heading: { size: 24, weight: "600", color: "#1e293b" },
+    subheading: { size: 13, weight: "400", color: "#64748b" }
+  }
+];
+
+const isPresetMatch = (currentConfigSection, preset) => {
+  if (!currentConfigSection || !currentConfigSection.typography) return false;
+  const typo = currentConfigSection.typography;
+  const checkColor = (c1, c2) => String(c1 || "").trim().toLowerCase() === String(c2 || "").trim().toLowerCase();
+  return (
+    String(currentConfigSection.heading || "").trim() === String(preset.textHeading || "").trim() &&
+    String(currentConfigSection.subheading || "").trim() === String(preset.textSubheading || "").trim() &&
+    Number(typo.heading.size) === Number(preset.heading.size) &&
+    String(typo.heading.weight) === String(preset.heading.weight) &&
+    checkColor(typo.heading.color, preset.heading.color) &&
+    Number(typo.subheading.size) === Number(preset.subheading.size) &&
+    String(typo.subheading.weight) === String(preset.subheading.weight) &&
+    checkColor(typo.subheading.color, preset.subheading.color)
+  );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -938,7 +1088,7 @@ export default function Index() {
         </div>
       </div>
 
-      {!isPaid && (
+      {!isPaid && isConnected && (
         <div style={{ 
           margin: "0 auto 24px", 
           maxWidth: "1300px", 
@@ -1106,8 +1256,49 @@ export default function Index() {
         </div>
 
         {/* ── Main Two-Column Grid ── */}
-        <div className="dashboard-main-layout">
-          <Layout>
+        {!isConnected ? (
+          <div className="premium-card" style={{ padding: "48px 32px", textAlign: "center", marginTop: "24px", animation: "fadeInBlur 0.5s ease" }}>
+            <div style={{ maxWidth: "550px", margin: "0 auto" }}>
+              <div style={{ 
+                width: "80px", 
+                height: "80px", 
+                background: "rgba(225, 48, 108, 0.08)", 
+                color: "#e1306c", 
+                borderRadius: "50%", 
+                display: "inline-flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                marginBottom: "24px" 
+              }}>
+                <InstagramIcon />
+              </div>
+              <h2 style={{ fontSize: "20px", fontWeight: "800", color: "var(--premium-text-primary)", marginBottom: "12px" }}>
+                Connect Instagram to Customize
+              </h2>
+              <p style={{ fontSize: "14px", color: "var(--premium-text-secondary)", lineHeight: "1.6", marginBottom: "24px" }}>
+                Link your Instagram account above to unlock custom typography presets, adjust layouts, select/hide posts, and preview your live feed instantly.
+              </p>
+              <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+                <button 
+                  className="premium-button button-accent"
+                  style={{ padding: "12px 28px", fontSize: "14px" }}
+                  onClick={() => {
+                    const inputEl = document.querySelector(".premium-input");
+                    if (inputEl) {
+                      inputEl.focus();
+                      inputEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                  }}
+                >
+                  <Icon source={LinkIcon} />
+                  <span>Connect Account Now</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="dashboard-main-layout">
+            <Layout>
             {/* ── LEFT: Settings Panel ── */}
             <Layout.Section>
             <div className="premium-card" style={{ padding: "24px" }}>
@@ -1439,6 +1630,52 @@ export default function Index() {
                         </select>
                       </div>
 
+                      <div style={{ marginBottom: "24px" }}>
+                        <label className="input-label">Typography & Content Presets</label>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px", marginTop: "4px" }}>
+                          {FEED_TYPOGRAPHY_PRESETS.map((preset) => {
+                            const isSelected = isPresetMatch(config.postFeed, preset);
+                            return (
+                              <button
+                                key={preset.name}
+                                type="button"
+                                onClick={() => {
+                                  setConfig((prev) => ({
+                                    ...prev,
+                                    postFeed: {
+                                      ...prev.postFeed,
+                                      heading: preset.textHeading,
+                                      subheading: preset.textSubheading,
+                                      typography: {
+                                        heading: { ...preset.heading },
+                                        subheading: { ...preset.subheading }
+                                      }
+                                    }
+                                  }));
+                                  setActiveTab("post");
+                                }}
+                                style={{
+                                  padding: "10px 12px",
+                                  borderRadius: "10px",
+                                  border: isSelected ? "2px solid #e1306c" : "1px solid #e2e8f0",
+                                  background: isSelected ? "rgba(225, 48, 108, 0.05)" : "#f8fafc",
+                                  cursor: "pointer",
+                                  textAlign: "left",
+                                  transition: "all 0.2s ease"
+                                }}
+                              >
+                                <div style={{ fontWeight: "700", fontSize: "12px", color: isSelected ? "#e1306c" : "#1e293b", marginBottom: "2px" }}>
+                                  {preset.name}
+                                </div>
+                                <div style={{ fontSize: "10px", color: "#64748b", lineHeight: "1.3" }}>
+                                  {preset.desc}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
                       <div style={{ marginBottom: "16px" }}>
                         <label className="input-label">Feed Heading</label>
                         <input className="premium-input" value={config.postFeed.heading} onChange={(e) => updateConfig("postFeed", "heading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. SHOP OUR INSTAGRAM" />
@@ -1616,6 +1853,52 @@ export default function Index() {
                           <option value="center">Centered</option>
                           <option value="right">Right Aligned</option>
                         </select>
+                      </div>
+
+                      <div style={{ marginBottom: "24px" }}>
+                        <label className="input-label">Typography & Content Presets</label>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px", marginTop: "4px" }}>
+                          {STORY_TYPOGRAPHY_PRESETS.map((preset) => {
+                            const isSelected = isPresetMatch(config.stories, preset);
+                            return (
+                              <button
+                                key={preset.name}
+                                type="button"
+                                onClick={() => {
+                                  setConfig((prev) => ({
+                                    ...prev,
+                                    stories: {
+                                      ...prev.stories,
+                                      heading: preset.textHeading,
+                                      subheading: preset.textSubheading,
+                                      typography: {
+                                        heading: { ...preset.heading },
+                                        subheading: { ...preset.subheading }
+                                      }
+                                    }
+                                  }));
+                                  setActiveTab("story");
+                                }}
+                                style={{
+                                  padding: "10px 12px",
+                                  borderRadius: "10px",
+                                  border: isSelected ? "2px solid #e1306c" : "1px solid #e2e8f0",
+                                  background: isSelected ? "rgba(225, 48, 108, 0.05)" : "#f8fafc",
+                                  cursor: "pointer",
+                                  textAlign: "left",
+                                  transition: "all 0.2s ease"
+                                }}
+                              >
+                                <div style={{ fontWeight: "700", fontSize: "12px", color: isSelected ? "#e1306c" : "#1e293b", marginBottom: "2px" }}>
+                                  {preset.name}
+                                </div>
+                                <div style={{ fontSize: "10px", color: "#64748b", lineHeight: "1.3" }}>
+                                  {preset.desc}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
 
                       <div style={{ marginBottom: "16px" }}>
@@ -2059,6 +2342,7 @@ export default function Index() {
         </Layout.Section>
       </Layout>
       </div>
+      )}
     </div>
 
       {/* ── Premium Post Modal ── */}

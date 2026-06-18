@@ -258,9 +258,9 @@
     if (!c.removeWatermark) {
       const logoUrl = document.getElementById("ai-instafeed-grid-root")?.getAttribute("data-logo-url") || document.getElementById("ai-instafeed-story-root")?.getAttribute("data-logo-url") || "";
       if (logoUrl) {
-        html += '<div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;"><a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style="display:inline-block;vertical-align:middle;"><img src="' + logoUrl + '" style="height:16px;vertical-align:middle;display:inline-block;" alt="BOOST STAR Experts" /></a></div>';
+        html += '<div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;"><a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style="display:inline-block;vertical-align:middle;"><img src="' + logoUrl + '" style="height:16px;vertical-align:middle;display:inline-block;" alt="BOOST STAR Experts" /></a></div>';
       } else {
-        html += '<div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;"><a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style="font-weight:700;color:#64748b;text-decoration:none;">BOOST STAR Experts</a></div>';
+        html += '<div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;"><a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style="font-weight:700;color:#64748b;text-decoration:none;">BOOST STAR Experts</a></div>';
       }
     }
 
@@ -594,7 +594,7 @@
     const logoContent = logoUrl 
       ? '<img src="' + logoUrl + '" style="height:16px;vertical-align:middle;display:inline-block;margin-left:4px;" alt="BOOST STAR Experts" />'
       : 'BOOST STAR Experts';
-    const watermarkHtml = showBranding ? '<div style="text-align:center;padding:12px 0 0;font-size:11px;color:#9ca3af;"><a href="https://www.booststar.in/" target="_blank" rel="noopener noreferrer" style="display:inline-block;vertical-align:middle;">' + logoContent + '</a></div>' : '';
+    const watermarkHtml = showBranding ? '<div style="text-align:center;padding:12px 0 0;font-size:11px;color:#9ca3af;"><a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style="display:inline-block;vertical-align:middle;">' + logoContent + '</a></div>' : '';
 
     // Nav buttons HTML
     const prevBtn = hasPrev

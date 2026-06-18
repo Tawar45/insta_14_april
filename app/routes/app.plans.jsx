@@ -537,7 +537,17 @@ export default function Plans() {
 
             <footer style={{ textAlign: "center", padding: "40px 0", marginTop: "24px" }}>
               <BlockStack gap="200">
-                <Text variant="bodySm" tone="subdued">© 2026 AI Instafeed by BOOST STAR Experts</Text>
+                <Text variant="bodySm" tone="subdued">
+                  © 2026 AI Instafeed by{" "}
+                  <a 
+                    href="https://apps.shopify.com/partners/boost-star" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "inherit", textDecoration: "underline" }}
+                  >
+                    BOOST STAR Experts
+                  </a>
+                </Text>
                 <InlineStack gap="200" align="center">
                   <Text variant="bodySm" tone="subdued">Terms of Service</Text>
                   <Text variant="bodySm" tone="subdued">•</Text>

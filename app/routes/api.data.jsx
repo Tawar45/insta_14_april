@@ -76,7 +76,7 @@ export const loader = async ({ request }) => {
             heading: { size: 18, weight: "800", color: "#0f172a" },
             subheading: { size: 12, weight: "500", color: "#64748b" },
           },
-          alignment: "left",
+          alignment: "center",
           desktopColumns: 4,
           mobileColumns: 2,
           desktopLimit: 8,
