@@ -64,6 +64,7 @@ export const loader = async ({ request }) => {
     if (!config) {
       config = {
         instagramHandle: "",
+        aiCommentModeration: false,
         postFeed: {
           header: true,
           metrics: true,
@@ -113,6 +114,7 @@ export const loader = async ({ request }) => {
 
     // ── 5. Enforce Restrictions for Starter Plan ─────────────────────────────
     if (!isPro) {
+      config.aiCommentModeration = false; // Force AI Sentiment Moderation off on Starter plan
       if (config.postFeed) {
         config.postFeed.removeWatermark = false; // Force watermark
         config.postFeed.load = false;           // Force no infinite scroll

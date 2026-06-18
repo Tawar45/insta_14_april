@@ -308,6 +308,7 @@ export default function Plans() {
         "Infinite Scrolling Feature",
         "Premium Story Layouts",
         "Unlimited Posts & Columns",
+        "AI Comment & Sentiment Moderation",
         "Priority 24/7 Support"
       ],
       isCurrent: currentPlanName.includes("Pro"),

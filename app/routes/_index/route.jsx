@@ -18,34 +18,31 @@ export default function App() {
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>A short heading about [your app]</h1>
+        <h1 className={styles.heading}>AI Instafeed Expert</h1>
         <p className={styles.text}>
-          A tagline about [your app] that describes your value proposition.
+          Boost social proof, credibility, and sales by showcasing your Instagram feeds and stories.
         </p>
         {showForm && (
           <Form className={styles.form} method="post" action="/auth/login">
             <label className={styles.label}>
               <span>Shop domain</span>
-              <input className={styles.input} type="text" name="shop" />
+              <input className={styles.input} type="text" name="shop" placeholder="your-store.myshopify.com" />
               <span>e.g: my-shop-domain.myshopify.com</span>
             </label>
             <button className={styles.button} type="submit">
-              Log in
+              Log in / Install
             </button>
           </Form>
         )}
         <ul className={styles.list}>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Auto-Sync Feed</strong>. Seamlessly sync your Instagram posts and reels to your store without any performance impact.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Premium Layouts</strong>. Display your posts in responsive grids or modern story layouts optimized for mobile and desktop.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Social Proof & Conversions</strong>. Show like and comment counts, let users open interactive popups, and boost customer trust.
           </li>
         </ul>
       </div>

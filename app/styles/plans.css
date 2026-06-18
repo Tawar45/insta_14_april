@@ -189,6 +189,10 @@ input:checked + .toggle-slider {
   background-color: #0f172a;
 }
 
+input:focus-visible + .toggle-slider {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #0f172a;
+}
+
 input:checked + .toggle-slider:before {
   transform: translateX(24px);
 }

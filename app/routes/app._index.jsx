@@ -235,6 +235,7 @@ export const action = async ({ request }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const DEFAULT_CONFIG = {
   instagramHandle: "",
+  aiCommentModeration: false,
   postFeed: {
     header: true,
     metrics: true,
@@ -1035,11 +1036,193 @@ export default function Index() {
     </div>
   );
 
+  const renderSettingItem = (item) => {
+    const isItemPaid = !item.isPremium || isPaid;
+    const opacity = isItemPaid ? 1 : 0.7;
+
+    // Resolve checked state
+    let checked = false;
+    if (item.isSpecialAI) {
+      if (item.id === "aiSmartSorting") {
+        checked = isPaid && config.postFeed.sortBy === "engaging";
+      } else {
+        checked = isPaid && !!config.aiCommentModeration;
+      }
+    } else if (item.isLocal) {
+      checked = isPaid && isHideMode;
+    } else {
+      checked = isItemPaid && !!config.postFeed[item.id];
+    }
+
+    // Resolve onChange handler
+    const handleChange = (e) => {
+      const targetChecked = e.target.checked;
+      if (item.isPremium && !isPaid) {
+        shopify.toast.show(`${item.label} is a PRO feature`, { isError: true });
+        navigate("/app/plans");
+        return;
+      }
+
+      if (item.isSpecialAI) {
+        if (item.id === "aiSmartSorting") {
+          updateConfig("postFeed", "sortBy", targetChecked ? "engaging" : "latest");
+        } else {
+          setConfig((prev) => ({ ...prev, aiCommentModeration: targetChecked }));
+        }
+      } else if (item.isLocal) {
+        setIsHideMode(targetChecked);
+        setActiveTab("post");
+        if (targetChecked) {
+          shopify.toast.show("👆 Hide Mode ON — Click any post in the preview to hide it");
+        } else {
+          shopify.toast.show("Hide Mode turned off");
+        }
+      } else {
+        updateConfig("postFeed", item.id, targetChecked);
+      }
+    };
+
+    return (
+      <div key={item.id} className="compact-setting-item" style={{ opacity }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
+          <span style={{ display: "inline-flex", flexShrink: 0, color: item.isSpecialAI ? "#e1306c" : "#64748b" }}>
+            <Icon source={item.icon} size="small" color="inherit" />
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", minWidth: 0 }}>
+            <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--premium-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {item.label}
+            </span>
+
+            <span className="info-tooltip-wrapper" style={{ flexShrink: 0 }}>
+              <span className="info-tooltip-icon">i</span>
+              <span className="info-tooltip-content">{item.sub}</span>
+            </span>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+          <label className="premium-switch" title={item.isPremium && !isPaid ? "Upgrade to PRO to enable this feature" : ""}>
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={handleChange}
+            />
+            <span className="slider" />
+          </label>
+        </div>
+      </div>
+    );
+  };
+
   // ─────────────────────────────────────────────────────────────────────────
   // MAIN RENDER
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="premium-dashboard">
+      <style>{`
+        /* Tooltip styles */
+        .info-tooltip-wrapper {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          cursor: pointer;
+        }
+
+        .info-tooltip-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          background: #e2e8f0;
+          color: #64748b;
+          font-size: 10px;
+          font-weight: 700;
+          margin-left: 4px;
+          transition: all 0.2s ease;
+        }
+
+        .info-tooltip-icon:hover {
+          background: #cbd5e1;
+          color: #334155;
+        }
+
+        .info-tooltip-content {
+          position: absolute;
+          bottom: 125%;
+          left: 50%;
+          transform: translateX(-50%) scale(0.9);
+          background: #1e293b;
+          color: white;
+          padding: 8px 12px;
+          border-radius: 8px;
+          font-size: 11px;
+          line-height: 1.4;
+          width: 180px;
+          text-align: center;
+          visibility: hidden;
+          opacity: 0;
+          pointer-events: none;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+          z-index: 999;
+          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .info-tooltip-wrapper:hover .info-tooltip-content {
+          visibility: visible;
+          opacity: 1;
+          transform: translateX(-50%) scale(1);
+        }
+
+        /* Grid layout for compact settings */
+        .compact-settings-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+
+        .compact-setting-item {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 10px 12px;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          min-height: 52px;
+          transition: all 0.2s ease;
+        }
+
+        .compact-setting-item:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .compact-setting-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 6px;
+        }
+
+        .compact-setting-label-section {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .compact-setting-title-row {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 4px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--premium-text-primary);
+        }
+      `}</style>
 
       {/* ── Header Bar ── */}
       <div className="premium-header">
@@ -1402,89 +1585,46 @@ export default function Index() {
                     </div>
                   </div>
 
-                  <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <div className="setting-row" style={{ opacity: !isPaid ? 0.7 : 1 }}>
-                      <div className="setting-info">
-                        <div className="setting-icon" style={{ color: "#e1306c" }}><Icon source={MagicIcon} color="inherit" /></div>
-                        <div>
-                          <div style={{ fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
-                            AI Smart Sorting
-                            {!isPaid && <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>}
-                          </div>
-                          <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "2px" }}>Sort feed dynamically by top engagement using AI-powered metrics.</div>
-                        </div>
-                      </div>
-                      <label className="premium-switch" title={!isPaid ? "Upgrade to PRO to enable this feature" : ""}>
-                        <input
-                          type="checkbox"
-                          checked={!isPaid ? false : config.postFeed.sortBy === "engaging"}
-                          onChange={(e) => {
-                            if (!isPaid) {
-                              shopify.toast.show("AI Smart Sorting is a PRO feature", { isError: true });
-                              navigate("/app/plans");
-                              return;
-                            }
-                            updateConfig("postFeed", "sortBy", e.target.checked ? "engaging" : "latest");
-                          }}
-                        />
-                        <span className="slider" />
-                      </label>
-                    </div>
+                  <h3 className="input-label" style={{ marginBottom: "12px" }}>Standard Modules</h3>
+                  <div className="compact-settings-grid" style={{ marginBottom: "24px" }}>
+                    {[
+                      { id: "header",   label: "Profile Header",  sub: "Show store bio & icon on storefront feed.",       icon: ProfileIcon },
+                      { id: "metrics",  label: "Engagement Hub",  sub: "Visualize likes and comment metrics on post hover.",       icon: ChartVerticalIcon },
+                      { id: "carousel", label: "Smart Carousel",  sub: "Display posts in an auto-swipe carousel slider.",             icon: MobileIcon },
+                      { id: "autoplay", label: "Smart Autoplay",  sub: "Pre-load and autoplay video/reel content.",       icon: PlayIcon },
+                      { id: "modalNavigation", label: "Modal Navigation", sub: "Show Prev/Next navigation arrows in popup modal.", icon: ChevronRightIcon },
+                      { id: "showInstagramIcon", label: "Instagram Icon", sub: "Display Instagram branding badge on posts.", icon: InstagramIcon },
+                    ].map(renderSettingItem)}
                   </div>
 
-                  <h3 className="input-label" style={{ marginBottom: "12px" }}>Dynamic Modules</h3>
-                  {[
-                    { id: "header",   label: "Profile Header",  sub: "Show store bio & icon",       icon: ProfileIcon },
-                    { id: "metrics",  label: "Engagement Hub",  sub: "Visualise social proof",       icon: ChartVerticalIcon },
-                    { id: "load",     label: "Infinite Paging", sub: "Zero-latency scrolling",       icon: RefreshIcon, isPremium: true },
-                    { id: "carousel", label: "Smart Carousel",  sub: "Auto-swipe logic",             icon: MobileIcon },
-                    { id: "autoplay", label: "Smart Autoplay",  sub: "Pre-load video content",       icon: PlayIcon },
-                    { id: "modalNavigation", label: "Modal Navigation", sub: "Prev/Next arrows in popup", icon: ChevronRightIcon },
-                    { id: "modalSound", label: "Video Modal Sound", sub: "Enable audio in popup videos", icon: PlayIcon, isPremium: true },
-                    { id: "showInstagramIcon", label: "Instagram Icon", sub: "Branding badge on posts", icon: InstagramIcon },
-                    { id: "removeWatermark", label: "Remove Watermark", sub: "Hide 'By BOOST STAR' badge", icon: StarIcon, isPremium: true },
-                    { id: "isHideMode", label: "Manual Hide Mode", sub: "Click posts in preview to hide them", icon: ViewIcon, isPremium: true, isLocal: true },
-                  ].map((item, idx) => (
-                    <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both`, opacity: (!isPaid && item.isPremium) ? 0.7 : 1 }}>
-                      <div className="setting-info">
-                        <div className="setting-icon"><Icon source={item.icon} color="inherit" /></div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <div>
-                            <div style={{ fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
-                              {item.label}
-                              {item.isPremium && <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>}
-                            </div>
-                            <div style={{ fontSize: "12px", color: "#9ca3af" }}>{item.sub}</div>
-                          </div>
-                        </div>
-                      </div>
-                      <label className="premium-switch" title={item.isPremium && !isPaid ? "Upgrade to PRO to enable this feature" : ""}>
-                        <input
-                          type="checkbox"
-                          checked={(!isPaid && item.isPremium) ? false : (item.isLocal ? isHideMode : !!config.postFeed[item.id])}
-                          onChange={(e) => {
-                            if (item.isPremium && !isPaid) {
-                              shopify.toast.show(`${item.label} is a PRO feature`, { isError: true });
-                              navigate("/app/plans");
-                              return;
-                            }
-                            if (item.isLocal) {
-                              setIsHideMode(e.target.checked);
-                              setActiveTab("post");
-                              if (e.target.checked) {
-                                shopify.toast.show("👆 Hide Mode ON — Click any post in the preview to hide it");
-                              } else {
-                                shopify.toast.show("Hide Mode turned off");
-                              }
-                            } else {
-                              updateConfig("postFeed", item.id, e.target.checked);
-                            }
-                          }}
-                        />
-                        <span className="slider" />
-                      </label>
-                    </div>
-                  ))}
+                  <h3 className="input-label" style={{ marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    AI &amp; Premium Modules
+                    <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent-gradient)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>
+                  </h3>
+                  <div className="compact-settings-grid">
+                    {[
+                      { 
+                        id: "aiSmartSorting", 
+                        label: "AI Smart Sorting", 
+                        sub: "Sort feed dynamically by top engagement using AI-powered metrics.", 
+                        icon: MagicIcon, 
+                        isPremium: true,
+                        isSpecialAI: true 
+                      },
+                      { 
+                        id: "aiCommentModeration", 
+                        label: "AI Sentiment Moderation", 
+                        sub: "Automatically hide posts from your storefront feed if they receive negative or spam comments.", 
+                        icon: MagicIcon, 
+                        isPremium: true,
+                        isSpecialAI: true 
+                      },
+                      { id: "load",     label: "Infinite Paging", sub: "Zero-latency endless scrolling on page load.",       icon: RefreshIcon, isPremium: true },
+                      { id: "modalSound", label: "Video Modal Sound", sub: "Enable audio playback in video popup modal.", icon: PlayIcon, isPremium: true },
+                      { id: "removeWatermark", label: "Remove Watermark", sub: "Hide the 'By BOOST STAR' brand watermark.", icon: StarIcon, isPremium: true },
+                      { id: "isHideMode", label: "Manual Hide Mode", sub: "Click posts directly in the preview frame to hide them.", icon: ViewIcon, isPremium: true, isLocal: true },
+                    ].map(renderSettingItem)}
+                  </div>
 
                   {/* ── Hide Mode Instructions (visible when mode is ON) ── */}
                   {isHideMode && (

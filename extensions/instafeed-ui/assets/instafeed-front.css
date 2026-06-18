@@ -1,8 +1,14 @@
 /* AI Instafeed - Storefront Extension Styles */
 
-*,
-*::before,
-*::after {
+#ai-instafeed-grid-root *,
+#ai-instafeed-grid-root *::before,
+#ai-instafeed-grid-root *::after,
+#ai-instafeed-story-root *,
+#ai-instafeed-story-root *::before,
+#ai-instafeed-story-root *::after,
+#ai-instafeed-modal-root *,
+#ai-instafeed-modal-root *::before,
+#ai-instafeed-modal-root *::after {
   box-sizing: border-box;
 }
 
