@@ -65,6 +65,7 @@ export const loader = async ({ request }) => {
       config = {
         instagramHandle: "",
         aiCommentModeration: false,
+        appSetup: { mainExt: false, sectionExt: false },
         postFeed: {
           header: true,
           metrics: true,

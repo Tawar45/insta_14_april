@@ -26,6 +26,8 @@ import {
   LinkIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   ProfileIcon,
   ChartVerticalIcon,
   MobileIcon,
@@ -110,13 +112,95 @@ export const loader = async ({ request }) => {
     themeId = themeJson.data?.themes?.nodes[0]?.id.split("/").pop() || "current";
   }
 
+  let dynamicAppEmbedEnabled = false;
+  let dynamicSections = { grid: false, story: false };
+
+  if (themeId && themeId !== "current" && session?.accessToken) {
+    try {
+      const clientId = process.env.SHOPIFY_API_KEY;
+      const apiVersion = "2024-01"; // or use process.env.SHOPIFY_API_VERSION if available
+      
+      const assetKeys = [
+        "config/settings_data.json",
+        "templates/index.json",
+        "templates/product.json",
+        "templates/page.json",
+        "templates/collection.json"
+      ];
+      
+      const assetPromises = assetKeys.map(key => {
+        const url = `https://${session.shop}/admin/api/${apiVersion}/themes/${themeId}/assets.json?asset[key]=${encodeURIComponent(key)}`;
+        return fetch(url, {
+          headers: {
+            "X-Shopify-Access-Token": session.accessToken,
+            "Content-Type": "application/json"
+          }
+        })
+        .then(res => res.json())
+        .catch(() => null);
+      });
+      
+      const [settingsData, indexData, productData, pageData, collectionData] = await Promise.all(assetPromises);
+
+      const extUuid = "eeecd3e9-ddb8-f1f8-6e66-ef13a12c0780e5eb934b"; // from shopify.extension.toml
+      const appHandle = "instafeed";
+
+      if (settingsData?.asset?.value) {
+        const parsedSettings = JSON.parse(settingsData.asset.value);
+        if (parsedSettings.current?.blocks) {
+          dynamicAppEmbedEnabled = Object.values(parsedSettings.current.blocks).some(b => 
+            b.type && 
+            (b.type.includes(clientId) || b.type.includes(extUuid) || b.type.includes(appHandle)) && 
+            b.type.includes('app-embed') && 
+            !b.disabled
+          );
+        }
+      }
+
+      const templates = [indexData, productData, pageData, collectionData];
+      for (const t of templates) {
+        if (t?.asset?.value) {
+          try {
+            const parsedTemplate = JSON.parse(t.asset.value);
+            if (parsedTemplate.sections) {
+              for (const sectionObj of Object.values(parsedTemplate.sections)) {
+                if (sectionObj.disabled) continue; // Skip if section is hidden
+
+                if (sectionObj.type && (sectionObj.type.includes(extUuid) || sectionObj.type.includes(appHandle) || sectionObj.type.includes(clientId))) {
+                  if (sectionObj.type.includes("feed-grid")) dynamicSections.grid = true;
+                  if (sectionObj.type.includes("story-layout")) dynamicSections.story = true;
+                }
+
+                if (sectionObj.blocks) {
+                  for (const blockObj of Object.values(sectionObj.blocks)) {
+                    if (blockObj.disabled) continue; // Skip if block is hidden
+                    if (blockObj.type && (blockObj.type.includes(extUuid) || blockObj.type.includes(appHandle) || blockObj.type.includes(clientId))) {
+                      if (blockObj.type.includes("feed-grid")) dynamicSections.grid = true;
+                      if (blockObj.type.includes("story-layout")) dynamicSections.story = true;
+                    }
+                  }
+                }
+              }
+            }
+          } catch (err) {
+            console.warn("Failed to parse template JSON", err);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Theme asset verification failed:", e.message);
+    }
+  }
+
   return {
     config: config ? JSON.stringify(config) : null,
     instaData: instaData ? JSON.stringify(instaData) : null,
     subscription,
     shop,
     themeId,
-    clientId: process.env.SHOPIFY_API_KEY
+    clientId: process.env.SHOPIFY_API_KEY,
+    dynamicAppEmbedEnabled,
+    dynamicSections
   };
 };
 
@@ -236,6 +320,7 @@ export const action = async ({ request }) => {
 const DEFAULT_CONFIG = {
   instagramHandle: "",
   aiCommentModeration: false,
+  appSetup: { mainExt: false, sectionExt: false },
   postFeed: {
     header: true,
     metrics: true,
@@ -768,6 +853,17 @@ export default function Index() {
     return config.instagramHandle.trim().toLowerCase() === instaData.username.toLowerCase();
   }, [instaData, config.instagramHandle]);
 
+  const setupProgress = [(loaderData.dynamicAppEmbedEnabled ? 1 : 0), ((loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story) ? 1 : 0)].reduce((a,b)=>a+b, 0);
+  const isSetupComplete = setupProgress === 2;
+
+  const [isConnectExpanded, setIsConnectExpanded] = useState(!isConnected);
+  const [isSetupExpanded, setIsSetupExpanded] = useState(isConnected && !isSetupComplete);
+
+  useEffect(() => {
+    setIsConnectExpanded(!isConnected);
+    setIsSetupExpanded(isConnected && !isSetupComplete);
+  }, [isConnected, isSetupComplete]);
+
   const handleDisconnect = useCallback(() => {
     setInstaData(null);
     localStorage.removeItem("insta_feed_data");
@@ -1289,22 +1385,30 @@ export default function Index() {
         <div className="premium-card" style={{ padding: "32px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "120px", height: "120px", background: "var(--premium-accent)", opacity: 0.05, borderRadius: "50%", filter: "blur(50px)", pointerEvents: "none" }} />
 
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "24px", gap: "20px", flexWrap: "wrap" }}>
+          <div 
+            style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: isConnectExpanded ? "24px" : "0", gap: "20px", flexWrap: "wrap", cursor: "pointer" }}
+            onClick={() => setIsConnectExpanded(!isConnectExpanded)}
+          >
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
                 <span style={{ background: "var(--premium-accent)", color: "white", width: "22px", height: "22px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800", flexShrink: 0 }}>1</span>
                 <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "var(--premium-text-primary)" }}>Connect Your Account</h2>
+                <div style={{ color: "var(--premium-text-secondary)", marginLeft: "4px" }}>
+                  <Icon source={isConnectExpanded ? ChevronUpIcon : ChevronDownIcon} />
+                </div>
               </div>
-              <p style={{ margin: 0, fontSize: "14px", color: "var(--premium-text-secondary)", lineHeight: "1.6" }}>
-                Seamlessly sync your Instagram feed to your Shopify storefront.<br />
-                Enter your <span style={{ color: "var(--premium-accent)", fontWeight: "600" }}>@username</span> or profile URL to begin.
-              </p>
+              {isConnectExpanded && (
+                <p style={{ margin: 0, fontSize: "14px", color: "var(--premium-text-secondary)", lineHeight: "1.6" }}>
+                  Seamlessly sync your Instagram feed to your Shopify storefront.<br />
+                  Enter your <span style={{ color: "var(--premium-accent)", fontWeight: "600" }}>@username</span> or profile URL to begin.
+                </p>
+              )}
             </div>
 
             {isConnected ? (
               <div className="status-badge" style={{ animation: "fadeInBlur 0.5s ease" }}>
                 <div className="status-dot" />
-                Linked to @{instaData.username}
+                Linked to @{instaData?.username || config.instagramHandle}
               </div>
             ) : (
               <div className="status-badge" style={{ animation: "fadeInBlur 0.5s ease", background: "#fef2f2", color: "#b91c1c", border: "1px solid #fee2e2" }}>
@@ -1314,7 +1418,9 @@ export default function Index() {
             )}
           </div>
 
-          <div className="input-group-nested">
+          {isConnectExpanded && (
+            <>
+              <div className="input-group-nested">
             <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
               <div style={{ paddingLeft: "16px", color: "var(--premium-accent)", display: "flex", alignItems: "center", flexShrink: 0 }}>
                 <InstagramIcon />
@@ -1407,6 +1513,8 @@ export default function Index() {
               <span style={{ marginLeft: "auto", color: "#15803d", fontWeight: 600 }}>✓ API calls: 0 per storefront visit</span>
             </div>
           )}
+          </>
+        )}
         </div>
 
         {/* ── Main Two-Column Grid ── */}
@@ -1451,6 +1559,118 @@ export default function Index() {
             </div>
           </div>
         ) : (
+          <>
+            {/* ── Setup Progress Section ── */}
+            {isConnected && (
+              <div className="premium-card" style={{ padding: "32px", position: "relative", overflow: "hidden", marginBottom: "20px", animation: "fadeInBlur 0.5s ease" }}>
+                <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "120px", height: "120px", background: "var(--premium-accent)", opacity: 0.05, borderRadius: "50%", filter: "blur(50px)", pointerEvents: "none" }} />
+                <div 
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isSetupExpanded ? "24px" : "0", flexWrap: "wrap", gap: "10px", cursor: "pointer" }}
+                  onClick={() => setIsSetupExpanded(!isSetupExpanded)}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{ background: "var(--premium-accent)", color: "white", width: "22px", height: "22px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800", flexShrink: 0 }}>2</span>
+                    <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "var(--premium-text-primary)" }}>Store Setup Status</h2>
+                    <div style={{ color: "var(--premium-text-secondary)" }}>
+                      <Icon source={isSetupExpanded ? ChevronUpIcon : ChevronDownIcon} />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "10px", fontSize: "12px", fontWeight: "700", color: "#334155" }}>
+                      {[(loaderData.dynamicAppEmbedEnabled ? 1 : 0), ((loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story) ? 1 : 0)].reduce((a,b)=>a+b, 0)} / 2 Completed
+                    </div>
+                    {isSetupExpanded && (
+                      <button
+                        className="premium-button"
+                        style={{ padding: "4px 10px", fontSize: "11px", background: "white", color: "#64748b", border: "1px solid #e2e8f0" }}
+                        onClick={(e) => { e.stopPropagation(); navigate(".", { replace: true }); }}
+                        title="Check if theme changes are applied"
+                      >
+                        <Icon source={RefreshIcon} tone="inherit" /> Refresh
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {isSetupExpanded && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {/* Step 1: Main Ext */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px", background: "#f8fafc", padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: loaderData.dynamicAppEmbedEnabled ? "#10b981" : "#cbd5e1", color: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: "800", fontSize: "11px" }}>
+                        {loaderData.dynamicAppEmbedEnabled ? <Icon source={CheckIcon} tone="inherit" /> : "1"}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: "600", fontSize: "13px", color: "var(--premium-text-primary)" }}>Enable Main Extension</div>
+                        <div style={{ fontSize: "11px", color: "var(--premium-text-secondary)" }}>Required to load the app script on your store.</div>
+                      </div>
+                    </div>
+                    <button
+                      className={`premium-button ${loaderData.dynamicAppEmbedEnabled ? "" : "button-accent"}`}
+                      style={loaderData.dynamicAppEmbedEnabled ? { background: "#e2e8f0", color: "#64748b", border: "none", padding: "6px 14px", fontSize: "12px" } : { padding: "6px 14px", fontSize: "12px" }}
+                      onClick={() => {
+                        const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
+                        window.open(url, "_blank");
+                        const newConfig = { ...config, appSetup: { ...config.appSetup, mainExt: true } };
+                        setConfig(newConfig);
+                        const fd = new FormData();
+                        fd.append("config", JSON.stringify(newConfig));
+                        saveFetcher.submit(fd, { method: "post" });
+                      }}
+                    >
+                      {loaderData.dynamicAppEmbedEnabled ? "Enabled" : "Enable Now"}
+                    </button>
+                  </div>
+
+                  {/* Step 2: Sections */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px", background: "#f8fafc", padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: (loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story) ? "#10b981" : "#cbd5e1", color: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: "800", fontSize: "11px" }}>
+                        {(loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story) ? <Icon source={CheckIcon} tone="inherit" /> : "2"}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: "600", fontSize: "13px", color: "var(--premium-text-primary)" }}>Add Feed Grid or Story Layout</div>
+                        <div style={{ fontSize: "11px", color: "var(--premium-text-secondary)" }}>Compulsory to add at least one section to your theme.</div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                      <button
+                        className={`premium-button ${loaderData.dynamicSections?.grid ? "" : "button-accent"}`}
+                        style={loaderData.dynamicSections?.grid ? { background: "#e2e8f0", color: "#64748b", border: "none", padding: "6px 14px", fontSize: "12px" } : { padding: "6px 14px", fontSize: "12px" }}
+                        onClick={() => {
+                          const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/feed-grid&target=newAppsSection`;
+                          window.open(url, "_blank");
+                          const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
+                          setConfig(newConfig);
+                          const fd = new FormData();
+                          fd.append("config", JSON.stringify(newConfig));
+                          saveFetcher.submit(fd, { method: "post" });
+                        }}
+                      >
+                        {loaderData.dynamicSections?.grid ? "Grid Added" : "Add Grid"}
+                      </button>
+                      <button
+                        className={`premium-button ${loaderData.dynamicSections?.story ? "" : "button-accent"}`}
+                        style={loaderData.dynamicSections?.story ? { background: "#e2e8f0", color: "#64748b", border: "none", padding: "6px 14px", fontSize: "12px" } : { padding: "6px 14px", fontSize: "12px" }}
+                        onClick={() => {
+                          const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/story-layout&target=newAppsSection`;
+                          window.open(url, "_blank");
+                          const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
+                          setConfig(newConfig);
+                          const fd = new FormData();
+                          fd.append("config", JSON.stringify(newConfig));
+                          saveFetcher.submit(fd, { method: "post" });
+                        }}
+                      >
+                        {loaderData.dynamicSections?.story ? "Story Added" : "Add Story"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                )}
+              </div>
+            )}
+
           <div className="dashboard-main-layout">
             <Layout>
             {/* ── LEFT: Settings Panel ── */}
@@ -2668,6 +2888,7 @@ export default function Index() {
         </Layout.Section>
       </Layout>
       </div>
+      </>
       )}
     </div>
 
