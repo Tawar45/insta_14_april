@@ -238,8 +238,9 @@
 
     if (c.carousel) {
       const itemWidth = 'calc((100% - ' + ((columns - 1) * gap) + 'px) / ' + columns + ')';
+      const navBtnStyle = 'outline:none!important;-webkit-appearance:none!important;appearance:none!important;color:#1e293b!important;';
       html += '<div class="ai-fw-carousel-wrapper" style="position:relative;width:100%;">'
-            + '<button class="ai-fw-nav ai-fw-prev" data-track-id="' + trackId + '" aria-label="Previous"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg></button>'
+            + '<div class="ai-fw-nav ai-fw-prev" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Previous" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg></div>'
             + '<div class="ai-fw-track" id="' + trackId + '" style="display:flex;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:' + gap + 'px;padding:' + gap + 'px 0;">';
       mediaItems.forEach((item) => { html += renderMediaCard(item, c, itemWidth); });
       // Sentinel INSIDE track so IntersectionObserver with root=track works
@@ -249,7 +250,7 @@
               + '<style>@keyframes ai-spin{to{transform:rotate(360deg);}}</style></div>';
       }
       html += '</div>'
-            + '<button class="ai-fw-nav ai-fw-next" data-track-id="' + trackId + '" aria-label="Next"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 16l4-4-4-4"/></svg></button>'
+            + '<div class="ai-fw-nav ai-fw-next" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Next" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M8 16l4-4-4-4"/></svg></div>'
             + '</div>';
     } else {
       html += '<div id="ai-grid-body" style="display:grid;grid-template-columns:repeat(' + columns + ',1fr);gap:' + gap + 'px;">';
@@ -266,7 +267,7 @@
     if (!c.removeWatermark) {
       const logoUrl = document.getElementById("ai-instafeed-grid-root")?.getAttribute("data-logo-url") || document.getElementById("ai-instafeed-story-root")?.getAttribute("data-logo-url") || "";
       if (logoUrl) {
-        html += '<div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;"><a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style="display:inline-block;vertical-align:middle;"><img src="' + logoUrl + '" style="height:16px;vertical-align:middle;display:inline-block;" alt="BOOST STAR Experts" /></a></div>';
+        html += '<div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;"><a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style="display:inline-block;vertical-align:middle;"><img src="' + logoUrl + '" style="height:16px !important;width:auto !important;max-width:none !important;max-height:16px !important;vertical-align:middle !important;display:inline-block !important;" alt="BOOST STAR Experts" /></a></div>';
       } else {
         html += '<div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;"><a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style="font-weight:700;color:#64748b;text-decoration:none;">BOOST STAR Experts</a></div>';
       }
@@ -418,7 +419,7 @@
     const isActiveRing = s.activeRing !== false;
     const trackId = "ai-story-track-" + Date.now();
 
-    let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:100%;margin:0 auto;box-sizing:border-box;overflow:hidden;padding-top:${s.paddingTop ?? 24}px;padding-bottom:${s.paddingBottom ?? 24}px;">`;
+    let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;overflow:hidden;padding-top:${s.paddingTop ?? 24}px;padding-bottom:${s.paddingBottom ?? 24}px;">`;
 
 
     if (s.showHeader) {
@@ -431,12 +432,13 @@
 
     if (s.enable) {
       const isShowNav = s.showNavigation !== false;
+      const storyNavBtnStyle = `outline:none!important;-webkit-appearance:none!important;appearance:none!important;color:#1e293b!important;`;
       html += `
         <div class="ai-fw-carousel-wrapper" style="position:relative;width:100%;max-width:100%;overflow:hidden;padding:0 28px;box-sizing:border-box;">
           ${isShowNav ? `
-            <button class="ai-fw-nav ai-fw-prev" data-track-id="${trackId}" aria-label="Previous" style="width:28px;height:28px;left:0px;top:32px;transform:translateY(-50%);">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg>
-            </button>
+            <div class="ai-fw-nav ai-fw-prev" data-track-id="${trackId}" role="button" tabindex="0" aria-label="Previous" style="${storyNavBtnStyle}width:28px;height:28px;left:0px;top:32px;transform:translateY(-50%);">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg>
+            </div>
           ` : ''}
           <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;${s.alignment === 'center' ? 'margin:0 auto;' : s.alignment === 'right' ? 'margin:0 0 0 auto;' : 'margin:0 auto 0 0;'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 12px;">`;
 
@@ -471,9 +473,9 @@
 
       html += `</div>
           ${isShowNav ? `
-            <button class="ai-fw-nav ai-fw-next" data-track-id="${trackId}" aria-label="Next" style="width:28px;height:28px;right:0px;top:32px;transform:translateY(-50%);">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 16l4-4-4-4"/></svg>
-            </button>
+            <div class="ai-fw-nav ai-fw-next" data-track-id="${trackId}" role="button" tabindex="0" aria-label="Next" style="${storyNavBtnStyle}width:28px;height:28px;right:0px;top:32px;transform:translateY(-50%);">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M8 16l4-4-4-4"/></svg>
+            </div>
           ` : ''}
         </div>`;
     }
@@ -600,7 +602,7 @@
       
     const logoUrl = document.getElementById("ai-instafeed-grid-root")?.getAttribute("data-logo-url") || document.getElementById("ai-instafeed-story-root")?.getAttribute("data-logo-url") || "";
     const logoContent = logoUrl 
-      ? '<img src="' + logoUrl + '" style="height:16px;vertical-align:middle;display:inline-block;margin-left:4px;" alt="BOOST STAR Experts" />'
+      ? '<img src="' + logoUrl + '" style="height:16px !important;width:auto !important;max-width:none !important;max-height:16px !important;vertical-align:middle !important;display:inline-block !important;margin-left:4px !important;" alt="BOOST STAR Experts" />'
       : 'BOOST STAR Experts';
     const watermarkHtml = showBranding ? '<div style="text-align:center;padding:12px 0 0;font-size:11px;color:#9ca3af;"><a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style="display:inline-block;vertical-align:middle;">' + logoContent + '</a></div>' : '';
 
@@ -639,7 +641,7 @@
               '<div class="ai-modal-sublabel">Instagram Feed</div>' +
             '</div>' +
             '<button class="ai-modal-header-close" onclick="aiCloseModal()" aria-label="Close">' +
-              '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#64748b" stroke-width="2.5"><path d="M15 5L5 15M5 5l10 10"/></svg>' +
+              '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#64748b" stroke-width="2"><path d="M15 5L5 15M5 5l10 10"/></svg>' +
             '</button>' +
           '</div>' +
           '<div class="ai-modal-body">' +

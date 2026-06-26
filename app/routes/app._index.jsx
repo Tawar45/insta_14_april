@@ -1334,24 +1334,31 @@ export default function Index() {
           </div>
         </div> {/* brand-section */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <button
-            className="premium-button"
-            style={{ 
-              background: "rgba(255, 255, 255, 0.15)", 
-              color: "white", 
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              backdropFilter: "blur(4px)",
-              padding: "8px 16px",
-              fontSize: "13px"
-            }}
-            onClick={() => {
-              const customizerUrl = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
-              window.open(customizerUrl, "_blank");
-            }}
-          >
-            <Icon source={StoreIcon} tone="inherit" />
-            Customize in Store
-          </button>
+          {isConnected && (
+            <button
+              className="premium-button"
+              style={{ 
+                background: "rgba(255, 255, 255, 0.15)", 
+                color: "white", 
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                backdropFilter: "blur(4px)",
+                padding: "8px 16px",
+                fontSize: "13px"
+              }}
+              onClick={() => {
+                setIsSetupExpanded(true);
+                setTimeout(() => {
+                  const card = document.getElementById("store-setup-status-card");
+                  if (card) {
+                    card.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }
+                }, 100);
+              }}
+            >
+              <Icon source={StoreIcon} tone="inherit" />
+              Customize in Store
+            </button>
+          )}
 
           <div 
             onClick={() => navigate("/app/plans")}
@@ -1513,6 +1520,12 @@ export default function Index() {
               <span style={{ marginLeft: "auto", color: "#15803d", fontWeight: 600 }}>✓ API calls: 0 per storefront visit</span>
             </div>
           )}
+          {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
+            <div style={{ marginTop: "12px", padding: "12px 16px", background: "#fffbeb", borderRadius: "10px", border: "1px solid #fef3c7", display: "flex", gap: "8px", fontSize: "13px", color: "#b45309", alignItems: "center" }}>
+              <span style={{ fontSize: "16px" }}>⚠️</span>
+              <span>Please upload more posts on Instagram to display the feed properly (at least 4 posts are recommended).</span>
+            </div>
+          )}
           </>
         )}
         </div>
@@ -1562,7 +1575,7 @@ export default function Index() {
           <>
             {/* ── Setup Progress Section ── */}
             {isConnected && (
-              <div className="premium-card" style={{ padding: "32px", position: "relative", overflow: "hidden", marginBottom: "20px", animation: "fadeInBlur 0.5s ease" }}>
+              <div id="store-setup-status-card" className="premium-card" style={{ padding: "32px", position: "relative", overflow: "hidden", marginBottom: "20px", animation: "fadeInBlur 0.5s ease" }}>
                 <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "120px", height: "120px", background: "var(--premium-accent)", opacity: 0.05, borderRadius: "50%", filter: "blur(50px)", pointerEvents: "none" }} />
                 <div 
                   style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isSetupExpanded ? "24px" : "0", flexWrap: "wrap", gap: "10px", cursor: "pointer" }}
@@ -2614,6 +2627,12 @@ export default function Index() {
                               </div>
                             )}
 
+                            {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
+                              <div style={{ margin: "12px 16px", padding: "10px 12px", background: "#fffbeb", borderRadius: "8px", border: "1px solid #fef3c7", fontSize: "11px", color: "#b45309", textAlign: "center", lineHeight: "1.4" }}>
+                                ⚠️ Upload more posts to display the feed properly
+                              </div>
+                            )}
+
                             {/* Carousel or Grid */}
                             {config.postFeed.carousel ? (
                               <div className="carousel-wrapper" style={{ padding: `${config.postFeed.gap}px 0`, position: "relative", width: "100%" }}>
@@ -2661,6 +2680,12 @@ export default function Index() {
                                 <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: 0 }}>
                                   {config.stories.subheading}
                                 </p>
+                              </div>
+                            )}
+
+                            {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
+                              <div style={{ margin: "0 0 16px 0", padding: "10px 12px", background: "#fffbeb", borderRadius: "8px", border: "1px solid #fef3c7", fontSize: "11px", color: "#b45309", textAlign: "center", lineHeight: "1.4" }}>
+                                ⚠️ Upload more posts to display the feed properly
                               </div>
                             )}
                             {config.stories.enable && (
@@ -2767,6 +2792,12 @@ export default function Index() {
                                     </p>
                                   </div>
                                 )}
+
+                                {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
+                                  <div style={{ margin: "0 24px 16px", padding: "12px 16px", background: "#fffbeb", borderRadius: "8px", border: "1px solid #fef3c7", fontSize: "13px", color: "#b45309", textAlign: "center", lineHeight: "1.4" }}>
+                                    ⚠️ Please upload more posts on Instagram to display the feed properly (at least 4 posts are recommended).
+                                  </div>
+                                )}
                                 {config.stories.enable && (
                                   <div className="carousel-wrapper hover-buttons" style={{ position: "relative", padding: "0 24px" }}>
                                     {config.stories.showNavigation && (
@@ -2838,6 +2869,12 @@ export default function Index() {
                                     <p style={{ fontSize: `${config.postFeed.typography.subheading.size + 1}px`, color: config.postFeed.typography.subheading.color, fontWeight: config.postFeed.typography.subheading.weight, margin: 0 }}>
                                       {config.postFeed.subheading}
                                     </p>
+                                  </div>
+                                )}
+
+                                {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
+                                  <div style={{ margin: "0 0 16px 0", padding: "12px 16px", background: "#fffbeb", borderRadius: "8px", border: "1px solid #fef3c7", fontSize: "13px", color: "#b45309", textAlign: "center", lineHeight: "1.4" }}>
+                                    ⚠️ Please upload more posts on Instagram to display the feed properly (at least 4 posts are recommended).
                                   </div>
                                 )}
 

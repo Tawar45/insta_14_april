@@ -641,7 +641,7 @@ input[type="color"].premium-input {
 .carousel-nav:hover {
   background: #f8fafc;
   transform: translateY(-50%) scale(1.12);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
 }
 
 .carousel-nav.prev { left: -8px; }
