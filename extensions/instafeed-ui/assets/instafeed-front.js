@@ -229,11 +229,15 @@
 
     let html = '<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;padding-top:' + (c.paddingTop ?? 32) + 'px;padding-bottom:' + (c.paddingBottom ?? 32) + 'px;">';
 
-    if (c.header) {
-      html += '<div style="text-align:' + c.alignment + ';margin-bottom:24px;">'
-            + '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 8px 0;line-height:1.2;">' + esc(c.heading) + '</h2>'
-            + '<p style="font-size:' + subSize + 'px;font-weight:' + (c.typography?.subheading?.weight || '500') + ';color:' + (c.typography?.subheading?.color || '#666') + ';margin:0;">' + esc(c.subheading) + '</p>'
-            + '</div>';
+    if (c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) {
+      html += '<div style="text-align:' + c.alignment + ';margin-bottom:24px;">';
+      if (c.heading && c.heading.trim()) {
+        html += '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 8px 0;line-height:1.2;">' + esc(c.heading) + '</h2>';
+      }
+      if (c.subheading && c.subheading.trim()) {
+        html += '<p style="font-size:' + subSize + 'px;font-weight:' + (c.typography?.subheading?.weight || '500') + ';color:' + (c.typography?.subheading?.color || '#666') + ';margin:0;">' + esc(c.subheading) + '</p>';
+      }
+      html += '</div>';
     }
 
     if (c.carousel) {
@@ -422,12 +426,16 @@
     let html = `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;overflow:hidden;padding-top:${s.paddingTop ?? 24}px;padding-bottom:${s.paddingBottom ?? 24}px;">`;
 
 
-    if (s.showHeader) {
+    if (s.showHeader && ((s.heading && s.heading.trim()) || (s.subheading && s.subheading.trim()))) {
       html += `
-        <div style="text-align:${s.alignment};margin-bottom:24px;">
-          <h4 style="font-size:${s.typography?.heading?.size || 28}px;font-weight:${s.typography?.heading?.weight || '800'};color:${s.typography?.heading?.color || '#000'};margin:0 0 8px 0;line-height:1.2;">${esc(s.heading)}</h4>
-          <p style="font-size:${s.typography?.subheading?.size || 14}px;font-weight:${s.typography?.subheading?.weight || '400'};color:${s.typography?.subheading?.color || '#666'};margin:0;">${esc(s.subheading)}</p>
-        </div>`;
+        <div style="text-align:${s.alignment};margin-bottom:24px;">`;
+      if (s.heading && s.heading.trim()) {
+        html += `<h4 style="font-size:${s.typography?.heading?.size || 28}px;font-weight:${s.typography?.heading?.weight || '800'};color:${s.typography?.heading?.color || '#000'};margin:0 0 8px 0;line-height:1.2;">${esc(s.heading)}</h4>`;
+      }
+      if (s.subheading && s.subheading.trim()) {
+        html += `<p style="font-size:${s.typography?.subheading?.size || 14}px;font-weight:${s.typography?.subheading?.weight || '400'};color:${s.typography?.subheading?.color || '#666'};margin:0;">${esc(s.subheading)}</p>`;
+      }
+      html += `</div>`;
     }
 
     if (s.enable) {

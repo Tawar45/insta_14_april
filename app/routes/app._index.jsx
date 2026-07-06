@@ -730,55 +730,50 @@ export default function Index() {
     if (configStr) {
       try {
         const parsed = JSON.parse(configStr);
-        setConfig((prev) => {
-          const merged = { ...prev };
-          if (parsed.postFeed) {
-            merged.postFeed = { ...prev.postFeed, ...parsed.postFeed };
-            if (parsed.postFeed.typography) {
-              merged.postFeed.typography = {
-                ...prev.postFeed.typography,
-                ...parsed.postFeed.typography,
+        const merged = { ...DEFAULT_CONFIG };
+        if (parsed.postFeed) {
+          merged.postFeed = { ...DEFAULT_CONFIG.postFeed, ...parsed.postFeed };
+          if (parsed.postFeed.typography) {
+            merged.postFeed.typography = {
+              ...DEFAULT_CONFIG.postFeed.typography,
+              ...parsed.postFeed.typography,
+            };
+            if (parsed.postFeed.typography.heading)
+              merged.postFeed.typography.heading = {
+                ...DEFAULT_CONFIG.postFeed.typography.heading,
+                ...parsed.postFeed.typography.heading,
               };
-              if (parsed.postFeed.typography.heading)
-                merged.postFeed.typography.heading = {
-                  ...prev.postFeed.typography.heading,
-                  ...parsed.postFeed.typography.heading,
-                };
-              if (parsed.postFeed.typography.subheading)
-                merged.postFeed.typography.subheading = {
-                  ...prev.postFeed.typography.subheading,
-                  ...parsed.postFeed.typography.subheading,
-                };
-            }
-          }
-          if (parsed.stories) {
-            merged.stories = { ...prev.stories, ...parsed.stories };
-            if (parsed.stories.typography) {
-              merged.stories.typography = {
-                ...prev.stories.typography,
-                ...parsed.stories.typography,
+            if (parsed.postFeed.typography.subheading)
+              merged.postFeed.typography.subheading = {
+                ...DEFAULT_CONFIG.postFeed.typography.subheading,
+                ...parsed.postFeed.typography.subheading,
               };
-              if (parsed.stories.typography.heading)
-                merged.stories.typography.heading = {
-                  ...prev.stories.typography.heading,
-                  ...parsed.stories.typography.heading,
-                };
-              if (parsed.stories.typography.subheading)
-                merged.stories.typography.subheading = {
-                  ...prev.stories.typography.subheading,
-                  ...parsed.stories.typography.subheading,
-                };
-            }
           }
-          if (parsed.instagramHandle !== undefined)
-            merged.instagramHandle = parsed.instagramHandle;
-          return merged;
-        });
+        }
+        if (parsed.stories) {
+          merged.stories = { ...DEFAULT_CONFIG.stories, ...parsed.stories };
+          if (parsed.stories.typography) {
+            merged.stories.typography = {
+              ...DEFAULT_CONFIG.stories.typography,
+              ...parsed.stories.typography,
+            };
+            if (parsed.stories.typography.heading)
+              merged.stories.typography.heading = {
+                ...DEFAULT_CONFIG.stories.typography.heading,
+                ...parsed.stories.typography.heading,
+              };
+            if (parsed.stories.typography.subheading)
+              merged.stories.typography.subheading = {
+                ...DEFAULT_CONFIG.stories.typography.subheading,
+                ...parsed.stories.typography.subheading,
+              };
+          }
+        }
+        if (parsed.instagramHandle !== undefined)
+          merged.instagramHandle = parsed.instagramHandle;
 
-        // Set baseline for apply/discard tracking after state settles
-        setTimeout(() => {
-          setLastSavedConfig(JSON.parse(configStr));
-        }, 150);
+        setConfig(merged);
+        setLastSavedConfig(merged);
       } catch (e) {
         console.error("Failed to parse saved config", e);
       }
@@ -937,20 +932,6 @@ export default function Index() {
         return copy;
       });
     }
-    if (config.postFeed.heading.trim() && errors.postFeedHeading) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy.postFeedHeading;
-        return copy;
-      });
-    }
-    if (config.stories.heading.trim() && errors.storiesHeading) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy.storiesHeading;
-        return copy;
-      });
-    }
     if (!isNaN(config.postFeed.gap) && config.postFeed.gap >= 0 && config.postFeed.gap <= 40 && errors.postFeedGap) {
       setErrors(prev => {
         const copy = { ...prev };
@@ -988,8 +969,6 @@ export default function Index() {
     }
   }, [
     config.instagramHandle,
-    config.postFeed.heading,
-    config.stories.heading,
     config.postFeed.gap,
     config.postFeed.paddingTop,
     config.postFeed.paddingBottom,
@@ -1013,12 +992,6 @@ export default function Index() {
     const newErrors = {};
     if (!config.instagramHandle.trim()) {
       newErrors.instagramHandle = "Instagram handle or profile URL is required.";
-    }
-    if (!config.postFeed.heading.trim()) {
-      newErrors.postFeedHeading = "Feed heading is required.";
-    }
-    if (!config.stories.heading.trim()) {
-      newErrors.storiesHeading = "Stories heading is required.";
     }
     if (isNaN(config.postFeed.gap) || config.postFeed.gap < 0 || config.postFeed.gap > 40) {
       newErrors.postFeedGap = "Visual gap must be a number between 0 and 40.";
@@ -2708,14 +2681,18 @@ export default function Index() {
                         {activeTab === "post" ? (
                           <div className={isHideMode ? "hide-mode-active" : ""} style={{ animation: "fadeInBlur 0.4s ease-out", paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
                             {/* Header */}
-                            {config.postFeed.header && (
+                            {config.postFeed.header && (config.postFeed.heading?.trim() || config.postFeed.subheading?.trim()) && (
                               <div style={{ padding: "12px 16px 0", textAlign: config.postFeed.alignment }}>
-                                <h4 style={{ fontSize: `${config.postFeed.typography.heading.size}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
-                                  {config.postFeed.heading}
-                                </h4>
-                                <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, fontWeight: config.postFeed.typography.subheading.weight, color: config.postFeed.typography.subheading.color, margin: 0 }}>
-                                  {config.postFeed.subheading}
-                                </p>
+                                {config.postFeed.heading?.trim() && (
+                                  <h4 style={{ fontSize: `${config.postFeed.typography.heading.size}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
+                                    {config.postFeed.heading}
+                                  </h4>
+                                )}
+                                {config.postFeed.subheading?.trim() && (
+                                  <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, fontWeight: config.postFeed.typography.subheading.weight, color: config.postFeed.typography.subheading.color, margin: 0 }}>
+                                    {config.postFeed.subheading}
+                                  </p>
+                                )}
                               </div>
                             )}
 
@@ -2764,14 +2741,18 @@ export default function Index() {
                         ) : (
                           /* Story preview – mobile */
                           <div style={{ padding: "16px", paddingTop: `${config.stories.paddingTop}px`, paddingBottom: `${config.stories.paddingBottom}px` }}>
-                            {config.stories.showHeader && (
+                            {config.stories.showHeader && (config.stories.heading?.trim() || config.stories.subheading?.trim()) && (
                               <div style={{ textAlign: config.stories.alignment, marginBottom: "24px" }}>
-                                <h4 style={{ fontSize: `${Math.min(config.stories.typography.heading.size, 22)}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 6px 0", lineHeight: 1.2, color: config.stories.typography.heading.color }}>
-                                  {config.stories.heading}
-                                </h4>
-                                <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: 0 }}>
-                                  {config.stories.subheading}
-                                </p>
+                                {config.stories.heading?.trim() && (
+                                  <h4 style={{ fontSize: `${Math.min(config.stories.typography.heading.size, 22)}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 6px 0", lineHeight: 1.2, color: config.stories.typography.heading.color }}>
+                                    {config.stories.heading}
+                                  </h4>
+                                )}
+                                {config.stories.subheading?.trim() && (
+                                  <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: 0 }}>
+                                    {config.stories.subheading}
+                                  </p>
+                                )}
                               </div>
                             )}
 
@@ -2874,14 +2855,18 @@ export default function Index() {
                             {activeTab === "story" ? (
                               /* Story desktop preview */
                               <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: `${config.stories.paddingTop}px`, paddingBottom: `${config.stories.paddingBottom}px` }}>
-                                {config.stories.showHeader && (
+                                {config.stories.showHeader && (config.stories.heading?.trim() || config.stories.subheading?.trim()) && (
                                   <div style={{ textAlign: config.stories.alignment, marginBottom: "24px" }}>
-                                    <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 8px 0", color: config.stories.typography.heading.color }}>
-                                      {config.stories.heading}
-                                    </h4>
-                                    <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" }}>
-                                      {config.stories.subheading}
-                                    </p>
+                                    {config.stories.heading?.trim() && (
+                                      <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 8px 0", color: config.stories.typography.heading.color }}>
+                                        {config.stories.heading}
+                                      </h4>
+                                    )}
+                                    {config.stories.subheading?.trim() && (
+                                      <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" }}>
+                                        {config.stories.subheading}
+                                      </p>
+                                    )}
                                   </div>
                                 )}
 
@@ -2953,14 +2938,18 @@ export default function Index() {
                             ) : (
                               /* Feed Grid desktop preview */
                               <div className={isHideMode ? "hide-mode-active" : ""} style={{ paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
-                                {config.postFeed.header && (
+                                {config.postFeed.header && (config.postFeed.heading?.trim() || config.postFeed.subheading?.trim()) && (
                                   <div style={{ marginBottom: "16px", textAlign: config.postFeed.alignment }}>
-                                    <h4 style={{ fontSize: `${config.postFeed.typography.heading.size + 2}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
-                                      {config.postFeed.heading}
-                                    </h4>
-                                    <p style={{ fontSize: `${config.postFeed.typography.subheading.size + 1}px`, color: config.postFeed.typography.subheading.color, fontWeight: config.postFeed.typography.subheading.weight, margin: 0 }}>
-                                      {config.postFeed.subheading}
-                                    </p>
+                                    {config.postFeed.heading?.trim() && (
+                                      <h4 style={{ fontSize: `${config.postFeed.typography.heading.size + 2}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
+                                        {config.postFeed.heading}
+                                      </h4>
+                                    )}
+                                    {config.postFeed.subheading?.trim() && (
+                                      <p style={{ fontSize: `${config.postFeed.typography.subheading.size + 1}px`, color: config.postFeed.typography.subheading.color, fontWeight: config.postFeed.typography.subheading.weight, margin: 0 }}>
+                                        {config.postFeed.subheading}
+                                      </p>
+                                    )}
                                   </div>
                                 )}
 
