@@ -37,7 +37,7 @@ const shopify = shopifyApp({
       lineItems: [
         {
           planType: "RECURRING",
-          amount: 9,
+          amount: 4.99,
           currencyCode: "USD",
           interval: "EVERY_30_DAYS",
           trialDays: 3,

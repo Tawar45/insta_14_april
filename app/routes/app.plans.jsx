@@ -170,7 +170,7 @@ export const action = async ({ request }) => {
               plan: {
                 appRecurringPricingDetails: {
                   interval: "EVERY_30_DAYS",
-                  price: { amount: 9.0, currencyCode: "USD" },
+                  price: { amount: 4.99, currencyCode: "USD" },
                 },
               },
             },
@@ -300,7 +300,7 @@ export default function Plans() {
     {
       name: "Pro", badge: "PRO", tone: "info",
       description: "Advanced controls with 3-Day Free Trial.",
-      priceMonthly: 9,
+      priceMonthly: 4.99,
       isPopular: true,
       features: [
         "Everything in Starter+",
