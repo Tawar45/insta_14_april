@@ -501,49 +501,59 @@ input[type="color"].premium-input {
 }
 
 .button-primary {
-  background: var(--premium-text-primary);
-  color: white;
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.2);
+  background: #ffffff;
+  color: #303030;
+  border: 1px solid #cbcfd4 !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
   min-height: 46px;
 }
 
 .button-primary:hover:not(:disabled) {
-  background: #1e293b;
+  background: #f6f6f7;
   transform: translateY(-1px);
-  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.3);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
 }
 
 .button-primary:active { transform: translateY(0); }
 
 .button-accent {
-  background: var(--premium-accent-gradient);
+  background: #303030;
   color: white;
-  box-shadow: 0 4px 12px rgba(225, 48, 108, 0.3);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   min-height: 46px;
+  border: none;
 }
 
 .button-accent:hover:not(:disabled) {
-  opacity: 0.9;
+  background: #1a1a1a;
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.button-success:hover:not(:disabled) {
-  background: #059669;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+.button-success {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #8c9196 !important;
+  border: none !important;
+  box-shadow: none !important;
+  cursor: default;
+}
+
+.button-success:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .button-danger {
-  background: #ef4444;
+  background: #c70a24;
   color: white;
-  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
 }
 
 .button-danger:hover:not(:disabled) {
-  background: #dc2626;
+  background: #b30e0e;
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(199, 10, 36, 0.2);
 }
 
 /* ── Preview Container ───────────────────────────────────────────────────────── */

@@ -331,9 +331,10 @@ export default function Plans() {
       <style>{`
         .page-fade-in { animation: fadeInBlur 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .button-success { 
-          background: #10b981 !important; 
-          color: white !important; 
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+          background: rgba(0, 0, 0, 0.05) !important; 
+          color: #8c9196 !important; 
+          box-shadow: none !important;
+          cursor: default;
         }
       `}</style>
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 16px" }}>

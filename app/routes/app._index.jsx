@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { useFetcher, useLoaderData, useNavigate } from "react-router";
+import { useFetcher, useLoaderData, useNavigate, useBlocker } from "react-router";
 import { authenticate } from "../shopify.server";
 import { fetchShopConfig, fetchShopInstaData, fetchAllInstagramMedia } from "../instagramApi.server";
 import { withRateLimit, trackApiResponse } from "../rateLimiter.server";
@@ -676,6 +676,25 @@ export default function Index() {
     ? JSON.stringify(config) !== JSON.stringify(lastSavedConfig)
     : false;
 
+  // Blocker to prevent navigating away with unsaved changes
+  const blocker = useBlocker(
+    ({ currentValue, nextLocation }) =>
+      hasChanges && currentValue.pathname !== nextLocation.pathname
+  );
+
+  useEffect(() => {
+    if (blocker.state === "blocked") {
+      const confirmLeave = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave without saving?"
+      );
+      if (confirmLeave) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker]);
+
   // Track last-fetched handle to debounce refetches
   const [lastFetchedHandle, setLastFetchedHandle] = useState("");
 
@@ -906,20 +925,150 @@ export default function Index() {
     if (section === "postFeed") setActiveTab("post");
   }, []);
 
+  // ── Validation and Save Bar Effects ──
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    // Clear specific errors if input value becomes valid
+    if (config.instagramHandle.trim() && errors.instagramHandle) {
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.instagramHandle;
+        return copy;
+      });
+    }
+    if (config.postFeed.heading.trim() && errors.postFeedHeading) {
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.postFeedHeading;
+        return copy;
+      });
+    }
+    if (config.stories.heading.trim() && errors.storiesHeading) {
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.storiesHeading;
+        return copy;
+      });
+    }
+    if (!isNaN(config.postFeed.gap) && config.postFeed.gap >= 0 && config.postFeed.gap <= 40 && errors.postFeedGap) {
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.postFeedGap;
+        return copy;
+      });
+    }
+    if (!isNaN(config.postFeed.paddingTop) && config.postFeed.paddingTop >= 0 && config.postFeed.paddingTop <= 100 && errors.postFeedPaddingTop) {
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.postFeedPaddingTop;
+        return copy;
+      });
+    }
+    if (!isNaN(config.postFeed.paddingBottom) && config.postFeed.paddingBottom >= 0 && config.postFeed.paddingBottom <= 100 && errors.postFeedPaddingBottom) {
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.postFeedPaddingBottom;
+        return copy;
+      });
+    }
+    if (!isNaN(config.stories.paddingTop) && config.stories.paddingTop >= 0 && config.stories.paddingTop <= 100 && errors.storiesPaddingTop) {
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.storiesPaddingTop;
+        return copy;
+      });
+    }
+    if (!isNaN(config.stories.paddingBottom) && config.stories.paddingBottom >= 0 && config.stories.paddingBottom <= 100 && errors.storiesPaddingBottom) {
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.storiesPaddingBottom;
+        return copy;
+      });
+    }
+  }, [
+    config.instagramHandle,
+    config.postFeed.heading,
+    config.stories.heading,
+    config.postFeed.gap,
+    config.postFeed.paddingTop,
+    config.postFeed.paddingBottom,
+    config.stories.paddingTop,
+    config.stories.paddingBottom,
+    errors
+  ]);
+
+  useEffect(() => {
+    if (shopify && shopify.saveBar) {
+      if (hasChanges) {
+        shopify.saveBar.show("app-config-save-bar");
+      } else {
+        shopify.saveBar.hide("app-config-save-bar");
+      }
+    }
+  }, [hasChanges, shopify]);
+
   // ── Apply / Discard ──
   const applyChanges = useCallback(() => {
-    setLastSavedConfig(config);
-    localStorage.setItem("insta_config", JSON.stringify(config));
-    const fd = new FormData();
-    fd.append("intent", "saveConfig");
-    fd.append("config", JSON.stringify(config));
-    saveFetcher.submit(fd, { method: "post" });
-    shopify.toast.show("Configuration applied successfully!");
-  }, [config, fetcher, shopify]);
+    const newErrors = {};
+    if (!config.instagramHandle.trim()) {
+      newErrors.instagramHandle = "Instagram handle or profile URL is required.";
+    }
+    if (!config.postFeed.heading.trim()) {
+      newErrors.postFeedHeading = "Feed heading is required.";
+    }
+    if (!config.stories.heading.trim()) {
+      newErrors.storiesHeading = "Stories heading is required.";
+    }
+    if (isNaN(config.postFeed.gap) || config.postFeed.gap < 0 || config.postFeed.gap > 40) {
+      newErrors.postFeedGap = "Visual gap must be a number between 0 and 40.";
+    }
+    if (isNaN(config.postFeed.paddingTop) || config.postFeed.paddingTop < 0 || config.postFeed.paddingTop > 100) {
+      newErrors.postFeedPaddingTop = "Top padding must be a number between 0 and 100.";
+    }
+    if (isNaN(config.postFeed.paddingBottom) || config.postFeed.paddingBottom < 0 || config.postFeed.paddingBottom > 100) {
+      newErrors.postFeedPaddingBottom = "Bottom padding must be a number between 0 and 100.";
+    }
+    if (isNaN(config.stories.paddingTop) || config.stories.paddingTop < 0 || config.stories.paddingTop > 100) {
+      newErrors.storiesPaddingTop = "Stories top padding must be a number between 0 and 100.";
+    }
+    if (isNaN(config.stories.paddingBottom) || config.stories.paddingBottom < 0 || config.stories.paddingBottom > 100) {
+      newErrors.storiesPaddingBottom = "Stories bottom padding must be a number between 0 and 100.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      shopify.toast.show("Please fix the validation errors before saving.", { isError: true });
+      return;
+    }
+
+    setErrors({});
+    const isHandleChanged = lastSavedConfig 
+      ? config.instagramHandle.trim().toLowerCase() !== lastSavedConfig.instagramHandle.trim().toLowerCase()
+      : true;
+
+    if (isHandleChanged) {
+      // Trigger media crawl + auto-save
+      const fd = new FormData();
+      fd.append("handle", config.instagramHandle);
+      fetcher.submit(fd, { method: "post" });
+      shopify.toast.show("Syncing and saving profile...");
+    } else {
+      // Just save visual configuration
+      setLastSavedConfig(config);
+      localStorage.setItem("insta_config", JSON.stringify(config));
+      const fd = new FormData();
+      fd.append("intent", "saveConfig");
+      fd.append("config", JSON.stringify(config));
+      saveFetcher.submit(fd, { method: "post" });
+      shopify.toast.show("Configuration saved successfully!");
+    }
+  }, [config, lastSavedConfig, fetcher, saveFetcher, shopify]);
 
   const discardChanges = useCallback(() => {
     if (lastSavedConfig) {
       setConfig(lastSavedConfig);
+      setErrors({});
       shopify.toast.show("Changes discarded.");
     }
   }, [lastSavedConfig, shopify]);
@@ -1428,90 +1577,103 @@ export default function Index() {
           {isConnectExpanded && (
             <>
               <div className="input-group-nested">
-            <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
-              <div style={{ paddingLeft: "16px", color: "var(--premium-accent)", display: "flex", alignItems: "center", flexShrink: 0 }}>
-                <InstagramIcon />
-              </div>
-              <input
-                type="text"
-                className="premium-input"
-                style={{ paddingLeft: "12px" }}
-                value={config.instagramHandle}
-                onChange={(e) => {
-                  let val = e.target.value;
-                  if (val.includes("instagram.com/")) {
-                    try {
-                      const url = new URL(val.startsWith("http") ? val : `https://${val}`);
-                      const parts = url.pathname.split("/").filter(Boolean);
-                      if (parts.length > 0) val = parts[0];
-                    } catch {
-                      const parts = val.replace(/\/$/, "").split("/");
-                      val = parts[parts.length - 1].split("?")[0];
-                    }
-                  }
-                  val = val.replace("@", "").split("?")[0].trim();
-                  setConfig((prev) => ({ ...prev, instagramHandle: val }));
-                }}
-                placeholder="instagram_handle or profile URL"
-              />
-            </div>
-            <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-              {isConnected && (
-                <button
-                  className="premium-button"
-                  style={{ background: "#f1f5f9", color: "#e1306c", border: "1px solid #e2e8f0", minHeight: "46px", fontSize: "13px" }}
-                  disabled={isSyncing}
-                  title="Re-sync: Crawl all pages from Instagram again and update stored data"
-                  onClick={() => {
-                    const fd = new FormData();
-                    fd.append("handle", config.instagramHandle);
-                    fetcher.submit(fd, { method: "post" });
-                  }}
-                >
-                  {isSyncing ? (
-                    <div style={{ width: "14px", height: "14px", border: "2px solid #e1306c", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
+                  <div style={{ paddingLeft: "16px", color: "var(--premium-accent)", display: "flex", alignItems: "center", flexShrink: 0 }}>
+                    <InstagramIcon />
+                  </div>
+                  <input
+                    type="text"
+                    className="premium-input"
+                    style={{ paddingLeft: "12px" }}
+                    value={config.instagramHandle}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val.includes("instagram.com/")) {
+                        try {
+                          const url = new URL(val.startsWith("http") ? val : `https://${val}`);
+                          const parts = url.pathname.split("/").filter(Boolean);
+                          if (parts.length > 0) val = parts[0];
+                        } catch {
+                          const parts = val.replace(/\/$/, "").split("/");
+                          val = parts[parts.length - 1].split("?")[0];
+                        }
+                      }
+                      val = val.replace("@", "").split("?")[0].trim();
+                      setConfig((prev) => ({ ...prev, instagramHandle: val }));
+                    }}
+                    placeholder="instagram_handle or profile URL"
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+                  {hasChanges ? (
+                    <div style={{ display: "flex", alignItems: "center", padding: "0 12px", color: "var(--premium-accent)", fontSize: "12px", fontWeight: "600", border: "1px dashed var(--premium-accent)", borderRadius: "10px", background: "#fdf2f8" }}>
+                      👉 Use Save Bar at top to connect
+                    </div>
                   ) : (
-                    <Icon source={RefreshIcon} />
+                    <>
+                      {isConnected && (
+                        <button
+                          className="premium-button"
+                          style={{ background: "#f1f5f9", color: "#e1306c", border: "1px solid #e2e8f0", minHeight: "46px", fontSize: "13px" }}
+                          disabled={isSyncing}
+                          title="Re-sync: Crawl all pages from Instagram again and update stored data"
+                          onClick={() => {
+                            const fd = new FormData();
+                            fd.append("handle", config.instagramHandle);
+                            fetcher.submit(fd, { method: "post" });
+                          }}
+                        >
+                          {isSyncing ? (
+                            <div style={{ width: "14px", height: "14px", border: "2px solid #e1306c", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                          ) : (
+                            <Icon source={RefreshIcon} />
+                          )}
+                          <span>Re-sync</span>
+                        </button>
+                      )}
+                      <button
+                        className={`premium-button ${isSyncing ? "button-accent loading" : isConnected ? "button-danger" : "button-accent"}`}
+                        disabled={isSyncing}
+                        onClick={() => {
+                          if (isConnected) {
+                            handleDisconnect();
+                          } else {
+                            if (!config.instagramHandle.trim()) {
+                              shopify.toast.show("Please enter an Instagram handle", { isError: true });
+                              return;
+                            }
+                            const fd = new FormData();
+                            fd.append("handle", config.instagramHandle);
+                            fetcher.submit(fd, { method: "post" });
+                          }
+                        }}
+                      >
+                        {isSyncing ? (
+                          <>
+                            <div style={{ width: "16px", height: "16px", border: "2px solid rgba(255,255,255,0.35)", borderTop: "2px solid white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                            <span>Crawling all pages…</span>
+                          </>
+                        ) : isConnected ? (
+                          <>
+                            <Icon source={XIcon} />
+                            <span>Disconnect</span>
+                          </>
+                        ) : (
+                          <>
+                            <Icon source={LinkIcon} />
+                            <span>Connect & Sync All</span>
+                          </>
+                        )}
+                      </button>
+                    </>
                   )}
-                  <span>Re-sync</span>
-                </button>
+                </div>
+              </div>
+              {errors.instagramHandle && (
+                <div style={{ color: "#c70a24", fontSize: "12px", marginTop: "6px", fontWeight: "600", paddingLeft: "4px" }}>
+                  ⚠️ {errors.instagramHandle}
+                </div>
               )}
-              <button
-                className={`premium-button ${isSyncing ? "button-accent loading" : isConnected ? "button-danger" : "button-accent"}`}
-                disabled={isSyncing}
-                onClick={() => {
-                  if (isConnected) {
-                    handleDisconnect();
-                  } else {
-                    if (!config.instagramHandle.trim()) {
-                      shopify.toast.show("Please enter an Instagram handle", { isError: true });
-                      return;
-                    }
-                    const fd = new FormData();
-                    fd.append("handle", config.instagramHandle);
-                    fetcher.submit(fd, { method: "post" });
-                  }
-                }}
-              >
-                {isSyncing ? (
-                  <>
-                    <div style={{ width: "16px", height: "16px", border: "2px solid rgba(255,255,255,0.35)", borderTop: "2px solid white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                    <span>Crawling all pages…</span>
-                  </>
-                ) : isConnected ? (
-                  <>
-                    <Icon source={XIcon} />
-                    <span>Disconnect</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon source={LinkIcon} />
-                    <span>Connect & Sync All</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
           {isConnected && instaData && (
             <div style={{ marginTop: "12px", padding: "8px 16px", background: "#f0fdf4", borderRadius: "10px", border: "1px solid #dcfce7", display: "flex", gap: "16px", flexWrap: "wrap", fontSize: "12px", color: "#166534", alignItems: "center" }}>
               <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Icon source={StoreIcon} tone="inherit" /> <strong>{instaData.media?.data?.length || 0}</strong> posts stored</span>
@@ -1695,44 +1857,8 @@ export default function Index() {
                 <h2 style={{ margin: 0, fontSize: "15px", fontWeight: "700" }}>DASHBOARD CONFIGURATOR</h2>
               </div>
               {hasChanges && (
-                <div style={{ display: "flex", gap: "8px", animation: "fadeInBlur 0.3s ease" }}>
-                  <button
-                    className="premium-button"
-                    style={{ padding: "6px 16px", fontSize: "12px", background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0" }}
-                    onClick={discardChanges}
-                  >
-                    Discard
-                  </button>
-                  <button
-                    className="premium-button"
-                    style={{
-                      padding: "8px 20px",
-                      fontSize: "12px",
-                      fontWeight: "700",
-                      background: "var(--premium-accent-gradient)",
-                      color: "white",
-                      boxShadow: "0 4px 12px rgba(225, 48, 108, 0.3)",
-                      borderRadius: "20px",
-                      border: "none",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px"
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-1px)";
-                      e.currentTarget.style.boxShadow = "0 6px 16px rgba(225, 48, 108, 0.45)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(225, 48, 108, 0.3)";
-                    }}
-                    onClick={applyChanges}
-                  >
-                    <Icon source={CheckIcon} tone="inherit" />
-                    Apply
-                  </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--premium-accent)", fontSize: "12px", fontWeight: "600", animation: "fadeInBlur 0.3s ease" }}>
+                  ✨ Unsaved changes (Use Save Bar at top)
                 </div>
               )}
             </div>
@@ -1770,9 +1896,9 @@ export default function Index() {
                           border: "none",
                           cursor: "pointer",
                           transition: "all 0.15s ease",
-                          background: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "var(--premium-accent-gradient)" : "transparent",
+                          background: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "#303030" : "transparent",
                           color: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "white" : "#64748b",
-                          boxShadow: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                          boxShadow: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                         }}
                       >
                         All
@@ -1789,9 +1915,9 @@ export default function Index() {
                           border: "none",
                           cursor: "pointer",
                           transition: "all 0.15s ease",
-                          background: config.postFeed.mediaTypeFilter === "images" ? "var(--premium-accent-gradient)" : "transparent",
+                          background: config.postFeed.mediaTypeFilter === "images" ? "#303030" : "transparent",
                           color: config.postFeed.mediaTypeFilter === "images" ? "white" : "#64748b",
-                          boxShadow: config.postFeed.mediaTypeFilter === "images" ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                          boxShadow: config.postFeed.mediaTypeFilter === "images" ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                         }}
                       >
                         Images
@@ -1808,9 +1934,9 @@ export default function Index() {
                           border: "none",
                           cursor: "pointer",
                           transition: "all 0.15s ease",
-                          background: config.postFeed.mediaTypeFilter === "videos" ? "var(--premium-accent-gradient)" : "transparent",
+                          background: config.postFeed.mediaTypeFilter === "videos" ? "#303030" : "transparent",
                           color: config.postFeed.mediaTypeFilter === "videos" ? "white" : "#64748b",
-                          boxShadow: config.postFeed.mediaTypeFilter === "videos" ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                          boxShadow: config.postFeed.mediaTypeFilter === "videos" ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                         }}
                       >
                         Videos
@@ -1990,6 +2116,11 @@ export default function Index() {
                         onChange={(e) => updateConfig("postFeed", "gap", parseInt(e.target.value))}
                         className="premium-input"
                       />
+                      {errors.postFeedGap && (
+                        <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
+                          ⚠️ {errors.postFeedGap}
+                        </div>
+                      )}
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "16px" }}>
@@ -2002,6 +2133,11 @@ export default function Index() {
                           onChange={(e) => updateConfig("postFeed", "paddingTop", parseInt(e.target.value))}
                           className="premium-input"
                         />
+                        {errors.postFeedPaddingTop && (
+                          <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
+                            ⚠️ {errors.postFeedPaddingTop}
+                          </div>
+                        )}
                       </div>
                       <div className="input-group">
                         <label className="input-label" style={{ fontSize: "10px" }}>Bottom Padding ({config.postFeed.paddingBottom}px)</label>
@@ -2012,6 +2148,11 @@ export default function Index() {
                           onChange={(e) => updateConfig("postFeed", "paddingBottom", parseInt(e.target.value))}
                           className="premium-input"
                         />
+                        {errors.postFeedPaddingBottom && (
+                          <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
+                            ⚠️ {errors.postFeedPaddingBottom}
+                          </div>
+                        )}
                       </div>
                     </div>
                     
@@ -2041,32 +2182,8 @@ export default function Index() {
                           <h4>Branding & Typography</h4>
                         </div>
                         {hasChanges && (
-                          <div style={{ animation: "fadeInBlur 0.3s ease" }}>
-                            <button
-                              style={{
-                                background: "#1a1a1a",
-                                color: "#ffffff",
-                                border: "1px solid #1a1a1a",
-                                borderRadius: "8px",
-                                padding: "6px 14px",
-                                fontSize: "12px",
-                                fontWeight: "600",
-                                cursor: "pointer",
-                                boxShadow: "0px 1px 0px rgba(0, 0, 0, 0.05), inset 0px 1px 0px rgba(255, 255, 255, 0.15)",
-                                transition: "background 0.15s ease, border-color 0.15s ease",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                height: "30px",
-                                lineHeight: "1",
-                              }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = "#303030"; e.currentTarget.style.borderColor = "#303030"; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = "#1a1a1a"; e.currentTarget.style.borderColor = "#1a1a1a"; }}
-                              onClick={applyChanges}
-                              disabled={saveFetcher.state === "submitting"}
-                            >
-                              {saveFetcher.state === "submitting" ? "Saving..." : "Save"}
-                            </button>
+                          <div style={{ color: "var(--premium-accent)", fontSize: "11px", fontWeight: "600", animation: "fadeInBlur 0.3s ease" }}>
+                            Unsaved changes
                           </div>
                         )}
                       </div>
@@ -2129,6 +2246,11 @@ export default function Index() {
                       <div style={{ marginBottom: "16px" }}>
                         <label className="input-label">Feed Heading</label>
                         <input className="premium-input" value={config.postFeed.heading} onChange={(e) => updateConfig("postFeed", "heading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. SHOP OUR INSTAGRAM" />
+                        {errors.postFeedHeading && (
+                          <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
+                            ⚠️ {errors.postFeedHeading}
+                          </div>
+                        )}
                         
                         <div className="typography-grid">
                           <div>
@@ -2199,9 +2321,9 @@ export default function Index() {
                           border: "none",
                           cursor: "pointer",
                           transition: "all 0.15s ease",
-                          background: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "var(--premium-accent-gradient)" : "transparent",
+                          background: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "#303030" : "transparent",
                           color: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "white" : "#64748b",
-                          boxShadow: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                          boxShadow: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                         }}
                       >
                         All
@@ -2218,9 +2340,9 @@ export default function Index() {
                           border: "none",
                           cursor: "pointer",
                           transition: "all 0.15s ease",
-                          background: config.stories.mediaTypeFilter === "images" ? "var(--premium-accent-gradient)" : "transparent",
+                          background: config.stories.mediaTypeFilter === "images" ? "#303030" : "transparent",
                           color: config.stories.mediaTypeFilter === "images" ? "white" : "#64748b",
-                          boxShadow: config.stories.mediaTypeFilter === "images" ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                          boxShadow: config.stories.mediaTypeFilter === "images" ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                         }}
                       >
                         Images
@@ -2237,9 +2359,9 @@ export default function Index() {
                           border: "none",
                           cursor: "pointer",
                           transition: "all 0.15s ease",
-                          background: config.stories.mediaTypeFilter === "videos" ? "var(--premium-accent-gradient)" : "transparent",
+                          background: config.stories.mediaTypeFilter === "videos" ? "#303030" : "transparent",
                           color: config.stories.mediaTypeFilter === "videos" ? "white" : "#64748b",
-                          boxShadow: config.stories.mediaTypeFilter === "videos" ? "0 2px 8px rgba(225, 48, 108, 0.2)" : "none",
+                          boxShadow: config.stories.mediaTypeFilter === "videos" ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                         }}
                       >
                         Videos
@@ -2345,32 +2467,8 @@ export default function Index() {
                           <h4>Branding & Typography</h4>
                         </div>
                         {hasChanges && (
-                          <div style={{ animation: "fadeInBlur 0.3s ease" }}>
-                            <button
-                              style={{
-                                background: "#1a1a1a",
-                                color: "#ffffff",
-                                border: "1px solid #1a1a1a",
-                                borderRadius: "8px",
-                                padding: "6px 14px",
-                                fontSize: "12px",
-                                fontWeight: "600",
-                                cursor: "pointer",
-                                boxShadow: "0px 1px 0px rgba(0, 0, 0, 0.05), inset 0px 1px 0px rgba(255, 255, 255, 0.15)",
-                                transition: "background 0.15s ease, border-color 0.15s ease",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                height: "30px",
-                                lineHeight: "1",
-                              }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = "#303030"; e.currentTarget.style.borderColor = "#303030"; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = "#1a1a1a"; e.currentTarget.style.borderColor = "#1a1a1a"; }}
-                              onClick={applyChanges}
-                              disabled={saveFetcher.state === "submitting"}
-                            >
-                              {saveFetcher.state === "submitting" ? "Saving..." : "Save"}
-                            </button>
+                          <div style={{ color: "var(--premium-accent)", fontSize: "11px", fontWeight: "600", animation: "fadeInBlur 0.3s ease" }}>
+                            Unsaved changes
                           </div>
                         )}
                       </div>
@@ -2433,6 +2531,11 @@ export default function Index() {
                       <div style={{ marginBottom: "16px" }}>
                         <label className="input-label">Story Heading</label>
                         <input className="premium-input" value={config.stories.heading} onChange={(e) => updateConfig("stories", "heading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. SHOP OUR INSTAGRAM" />
+                        {errors.storiesHeading && (
+                          <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
+                            ⚠️ {errors.storiesHeading}
+                          </div>
+                        )}
                         
                         <div className="typography-grid">
                           <div>
@@ -2486,22 +2589,36 @@ export default function Index() {
                     <div className="input-group" style={{ marginTop: "20px" }}>
                       <label className="input-label" style={{ fontSize: "10px" }}>Vertical Spacing (Top: {config.stories.paddingTop}px, Bottom: {config.stories.paddingBottom}px)</label>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                        <input
-                          type="range"
-                          min="0" max="100"
-                          value={config.stories.paddingTop}
-                          onChange={(e) => updateConfig("stories", "paddingTop", parseInt(e.target.value))}
-                          className="premium-input"
-                          title="Top Padding"
-                        />
-                        <input
-                          type="range"
-                          min="0" max="100"
-                          value={config.stories.paddingBottom}
-                          onChange={(e) => updateConfig("stories", "paddingBottom", parseInt(e.target.value))}
-                          className="premium-input"
-                          title="Bottom Padding"
-                        />
+                        <div>
+                          <input
+                            type="range"
+                            min="0" max="100"
+                            value={config.stories.paddingTop}
+                            onChange={(e) => updateConfig("stories", "paddingTop", parseInt(e.target.value))}
+                            className="premium-input"
+                            title="Top Padding"
+                          />
+                          {errors.storiesPaddingTop && (
+                            <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
+                              ⚠️ {errors.storiesPaddingTop}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <input
+                            type="range"
+                            min="0" max="100"
+                            value={config.stories.paddingBottom}
+                            onChange={(e) => updateConfig("stories", "paddingBottom", parseInt(e.target.value))}
+                            className="premium-input"
+                            title="Bottom Padding"
+                          />
+                          {errors.storiesPaddingBottom && (
+                            <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
+                              ⚠️ {errors.storiesPaddingBottom}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     </div>
@@ -2510,41 +2627,16 @@ export default function Index() {
               )}
             </div>
 
-            {/* Bottom Apply / Discard */}
+            {/* Bottom Save Bar Notice */}
             {hasChanges && (
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "32px", borderTop: "1px solid #f1f5f9", paddingTop: "24px", animation: "slideInUp 0.3s ease-out" }}>
-                <button className="premium-button" style={{ color: "var(--premium-text-secondary)", background: "transparent" }} onClick={discardChanges}>Discard Changes</button>
-                <button
-                  className="premium-button"
-                  style={{
-                    minWidth: "180px",
-                    padding: "12px 28px",
-                    background: "var(--premium-accent-gradient)",
-                    color: "white",
-                    fontWeight: "800",
-                    fontSize: "14px",
-                    boxShadow: "0 6px 20px rgba(225, 48, 108, 0.35)",
-                    borderRadius: "30px",
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 8px 24px rgba(225, 48, 108, 0.45)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(225, 48, 108, 0.35)";
-                  }}
-                  onClick={applyChanges}
-                >
-                  <Icon source={CheckIcon} tone="inherit" />
-                  Apply Configuration
-                </button>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "32px", borderTop: "1px dashed #cbd5e1", paddingTop: "24px", animation: "slideInUp 0.3s ease-out" }}>
+                <div style={{ color: "var(--premium-text-secondary)", fontSize: "13px", fontWeight: "500" }}>
+                  ✨ You have unsaved configuration changes.
+                </div>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button className="premium-button" style={{ color: "var(--premium-text-secondary)", background: "transparent" }} onClick={discardChanges}>Discard</button>
+                  <button className="premium-button button-accent" style={{ background: "#303030", color: "white", borderRadius: "8px", minHeight: "36px", padding: "0 16px" }} onClick={applyChanges}>Save Changes</button>
+                </div>
               </div>
             )}
             </div>
@@ -3094,6 +3186,10 @@ export default function Index() {
           </InlineStack>
         </BlockStack>
       </footer>
+      <ui-save-bar id="app-config-save-bar">
+        <button variant="primary" onClick={applyChanges}>Save</button>
+        <button onClick={discardChanges}>Discard</button>
+      </ui-save-bar>
     </div>
   );
 }

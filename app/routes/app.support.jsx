@@ -61,7 +61,7 @@ export const loader = async ({ request }) => {
     shop: session.shop,
     merchantEmail,
     supportEmail: process.env.SUPPORT_EMAIL || "support@booststar.com",
-    whatsappNumber: "+1234567890",
+    whatsappNumber: "+917000587074",
   };
 };
 
@@ -253,8 +253,8 @@ export default function Support() {
                       </Text>
                     </BlockStack>
                   </InlineStack>
-                  <Button variant="primary" onClick={() => window.open(`mailto:${supportEmail}?subject=Expert Design Consultation`)}>
-                    Get Custom Service
+                  <Button variant="primary" onClick={() => window.open("https://calendar.app.google/gwUVdD1FrqMc5R5KA", "_blank")}>
+                    Book Calendar
                   </Button>
                 </InlineStack>
               </div>
@@ -443,13 +443,13 @@ export default function Support() {
                                   gap: "8px",
                                   padding: "10px 24px",
                                   borderRadius: "24px",
-                                  background: "#1a73e8",
+                                  background: "#303030",
                                   color: "white",
                                   fontSize: "14px",
                                   fontWeight: "600",
                                   border: "none",
                                   cursor: isSubmitting ? "not-allowed" : "pointer",
-                                  boxShadow: "0 1px 2px rgba(60,64,67,0.3)",
+                                  boxShadow: "0 1px 0 rgba(0, 0, 0, 0.05)",
                                   transition: "all 0.2s",
                                   marginLeft: "8px"
                                 }}
@@ -470,16 +470,16 @@ export default function Support() {
 
                         <style>{`
                           .message-container:focus-within {
-                            border-color: #1a73e8 !important;
-                            box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+                            border-color: #303030 !important;
+                            box-shadow: 0 0 0 1px #303030;
                           }
                           .attach-btn-hover:hover {
                             background: #e8eaed !important;
                             border-color: #d1d3d8 !important;
                           }
                           .gmail-send-btn:hover {
-                            background: #1765cc !important;
-                            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15) !important;
+                            background: #1a1a1a !important;
+                            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
                           }
                           .gmail-send-btn:active {
                             transform: scale(0.98);
