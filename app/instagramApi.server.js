@@ -18,12 +18,8 @@ import { cacheGetOrSet, cacheStaleWhileRevalidate, CACHE_TTL } from "./cache.ser
 // ── Constants ─────────────────────────────────────────────────────────────────
 const FB_BASE = "https://graph.facebook.com/v21.0";
 
-/**
- * Fields to fetch in the Business Discovery media sub-query.
- * Kept in one place so we don't drift between loader/action/proxy.
- */
 const MEDIA_FIELDS =
-  "media_url,media_type,caption,timestamp,like_count,comments_count,thumbnail_url,permalink";
+  "media_url,media_type,caption,timestamp,like_count,comments_count,thumbnail_url,permalink,children{media_url,media_type,thumbnail_url}";
 
 const PROFILE_FIELDS =
   "username,name,biography,profile_picture_url,followers_count,follows_count,media_count";

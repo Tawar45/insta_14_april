@@ -139,10 +139,52 @@ export const loader = async ({ request }) => {
       const crawledAt = instaData._crawledAt ? new Date(instaData._crawledAt).getTime() : 0;
       const ageMs = Date.now() - crawledAt;
 
-      if (ageMs > REFRESH_THRESHOLD_MS) {
+      const hasCarouselAlbums = instaData.media?.data?.some(item => item.media_type === "CAROUSEL_ALBUM");
+      const hasChildrenField = instaData.media?.data?.some(item => item.children?.data?.length > 0);
+      const needsUpgradeToChildren = hasCarouselAlbums && !hasChildrenField;
+
+      if (ageMs > REFRESH_THRESHOLD_MS || needsUpgradeToChildren) {
         console.info(
-          `[api.data] Instagram data is ${Math.round(ageMs / 3600000)}h old for ${shop}. Triggering background refresh...`
+          `[api.data] Instagram data needs refresh (age: ${Math.round(ageMs / 3600000)}h, needs children: ${needsUpgradeToChildren}) for ${shop}.`
         );
+
+        if (needsUpgradeToChildren) {
+          try {
+            const freshData = await fetchAllInstagramMedia(config.instagramHandle, shop);
+            if (freshData) {
+              const shopRes = await admin.graphql(`{ shop { id } }`);
+              const shopJson = await shopRes.json();
+              const shopId = shopJson.data?.shop?.id;
+              if (shopId) {
+                await admin.graphql(
+                  `mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+                    metafieldsSet(metafields: $metafields) {
+                      userErrors { message }
+                    }
+                  }`,
+                  {
+                    variables: {
+                      metafields: [
+                        {
+                          ownerId: shopId,
+                          namespace: "ai_instafeed",
+                          key: "insta_data",
+                          type: "json",
+                          value: JSON.stringify(freshData),
+                        },
+                      ],
+                    },
+                  }
+                );
+                await invalidateResource(shop, "insta_data");
+                instaData = freshData;
+                console.info(`[api.data] Synchronous upgrade/refresh complete for ${shop}.`);
+              }
+            }
+          } catch (e) {
+            console.warn(`[api.data] Synchronous refresh failed for ${shop}:`, e.message);
+          }
+        } else {
 
         // Fire-and-forget background refresh (do NOT await — we return immediately)
         (async () => {
@@ -185,6 +227,7 @@ export const loader = async ({ request }) => {
         })();
       }
     }
+  }
 
     // ── 8. If no instaData yet but handle is set, try a live fetch right now ─
     if (!instaData && config.instagramHandle) {

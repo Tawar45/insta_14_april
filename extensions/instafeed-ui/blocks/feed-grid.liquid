@@ -3,8 +3,15 @@
   Self-contained: loads CSS + JS directly so it works with or without the app-embed block.
 {% endcomment %}
 
-<link rel="stylesheet" href="{{ 'instafeed-front.css' | asset_url }}">
-<div id="ai-instafeed-grid-root" data-logo-url="{{ 'logo.png' | asset_url }}"></div>
+<style>
+  [data-block-handle="feed-grid"] {
+    width: 100% !important;
+  }
+</style>
+
+<div style="width: 100% !important;">
+  <instafeed-grid css-url="{{ 'instafeed-front.css' | asset_url }}" data-logo-url="{{ 'logo.png' | asset_url }}"></instafeed-grid>
+</div>
 <script src="{{ 'instafeed-front.js' | asset_url }}" defer></script>
 
 {% schema %}
