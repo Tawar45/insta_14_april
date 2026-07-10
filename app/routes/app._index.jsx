@@ -43,6 +43,23 @@ import {
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Renders plain text with any bare URLs turned into clickable links.
+// Used for connect-error messages that end with "Help: <url>".
+// ─────────────────────────────────────────────────────────────────────────────
+const linkifyText = (text) => {
+  const parts = String(text).split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((part, i) =>
+    /^https?:\/\//.test(part) ? (
+      <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", fontWeight: 700, textDecoration: "underline" }}>
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // CUSTOM ICONS
 // ─────────────────────────────────────────────────────────────────────────────
 const InstagramIcon = () => (
@@ -1652,7 +1669,7 @@ export default function Index() {
               {connectError && !isSyncing && (
                 <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", marginTop: "10px", padding: "10px 14px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", color: "#b91c1c", fontSize: "12.5px", lineHeight: "1.5" }}>
                   <span style={{ flexShrink: 0 }}>⚠️</span>
-                  <span style={{ flex: 1 }}>{connectError}</span>
+                  <span style={{ flex: 1 }}>{linkifyText(connectError)}</span>
                   <button
                     type="button"
                     onClick={() => setConnectError(null)}
@@ -1665,7 +1682,10 @@ export default function Index() {
               )}
               {!connectError && !isConnected && (
                 <div style={{ fontSize: "11.5px", color: "var(--premium-text-secondary)", marginTop: "6px", paddingLeft: "4px" }}>
-                  Must be a <strong>public Instagram Business or Creator account</strong> — personal or private accounts can&apos;t be connected. (Instagram app → Settings → Account type)
+                  Must be a <strong>public Instagram Business or Creator account</strong> — personal or private accounts can&apos;t be connected.{" "}
+                  <a href="https://help.instagram.com/502981923235522/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--premium-accent)", fontWeight: 600 }}>
+                    How to switch account type
+                  </a>
                 </div>
               )}
           {isConnected && instaData && (

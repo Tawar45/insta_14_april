@@ -26,6 +26,11 @@ const PROFILE_FIELDS =
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
+// Instagram's own help article on switching a Personal account to a
+// Business/Creator (professional) account — linked in the not-eligible error
+// below so merchants can fix it themselves without contacting support.
+const IG_PROFESSIONAL_ACCOUNT_HELP_URL = "https://help.instagram.com/502981923235522/";
+
 /**
  * Turn a raw Facebook/Instagram Graph API failure into a merchant-facing
  * message that explains WHY the connection failed and what to do about it,
@@ -53,10 +58,10 @@ function classifyDiscoveryError(safeHandle, error) {
   // Username not found, or found but not eligible for Business Discovery
   // (personal account, private account, or account doesn't exist)
   if (code === 100 || /does not exist/i.test(message) || /no business_discovery data/i.test(message)) {
-    return `We couldn't connect "@${safeHandle}". Instagram only lets us read public Business or Creator accounts — personal or private accounts can't be linked. In the Instagram app, go to Settings → Account type, switch to Business or Creator, make sure the account is set to Public, then try again.`;
+    return `We couldn't connect "@${safeHandle}". Instagram only lets us read public Business or Creator accounts — personal or private accounts can't be linked. In the Instagram app, go to Settings → Account type, switch to Business or Creator, make sure the account is set to Public, then try again. Help: ${IG_PROFESSIONAL_ACCOUNT_HELP_URL}`;
   }
 
-  return `Instagram couldn't return data for "@${safeHandle}"${message ? `: ${message}` : ""}. Double-check the username, and make sure the account is a public Business/Creator account.`;
+  return `Instagram couldn't return data for "@${safeHandle}"${message ? `: ${message}` : ""}. Double-check the username, and make sure the account is a public Business/Creator account. Help: ${IG_PROFESSIONAL_ACCOUNT_HELP_URL}`;
 }
 
 /**
