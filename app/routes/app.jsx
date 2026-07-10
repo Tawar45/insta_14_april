@@ -22,7 +22,7 @@ export default function App() {
     <AppProvider embedded apiKey={apiKey}>
       <PolarisAppProvider i18n={enTranslations}>
         <s-app-nav>
-          <s-link href="/app">Home</s-link>
+          <s-link href="/app" rel="home">Home</s-link>
           <s-link href="/app/plans">Plans</s-link>
           <s-link href="/app/guide">Guide & Setup</s-link>
           <s-link href="/app/support">Contact Support</s-link>
