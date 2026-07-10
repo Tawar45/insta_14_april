@@ -270,16 +270,14 @@ export const action = async ({ request }) => {
   // server-side in one shot. Returns complete dataset, saves to metafield.
   const handle = formData.get("handle");
 
-  if (!handle) return { error: "Missing Instagram handle." };
-  if (!process.env.FACEBOOK_ACCESS_TOKEN) return { error: "FACEBOOK_ACCESS_TOKEN is not configured." };
+  if (!handle) return { error: "Please enter an Instagram username." };
+  if (!process.env.FACEBOOK_ACCESS_TOKEN) {
+    return { error: "Instagram connection isn't configured for this store yet. Please contact support." };
+  }
 
   try {
     // AUTO-CRAWL: Fetches ALL pages (up to 500 posts) automatically
     const allData = await fetchAllInstagramMedia(handle, shop);
-
-    if (!allData) {
-      return { error: "Could not fetch Instagram data. Check the username or access token." };
-    }
 
     // Persist the complete dataset to Shopify metafield
     const shopRes = await admin.graphql(`{ shop { id } }`);
@@ -549,6 +547,7 @@ export default function Index() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [isInfiniteLoading, setIsInfiniteLoading] = useState(false);
   const [extraLoadCount, setExtraLoadCount] = useState(0);
+  const [connectError, setConnectError] = useState(null);
 
   const PLACEHOLDER_MEDIA = useMemo(() => {
     const baseUrls = [
@@ -824,6 +823,7 @@ export default function Index() {
     if (fetcher.data.data) {
       const { username, media, _totalPages } = fetcher.data.data;
       setInstaData(fetcher.data.data);
+      setConnectError(null);
       // Reset extra loads
       setExtraLoadCount(0);
 
@@ -857,6 +857,7 @@ export default function Index() {
         `✓ Connected @${username} · ${totalPosts} posts synced (${pages} page${pages > 1 ? "s" : ""} crawled)`
       );
     } else if (fetcher.data.error) {
+      setConnectError(fetcher.data.error);
       shopify.toast.show(fetcher.data.error, { isError: true });
     }
   }, [fetcher.data, shopify]);
@@ -1573,6 +1574,7 @@ export default function Index() {
                       }
                       val = val.replace("@", "").split("?")[0].trim();
                       setConfig((prev) => ({ ...prev, instagramHandle: val }));
+                      setConnectError(null);
                     }}
                     placeholder="instagram_handle or profile URL"
                   />
@@ -1645,6 +1647,25 @@ export default function Index() {
               {errors.instagramHandle && (
                 <div style={{ color: "#c70a24", fontSize: "12px", marginTop: "6px", fontWeight: "600", paddingLeft: "4px" }}>
                   ⚠️ {errors.instagramHandle}
+                </div>
+              )}
+              {connectError && !isSyncing && (
+                <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", marginTop: "10px", padding: "10px 14px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", color: "#b91c1c", fontSize: "12.5px", lineHeight: "1.5" }}>
+                  <span style={{ flexShrink: 0 }}>⚠️</span>
+                  <span style={{ flex: 1 }}>{connectError}</span>
+                  <button
+                    type="button"
+                    onClick={() => setConnectError(null)}
+                    style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "#b91c1c", fontWeight: 700, fontSize: "13px", lineHeight: 1, padding: "0 2px" }}
+                    aria-label="Dismiss"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+              {!connectError && !isConnected && (
+                <div style={{ fontSize: "11.5px", color: "var(--premium-text-secondary)", marginTop: "6px", paddingLeft: "4px" }}>
+                  Must be a <strong>public Instagram Business or Creator account</strong> — personal or private accounts can&apos;t be connected. (Instagram app → Settings → Account type)
                 </div>
               )}
           {isConnected && instaData && (

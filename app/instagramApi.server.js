@@ -27,6 +27,39 @@ const PROFILE_FIELDS =
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
 /**
+ * Turn a raw Facebook/Instagram Graph API failure into a merchant-facing
+ * message that explains WHY the connection failed and what to do about it,
+ * instead of the generic "Could not fetch Instagram data" message.
+ *
+ * @param {string} safeHandle
+ * @param {Error}  error – error thrown while calling Business Discovery
+ * @returns {string}
+ */
+function classifyDiscoveryError(safeHandle, error) {
+  const fbError = error.igError || error.response?.data?.error || null;
+  const code = fbError?.code;
+  const message = fbError?.message || error.message || "";
+
+  // Expired / invalid token
+  if (code === 190) {
+    return "Your store's Instagram/Facebook connection has expired. Please contact support to reconnect it.";
+  }
+
+  // Rate limiting / throttling
+  if ([4, 17, 32, 613].includes(code)) {
+    return "Instagram's API rate limit was reached. Please wait a few minutes and try again.";
+  }
+
+  // Username not found, or found but not eligible for Business Discovery
+  // (personal account, private account, or account doesn't exist)
+  if (code === 100 || /does not exist/i.test(message) || /no business_discovery data/i.test(message)) {
+    return `We couldn't connect "@${safeHandle}". Instagram only lets us read public Business or Creator accounts — personal or private accounts can't be linked. In the Instagram app, go to Settings → Account type, switch to Business or Creator, make sure the account is set to Public, then try again.`;
+  }
+
+  return `Instagram couldn't return data for "@${safeHandle}"${message ? `: ${message}` : ""}. Double-check the username, and make sure the account is a public Business/Creator account.`;
+}
+
+/**
  * Fetch the first linked Facebook Page's ID and page-level access token.
  * Result is cached for 30 minutes (token rarely changes).
  *
@@ -150,19 +183,35 @@ export async function fetchInstagramFeed(handle, shop, cursor = null) {
  * @param {string} handle
  * @param {string} shop
  * @param {number} maxPages – safety cap (default 10 = up to 500 posts)
- * @returns {Promise<object|null>}
+ * @returns {Promise<object>} resolves with the crawled data, or throws a
+ *   merchant-friendly Error describing why the connection failed
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export async function fetchAllInstagramMedia(handle, shop, maxPages = 10) {
   const safeHandle = handle.replace("@", "").split("?")[0].trim().toLowerCase();
   const fbToken = process.env.FACEBOOK_ACCESS_TOKEN;
 
-  if (!fbToken) throw new Error("FACEBOOK_ACCESS_TOKEN is not configured.");
+  if (!fbToken) {
+    throw new Error("Instagram connection isn't configured for this store yet. Please contact support.");
+  }
+
+  let pageId, pageToken;
+  try {
+    ({ pageId, pageToken } = await getLinkedPage(fbToken));
+  } catch (error) {
+    console.error(`[IG AUTO-CRAWL] Facebook Page lookup failed for ${shop}:`, error.message);
+    throw new Error("This store isn't connected to a Facebook Page yet. Please contact support to complete the Instagram setup.");
+  }
+
+  let igBusinessId;
+  try {
+    igBusinessId = await getIGBusinessId(pageId, pageToken);
+  } catch (error) {
+    console.error(`[IG AUTO-CRAWL] IG Business Account lookup failed for ${shop}:`, error.message);
+    throw new Error("No Instagram Business account is linked to your connected Facebook Page. Please link an Instagram Business or Creator account to that Page in Facebook settings, then try again.");
+  }
 
   try {
-    const { pageId, pageToken } = await getLinkedPage(fbToken);
-    const igBusinessId = await getIGBusinessId(pageId, pageToken);
-
     let allMedia = [];
     let nextCursor = null;
     let profileData = null;
@@ -182,8 +231,26 @@ export async function fetchAllInstagramMedia(handle, shop, maxPages = 10) {
         params: { fields, access_token: fbToken },
       });
 
-      const discovery = res.data?.business_discovery;
-      if (!discovery) break;
+      const discoveryField = res.data?.business_discovery;
+
+      // Graph API can return a 200 with a per-field error object instead of
+      // throwing (e.g. target account isn't a Business/Creator account).
+      if (discoveryField?.error) {
+        throw Object.assign(new Error(discoveryField.error.message || "Business Discovery error"), {
+          igError: discoveryField.error,
+        });
+      }
+
+      if (!discoveryField) {
+        if (!profileData) {
+          // No data on the very first page → nothing usable was ever found,
+          // this is NOT a successful empty connection.
+          throw new Error(`No business_discovery data returned for @${safeHandle}`);
+        }
+        break; // ran out of pages on a later request — keep what we already have
+      }
+
+      const discovery = discoveryField;
 
       // Save profile data from first page
       if (!profileData) {
@@ -225,8 +292,11 @@ export async function fetchAllInstagramMedia(handle, shop, maxPages = 10) {
       _totalPages: pagesFetched,
     };
   } catch (error) {
-    console.error(`[IG AUTO-CRAWL] Failed for @${safeHandle}:`, error.message);
-    return null;
+    console.error(
+      `[IG AUTO-CRAWL] Failed for @${safeHandle} (${shop}):`,
+      error.igError || error.response?.data?.error || error.message
+    );
+    throw new Error(classifyDiscoveryError(safeHandle, error));
   }
 }
 
