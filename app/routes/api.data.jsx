@@ -267,8 +267,16 @@ export const loader = async ({ request }) => {
       }
     }
 
-    // ── 9. Return response ───────────────────────────────────────────────────
-    return Response.json({ config, instaData }, { status: 200 });
+    // ── 9. Return response with Edge / CDN Cache Headers ─────────────────────
+    return Response.json(
+      { config, instaData },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
+        },
+      }
+    );
 
   } catch (error) {
     console.error("[api.data] Fatal error:", error.message);

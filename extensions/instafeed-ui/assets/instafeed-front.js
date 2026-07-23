@@ -858,7 +858,26 @@
       console.log("[AI Instafeed] No custom elements found on this page.");
     }
 
-    await loadAndRender();
+    // Check if initial payload was pre-rendered by Liquid block
+    let loadedFromPayload = false;
+    const initialScript = document.querySelector(".ai-instafeed-initial-data");
+    if (initialScript) {
+      try {
+        const initial = JSON.parse(initialScript.textContent);
+        if (initial && initial.config) {
+          console.log("[AI Instafeed] Loaded initial data from pre-rendered Liquid payload.");
+          applyDataAndRender(initial.config, initial.instaData);
+          loadedFromPayload = true;
+        }
+      } catch (e) {
+        console.warn("[AI Instafeed] Could not parse initial Liquid payload:", e);
+      }
+    }
+
+    // If no pre-rendered payload was rendered, fetch from proxy
+    if (!loadedFromPayload) {
+      await loadAndRender();
+    }
 
     // Re-bind on theme editor events
     document.addEventListener("shopify:section:load", () => {
@@ -866,9 +885,13 @@
       loadAndRender();
     });
 
-    setInterval(async () => {
-      await loadAndRender();
-    }, POLL_INTERVAL);
+    // Polling restricted to Shopify Theme Editor (designMode) for live preview updates
+    if (window.Shopify && window.Shopify.designMode) {
+      console.log("[AI Instafeed] Theme editor detected - enabling live 30s preview polling.");
+      setInterval(async () => {
+        await loadAndRender();
+      }, POLL_INTERVAL);
+    }
 
     let lastIsMobile = window.innerWidth <= 768;
     window.addEventListener("resize", () => {
@@ -889,14 +912,77 @@
     });
   }
 
-  async function loadAndRender() {
+  function applyDataAndRender(config, instaData) {
     const grids = document.querySelectorAll("instafeed-grid");
     const stories = document.querySelectorAll("instafeed-story");
 
+    if (!config) {
+      console.warn("[AI Instafeed] No config available to render.");
+      return;
+    }
+
+    let mediaData = instaData?.media?.data || [];
+    
+    if (config.postFeed?.hiddenPostIds?.length > 0) {
+      mediaData = mediaData.filter(item => !config.postFeed.hiddenPostIds.includes(item.id || item.media_url));
+    }
+
+    let gridMedia = mediaData;
+    let storyMedia = mediaData;
+
+    // Filter gridMedia by grid mediaTypeFilter
+    const gridFilter = config.postFeed?.mediaTypeFilter || "all";
+    if (gridFilter === "images") {
+      gridMedia = gridMedia.filter(item => {
+        const rawType = (item.media_type || "").toUpperCase();
+        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+        return !isVideo;
+      });
+    } else if (gridFilter === "videos") {
+      gridMedia = gridMedia.filter(item => {
+        const rawType = (item.media_type || "").toUpperCase();
+        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+        return isVideo;
+      });
+    }
+    if (config.postFeed?.sortBy === "engaging") {
+      const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
+      gridMedia = [...gridMedia].sort((a, b) => getEngagement(b) - getEngagement(a));
+    }
+
+    // Filter storyMedia by story mediaTypeFilter
+    const storyFilter = config.stories?.mediaTypeFilter || "all";
+    if (storyFilter === "images") {
+      storyMedia = storyMedia.filter(item => {
+        const rawType = (item.media_type || "").toUpperCase();
+        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+        return !isVideo;
+      });
+    } else if (storyFilter === "videos") {
+      storyMedia = storyMedia.filter(item => {
+        const rawType = (item.media_type || "").toUpperCase();
+        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+        return isVideo;
+      });
+    }
+    if (config.stories?.sortBy === "engaging") {
+      const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
+      storyMedia = [...storyMedia].sort((a, b) => getEngagement(b) - getEngagement(a));
+    }
+
+    cachedConfig = config;
+    cachedGridMedia = gridMedia;
+    cachedStoryMedia = storyMedia;
+
+    // Update active components
+    grids.forEach(grid => grid.render(config, gridMedia));
+    stories.forEach(story => story.render(config, storyMedia));
+  }
+
+  async function loadAndRender() {
     try {
       console.log("[AI Instafeed] Fetching data from:", PROXY_URL);
-      const res = await fetch(PROXY_URL + "?t=" + Date.now(), {
-        cache: "no-store",
+      const res = await fetch(PROXY_URL, {
         credentials: "same-origin",
       });
 
@@ -912,68 +998,7 @@
       if (json.error) throw new Error(json.error);
 
       const { config, instaData } = json;
-      if (!config) {
-        console.warn("[AI Instafeed] No config returned by proxy.");
-        return;
-      }
-
-      const newConfigStr = JSON.stringify(config);
-      let mediaData      = instaData?.media?.data || [];
-      
-      if (config.postFeed?.hiddenPostIds?.length > 0) {
-        mediaData = mediaData.filter(item => !config.postFeed.hiddenPostIds.includes(item.id || item.media_url));
-      }
-
-      let gridMedia = mediaData;
-      let storyMedia = mediaData;
-
-      // Filter gridMedia by grid mediaTypeFilter
-      const gridFilter = config.postFeed?.mediaTypeFilter || "all";
-      if (gridFilter === "images") {
-        gridMedia = gridMedia.filter(item => {
-          const rawType = (item.media_type || "").toUpperCase();
-          const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-          return !isVideo;
-        });
-      } else if (gridFilter === "videos") {
-        gridMedia = gridMedia.filter(item => {
-          const rawType = (item.media_type || "").toUpperCase();
-          const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-          return isVideo;
-        });
-      }
-      if (config.postFeed?.sortBy === "engaging") {
-        const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
-        gridMedia = [...gridMedia].sort((a, b) => getEngagement(b) - getEngagement(a));
-      }
-
-      // Filter storyMedia by story mediaTypeFilter
-      const storyFilter = config.stories?.mediaTypeFilter || "all";
-      if (storyFilter === "images") {
-        storyMedia = storyMedia.filter(item => {
-          const rawType = (item.media_type || "").toUpperCase();
-          const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-          return !isVideo;
-        });
-      } else if (storyFilter === "videos") {
-        storyMedia = storyMedia.filter(item => {
-          const rawType = (item.media_type || "").toUpperCase();
-          const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-          return isVideo;
-        });
-      }
-      if (config.stories?.sortBy === "engaging") {
-        const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
-        storyMedia = [...storyMedia].sort((a, b) => getEngagement(b) - getEngagement(a));
-      }
-
-      cachedConfig = config;
-      cachedGridMedia = gridMedia;
-      cachedStoryMedia = storyMedia;
-
-      // Update active components
-      grids.forEach(grid => grid.render(config, gridMedia));
-      stories.forEach(story => story.render(config, storyMedia));
+      applyDataAndRender(config, instaData);
       
     } catch (err) {
       console.warn("[AI Instafeed] Could not load data:", err.message);

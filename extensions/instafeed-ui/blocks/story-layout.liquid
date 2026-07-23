@@ -9,6 +9,17 @@
   }
 </style>
 
+{% assign config_meta = app.metafields.ai_instafeed.config.value | default: shop.metafields.ai_instafeed.config.value %}
+{% assign insta_meta = app.metafields.ai_instafeed.insta_data.value | default: shop.metafields.ai_instafeed.insta_data.value %}
+{% if config_meta != blank %}
+<script class="ai-instafeed-initial-data" type="application/json">
+  {
+    "config": {{ config_meta | json }},
+    "instaData": {% if insta_meta != blank %}{{ insta_meta | json }}{% else %}null{% endif %}
+  }
+</script>
+{% endif %}
+
 <div style="width: 100% !important;">
   <instafeed-story css-url="{{ 'instafeed-front.css' | asset_url }}" data-logo-url="{{ 'logo.png' | asset_url }}"></instafeed-story>
 </div>
