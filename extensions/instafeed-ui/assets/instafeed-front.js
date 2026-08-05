@@ -422,6 +422,10 @@
     }
 
     render(config, mediaData) {
+      const renderKey = JSON.stringify({ c: config.stories, m: (mediaData || []).map(x => x.id || x.media_url) });
+      if (this.lastRenderKey === renderKey) return;
+      this.lastRenderKey = renderKey;
+
       this.config = config;
       this.mediaData = mediaData;
 
@@ -493,9 +497,9 @@
           const finalHref   = isPopup ? "javascript:void(0)" : href;
 
           html += `
-            <div class="ai-story-item" data-id="${item.id || (item.media_url ? item.media_url.slice(-20) : '')}" style="flex-shrink:0;width:72px;text-align:center;cursor:pointer;">
-              <a href="${esc(finalHref)}" target="${isPopup ? '_self' : target}" rel="noopener noreferrer" style="text-decoration:none;display:block;">
-                <div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border: ${isActiveRing ? 'none' : '2px solid ' + ringColor};background:white;margin:0 auto 6px;position:relative; transform: translateZ(0); -webkit-transform: translateZ(0);">
+            <div class="ai-story-item" data-id="${item.id || (item.media_url ? item.media_url.slice(-20) : '')}" style="flex-shrink:0;width:68px;height:64px;text-align:center;cursor:pointer;overflow:hidden;">
+              <a href="${esc(finalHref)}" target="${isPopup ? '_self' : target}" rel="noopener noreferrer" style="text-decoration:none;display:block;width:100%;height:100%;">
+                <div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border: ${isActiveRing ? 'none' : '2px solid ' + ringColor};background:white;margin:0 auto;position:relative; transform: translateZ(0); -webkit-transform: translateZ(0);">
                   ${isActiveRing ? `
                     <svg class="ai-story-ring-svg ${s.pulseRing !== false ? 'ai-story-ring-pulse' : ''}" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                       <circle class="ai-story-ring-circle" cx="50" cy="50" r="47.5" stroke="${ringColor}" />
