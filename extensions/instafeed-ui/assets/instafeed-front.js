@@ -227,6 +227,15 @@
         }
       }
 
+      const igHandle = (config.instagramHandle || "").replace("@", "").trim();
+      if (igHandle && c.showFollowButton !== false) {
+        html += '<div style="text-align:center;margin-top:20px;margin-bottom:12px;">'
+              + '<a href="https://instagram.com/' + esc(igHandle) + '" target="_blank" rel="noopener noreferrer" class="ai-follow-btn">'
+              + '<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
+              + '<span>Follow on Instagram</span>'
+              + '</a></div>';
+      }
+
       html += '</div>';
       this.shadowRoot.innerHTML = html;
       bindCarouselNav(this.shadowRoot);
@@ -251,20 +260,19 @@
         } else if (item.media_url) {
           inner = `<video src="${esc(item.media_url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
         } else {
-          inner = `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`;
+          inner = `<div class="ai-skeleton-tile"></div>`;
         }
       } else if (item.media_url) {
         inner = `<img loading="lazy" src="${esc(item.media_url)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
       } else {
-        inner = `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`;
+        inner = `<div class="ai-skeleton-tile"></div>`;
       }
       let mediaIcon = "";
       if (isVideo) {
-        mediaIcon = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#FFFFFF" fill-rule="evenodd" clip-rule="evenodd" d="M2 7.25h3.614L9.364 2H6a4 4 0 0 0-4 4v1.25Zm20 0h-6.543l3.641-5.097A4.002 4.002 0 0 1 22 6v1.25ZM2 8.75h20V18a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8.75Zm5.457-1.5L11.207 2h6.157l-3.75 5.25H7.457Zm7.404 7.953a.483.483 0 0 0 0-.837l-3.985-2.3a.483.483 0 0 0-.725.418v4.601c0 .372.403.605.725.419l3.985-2.301Z" /></svg>`;
+        const badgeLabel = rawType === "REEL" ? "REEL" : "VIDEO";
+        mediaIcon = `<span class="ai-type-badge-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 7.25h3.614L9.364 2H6a4 4 0 0 0-4 4v1.25Zm20 0h-6.543l3.641-5.097A4.002 4.002 0 0 1 22 6v1.25ZM2 8.75h20V18a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8.75Zm5.457-1.5L11.207 2h6.157l-3.75 5.25H7.457Zm7.404 7.953a.483.483 0 0 0 0-.837l-3.985-2.3a.483.483 0 0 0-.725.418v4.601c0 .372.403.605.725.419l3.985-2.301Z" /></svg><span>${badgeLabel}</span></span>`;
       } else if (isAlbum) {
-        mediaIcon = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#FFFFFF" d="M20.453 8.5c.005.392.005.818.005 1.279v3.2c0 1.035 0 1.892-.057 2.591-.06.728-.187 1.403-.511 2.038a5.214 5.214 0 0 1-2.278 2.279c-.636.323-1.31.451-2.038.51-.699.058-1.556.058-2.59.058h-3.2c-.32 0-.624 0-.911-.002H5.395A3.856 3.856 0 0 0 8.485 22h7.724A5.793 5.793 0 0 0 22 16.207V8.483a3.856 3.856 0 0 0-1.548-3.093V8.5Z"/><path fill="#FFFFFF" fill-rule="evenodd" clip-rule="evenodd" d="M2 5.4A3.4 3.4 0 0 1 5.4 2h10.2A3.4 3.4 0 0 1 19 5.4v5.482l-1.91-1.25a4.037 4.037 0 0 0-4.767.253L7.87 13.528a2.763 2.763 0 0 1-3.262.173L2 11.994V5.4Zm14.392 5.299L19 12.406V15.6a3.4 3.4 0 0 1-3.4 3.4H5.4A3.4 3.4 0 0 1 2 15.6v-2.082l1.91 1.25a4.038 4.038 0 0 0 4.767-.253l4.453-3.643a2.763 2.763 0 0 1 3.262-.173ZM7.525 9.65a2.125 2.125 0 1 0 0-4.25 2.125 2.125 0 0 0 0 4.25Z"/></svg>`;
-      } else {
-        mediaIcon = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#FFFFFF" d="M19 3H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2zM5 19V5h14l.002 14H5z"/><path fill="#FFFFFF" d="m10 14-1-1-3 4h12l-5-7z"/><circle fill="#FFFFFF" cx="8.5" cy="8.5" r="1.5"/></svg>`;
+        mediaIcon = `<span class="ai-type-badge-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M20.453 8.5c.005.392.005.818.005 1.279v3.2c0 1.035 0 1.892-.057 2.591-.06.728-.187 1.403-.511 2.038a5.214 5.214 0 0 1-2.278 2.279c-.636.323-1.31.451-2.038.51-.699.058-1.556.058-2.59.058h-3.2c-.32 0-.624 0-.911-.002H5.395A3.856 3.856 0 0 0 8.485 22h7.724A5.793 5.793 0 0 0 22 16.207V8.483a3.856 3.856 0 0 0-1.548-3.093V8.5Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M2 5.4A3.4 3.4 0 0 1 5.4 2h10.2A3.4 3.4 0 0 1 19 5.4v5.482l-1.91-1.25a4.037 4.037 0 0 0-4.767.253L7.87 13.528a2.763 2.763 0 0 1-3.262.173L2 11.994V5.4Zm14.392 5.299L19 12.406V15.6a3.4 3.4 0 0 1-3.4 3.4H5.4A3.4 3.4 0 0 1 2 15.6v-2.082l1.91 1.25a4.038 4.038 0 0 0 4.767-.253l4.453-3.643a2.763 2.763 0 0 1 3.262-.173ZM7.525 9.65a2.125 2.125 0 1 0 0-4.25 2.125 2.125 0 0 0 0 4.25Z"/></svg><span>GALLERY</span></span>`;
       }
 
       const metrics = c.metrics ? `
@@ -453,7 +461,7 @@
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg>
               </div>
             ` : ''}
-            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;${s.alignment === 'center' ? 'margin:0 auto;' : s.alignment === 'right' ? 'margin:0 0 0 auto;' : 'margin:0 auto 0 0;'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 12px;">`;
+            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:${s.alignment === 'center' ? 'center' : s.alignment === 'right' ? 'flex-end' : 'flex-start'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 12px;">`;
 
         storyItems.forEach((item, i) => {
           const rawType   = (item.media_type || "").toUpperCase();
@@ -473,12 +481,12 @@
             } else if (item.media_url) {
               mediaTpl = `<video src="${esc(item.media_url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
             } else {
-              mediaTpl = `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`;
+              mediaTpl = `<div class="ai-skeleton-tile"></div>`;
             }
           } else if (item.media_url) {
             mediaTpl = `<img loading="lazy" src="${esc(item.media_url)}" alt="story" class="${s.animateImages ? 'ai-ken-burns' : ''}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
           } else {
-            mediaTpl = `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`;
+            mediaTpl = `<div class="ai-skeleton-tile"></div>`;
           }
 
           const isPopup  = s.openPopup === true;
@@ -489,7 +497,7 @@
               <a href="${esc(finalHref)}" target="${isPopup ? '_self' : target}" rel="noopener noreferrer" style="text-decoration:none;display:block;">
                 <div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border: ${isActiveRing ? 'none' : '2px solid ' + ringColor};background:white;margin:0 auto 6px;position:relative; transform: translateZ(0); -webkit-transform: translateZ(0);">
                   ${isActiveRing ? `
-                    <svg class="ai-story-ring-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                    <svg class="ai-story-ring-svg ${s.pulseRing !== false ? 'ai-story-ring-pulse' : ''}" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                       <circle class="ai-story-ring-circle" cx="50" cy="50" r="47.5" stroke="${ringColor}" />
                     </svg>` : ''}
                   <div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#f1f5f9;position:relative;z-index:1;">${mediaTpl}</div>
@@ -507,6 +515,16 @@
             ` : ''}
           </div>`;
       }
+
+      const igHandle = (config.instagramHandle || "").replace("@", "").trim();
+      if (igHandle && s.showFollowButton === true) {
+        html += `<div style="text-align:center;margin-top:20px;margin-bottom:12px;">`
+              + `<a href="https://instagram.com/${esc(igHandle)}" target="_blank" rel="noopener noreferrer" class="ai-follow-btn">`
+              + `<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`
+              + `<span>Follow on Instagram</span>`
+              + `</a></div>`;
+      }
+
       html += `</div>`;
       this.shadowRoot.innerHTML = html;
       bindCarouselNav(this.shadowRoot);
@@ -552,9 +570,32 @@
         if (!isNaN(idx)) {
           this.scrollToSubIndex(idx);
         }
+      } else if (e.target.closest(".ai-modal-share-btn")) {
+        const item = this.activeMedia ? this.activeMedia[this.currentIndex] : null;
+        const shareUrl = item ? (item.permalink || window.location.href) : window.location.href;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(shareUrl).then(() => {
+            this.showToast("✨ Link copied to clipboard!");
+          }).catch(() => {
+            window.prompt("Copy post link:", shareUrl);
+          });
+        } else {
+          window.prompt("Copy post link:", shareUrl);
+        }
       } else if (e.target.id === "ai-instafeed-modal-root") {
         this.close();
       }
+    }
+
+    showToast(msg) {
+      const existing = this.shadowRoot.querySelector('.ai-modal-toast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.className = 'ai-modal-toast';
+      toast.textContent = msg;
+      const layout = this.shadowRoot.querySelector('.ai-modal-layout');
+      if (layout) layout.appendChild(toast);
+      setTimeout(() => toast.remove(), 2500);
     }
 
     _handleKeydown(e) {
@@ -671,7 +712,8 @@
       const hasPrev    = showNav && index > 0;
       const hasNext    = showNav && index < this.activeMedia.length - 1;
 
-      const isVideo     = item.media_type === 'VIDEO';
+      const rawType     = (item.media_type || "").toUpperCase();
+      const isVideo     = rawType === 'VIDEO' || rawType === 'REEL' || (item.media_url && (item.media_url.toLowerCase().includes('.mp4') || item.media_url.toLowerCase().includes('.mov')));
       const enableSound = this.config.postFeed?.modalSound;
       const videoAttrs  = enableSound ? 'controls controlsList="nodownload"' : 'muted';
 
@@ -680,7 +722,8 @@
       let mediaHtml = '';
       if (subChildren.length > 0) {
         const slidesHtml = subChildren.map((child, cIdx) => {
-          const isChildVideo = child.media_type === 'VIDEO' || (child.media_url && child.media_url.toLowerCase().includes('.mp4'));
+          const childType = (child.media_type || "").toUpperCase();
+          const isChildVideo = childType === 'VIDEO' || childType === 'REEL' || (child.media_url && (child.media_url.toLowerCase().includes('.mp4') || child.media_url.toLowerCase().includes('.mov')));
           const childVideoAttrs = enableSound ? 'controls controlsList="nodownload"' : 'muted';
           const childSrc = child.media_url;
           const childPosterAttr = child.thumbnail_url ? ` poster="${esc(child.thumbnail_url)}"` : '';
@@ -825,7 +868,9 @@
                     '<div class="ai-modal-actions-left">' +
                       '<svg class="ai-action-icon" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>' +
                       '<svg class="ai-action-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>' +
-                      '<svg class="ai-action-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>' +
+                      '<button type="button" class="ai-modal-share-btn" title="Share Post">' +
+                        '<svg class="ai-action-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>' +
+                      '</button>' +
                     '</div>' +
                     '<div class="ai-modal-actions-right">' +
                       '<svg class="ai-action-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>' +

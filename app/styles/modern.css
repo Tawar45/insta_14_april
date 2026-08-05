@@ -81,6 +81,12 @@ body {
   to   { transform: rotate(360deg); }
 }
 
+@keyframes ringPulse {
+  0%   { filter: drop-shadow(0 0 1px rgba(225, 48, 108, 0.4)); }
+  50%  { filter: drop-shadow(0 0 7px rgba(225, 48, 108, 0.85)); }
+  100% { filter: drop-shadow(0 0 1px rgba(225, 48, 108, 0.4)); }
+}
+
 .premium-dashboard {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   min-height: 100vh;
@@ -754,19 +760,60 @@ input[type="color"].premium-input {
 }
 
 /* Full card overlay for hover effect */
+.grid-item img,
+.grid-item video,
+.carousel-item img,
+.carousel-item video {
+  transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+}
+
+.grid-item:hover img,
+.grid-item:hover video,
+.carousel-item:hover img,
+.carousel-item:hover video {
+  transform: scale(1.06) !important;
+}
+
+/* Full card overlay for hover effect */
 .grid-item::before, .carousel-item::before, .hover-card-overlay {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.6) 100%);
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
   z-index: 4;
   pointer-events: none;
 }
 
 .grid-item:hover::before, .carousel-item:hover::before, .grid-item:hover .hover-card-overlay {
   opacity: 1;
+}
+
+.ai-follow-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 14px !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 11.5px !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.ai-follow-btn:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 0.88 !important;
+}
+
+.ai-follow-btn svg {
+  width: 14px !important;
+  height: 14px !important;
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */

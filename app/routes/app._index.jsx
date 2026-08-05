@@ -386,6 +386,7 @@ const DEFAULT_CONFIG = {
     aspectRatio: "auto",
     removeWatermark: false,
     showInstagramIcon: true,
+    showFollowButton: true,
     hiddenPostIds: [],
     paddingTop: 32,
     paddingBottom: 32,
@@ -406,12 +407,14 @@ const DEFAULT_CONFIG = {
     },
     animateImages: false,
     activeRing: true,
+    pulseRing: true,
     ringColor: "#e1306c",
     showNavigation: true,
     paddingTop: 24,
     paddingBottom: 24,
     openPopup: false,
     removeWatermark: false,
+    showFollowButton: false,
     mediaTypeFilter: "all",
     sortBy: "latest",
   },
@@ -735,8 +738,25 @@ export default function Index() {
       } else {
         blocker.reset();
       }
-    }
   }, [blocker]);
+
+  // Modal keyboard controls (ArrowLeft, ArrowRight, Escape)
+  useEffect(() => {
+    if (!selectedPost) return;
+    const handleKeyDown = (e) => {
+      const list = modalSource === "story" ? filteredStoriesMedia : simulatedInfiniteMedia;
+      const currentIndex = list.findIndex(p => p.id === selectedPost.id);
+      if (e.key === "ArrowLeft") {
+        if (currentIndex > 0) setSelectedPost(list[currentIndex - 1]);
+      } else if (e.key === "ArrowRight") {
+        if (currentIndex !== -1 && currentIndex < list.length - 1) setSelectedPost(list[currentIndex + 1]);
+      } else if (e.key === "Escape") {
+        setSelectedPost(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedPost, modalSource, filteredStoriesMedia, simulatedInfiniteMedia]);
 
   // Track last-fetched handle to debounce refetches
   const [lastFetchedHandle, setLastFetchedHandle] = useState("");
@@ -1267,18 +1287,19 @@ export default function Index() {
           />
         ) : null}
         {isVideo && (
-          <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))", color: "white" }}>
-            <VideoMediaIcon />
+          <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10 }}>
+            <span className="ai-type-badge-pill">
+              <VideoMediaIcon />
+              <span>{rawType === "REEL" ? "REEL" : "VIDEO"}</span>
+            </span>
           </div>
         )}
         {isAlbum && (
-          <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))", color: "white" }}>
-            <CarouselMediaIcon />
-          </div>
-        )}
-        {!isVideo && !isAlbum && (
-           <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))", color: "white" }}>
-            <ImageMediaIcon />
+          <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10 }}>
+            <span className="ai-type-badge-pill">
+              <CarouselMediaIcon />
+              <span>GALLERY</span>
+            </span>
           </div>
         )}
         {config.postFeed.metrics && (
@@ -2069,6 +2090,7 @@ export default function Index() {
                       },
                       { id: "load",     label: "Infinite Paging", sub: "Zero-latency endless scrolling on page load.",       icon: RefreshIcon, isPremium: true },
                       { id: "modalSound", label: "Video Modal Sound", sub: "Enable audio playback in video popup modal.", icon: PlayIcon, isPremium: true },
+                      { id: "showFollowButton", label: "Follow Instagram Button", sub: "Show a direct Follow @handle button below the feed.", icon: MegaphoneIcon },
                       { id: "removeWatermark", label: "Remove Watermark", sub: "Hide the 'By BOOST STAR' brand watermark.", icon: StarIcon, isPremium: true },
                       { id: "isHideMode", label: "Manual Hide Mode", sub: "Click posts directly in the preview frame to hide them.", icon: ViewIcon, isPremium: true, isLocal: true },
                     ].map(renderSettingItem)}
@@ -2501,8 +2523,10 @@ export default function Index() {
                       { id: "autoplay",   label: "Auto Play Stories", sub: "Animate top highlights",    icon: PlayIcon },
                       { id: "animateImages", label: "Animate Images", sub: "Subtle zoom effect on photos", icon: MagicIcon },
                       { id: "activeRing", label: "Moving Story Ring", sub: "Rotating dashed border effect", icon: RefreshIcon },
+                      { id: "pulseRing", label: "Pulsing Story Ring Glow", sub: "Glow & pulse animation around story circles", icon: MagicIcon },
                       { id: "showNavigation", label: "Story Navigation Arrows", sub: "Show/Hide prev/next buttons", icon: ChevronRightIcon },
                       { id: "showHeader", label: "Display Branding",  sub: "Show/Hide story title",     icon: MegaphoneIcon },
+                      { id: "showFollowButton", label: "Follow Instagram Button", sub: "Show a direct Follow @handle button below stories", icon: MegaphoneIcon },
                       { id: "openPopup", label: "Story Pop-up", sub: "Open modal on story click", icon: ViewIcon },
                       { id: "removeWatermark", label: "Remove App Branding", sub: "Clean & professional look", icon: MagicIcon, isPro: true },
                     ].map((item, idx) => (
@@ -2853,6 +2877,15 @@ export default function Index() {
                               </div>
                             )}
 
+                            {config.postFeed.showFollowButton !== false && config.instagramHandle && (
+                              <div style={{ textAlign: "center", marginTop: "16px", marginBottom: "8px" }}>
+                                <a href={`https://instagram.com/${config.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="ai-follow-btn">
+                                  <InstagramIcon />
+                                  <span>Follow on Instagram</span>
+                                </a>
+                              </div>
+                            )}
+
                             {!config.postFeed.removeWatermark && (
                               <div style={{ textAlign: "center", padding: "12px", fontSize: "10px", color: "#9ca3af" }}>
                                 <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
@@ -2904,7 +2937,7 @@ export default function Index() {
                                       <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", overflow: "hidden", margin: "0 auto", position: "relative" }}>
                                         {config.stories.activeRing && (
                                           <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing !== false ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
                                           </svg>
                                         )}
                                         <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
@@ -2944,6 +2977,14 @@ export default function Index() {
                                     <Icon source={ChevronRightIcon} />
                                   </button>
                                 )}
+                              </div>
+                            )}
+                            {config.stories.showFollowButton && config.instagramHandle && (
+                              <div style={{ textAlign: "center", marginTop: "12px", marginBottom: "4px" }}>
+                                <a href={`https://instagram.com/${config.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="ai-follow-btn">
+                                  <InstagramIcon />
+                                  <span>Follow on Instagram</span>
+                                </a>
                               </div>
                             )}
                             {!config.stories.removeWatermark && (
@@ -2991,7 +3032,6 @@ export default function Index() {
                                     {config.stories.heading?.trim() && (
                                       <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 8px 0", color: config.stories.typography.heading.color }}>
                                         {config.stories.heading}
-                                      </h4>
                                     )}
                                     {config.stories.subheading?.trim() && (
                                       <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" }}>
@@ -3028,7 +3068,7 @@ export default function Index() {
                                           <div style={{ width: "64px", height: "64px", borderRadius: "50%", padding: "3px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", marginBottom: "6px", overflow: "hidden", margin: "0 auto 6px", position: "relative" }}>
                                             {config.stories.activeRing && (
                                               <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing !== false ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
                                               </svg>
                                             )}
                                             <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
@@ -3068,6 +3108,14 @@ export default function Index() {
                                         <Icon source={ChevronRightIcon} />
                                       </button>
                                     )}
+                                  </div>
+                                )}
+                                {config.stories.showFollowButton && config.instagramHandle && (
+                                  <div style={{ textAlign: "center", marginTop: "12px", marginBottom: "4px" }}>
+                                    <a href={`https://instagram.com/${config.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="ai-follow-btn">
+                                      <InstagramIcon />
+                                      <span>Follow on Instagram</span>
+                                    </a>
                                   </div>
                                 )}
                                 {!config.stories.removeWatermark && (
@@ -3129,6 +3177,15 @@ export default function Index() {
                                   </div>
                                 )}
 
+                                {config.postFeed.showFollowButton !== false && config.instagramHandle && (
+                                  <div style={{ textAlign: "center", marginTop: "16px", marginBottom: "8px" }}>
+                                    <a href={`https://instagram.com/${config.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="ai-follow-btn">
+                                      <InstagramIcon />
+                                      <span>Follow on Instagram</span>
+                                    </a>
+                                  </div>
+                                )}
+
                                 {!config.postFeed.removeWatermark && (
                                   <div style={{ textAlign: "center", padding: "16px", fontSize: "12px", color: "#9ca3af" }}>
                                     <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
@@ -3186,8 +3243,8 @@ export default function Index() {
           >
             {/* Left: Media Area */}
             <div style={{ flex: 1.2, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-              {selectedPost.media_type === "VIDEO" ? (
-                <video src={selectedPost.media_url} autoPlay loop muted playsInline style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+              {((selectedPost.media_type || "").toUpperCase() === "VIDEO" || (selectedPost.media_type || "").toUpperCase() === "REEL" || (selectedPost.media_url && (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov")))) ? (
+                <video src={selectedPost.media_url} poster={selectedPost.thumbnail_url || undefined} autoPlay loop muted playsInline preload="metadata" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
               ) : (
                 <img src={selectedPost.media_url} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} alt="Post" />
               )}
@@ -3235,15 +3292,35 @@ export default function Index() {
                     <span style={{ fontWeight: "700", fontSize: "18px" }}>{selectedPost.comments_count || 0}</span>
                   </div>
                 </div>
-                <a 
-                  href={selectedPost.permalink} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="premium-button button-accent"
-                  style={{ width: "100%", textDecoration: "none" }}
-                >
-                  View on Instagram
-                </a>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <a 
+                    href={selectedPost.permalink} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="premium-button button-accent"
+                    style={{ flex: 1, textDecoration: "none", justifyContent: "center" }}
+                  >
+                    View on Instagram
+                  </a>
+                  <button
+                    type="button"
+                    className="premium-button"
+                    onClick={() => {
+                      const url = selectedPost.permalink || window.location.href;
+                      if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(url);
+                        shopify.toast.show("Link copied to clipboard!");
+                      } else {
+                        window.prompt("Copy post link:", url);
+                      }
+                    }}
+                    style={{ background: "#f1f5f9", color: "#334155", border: "1px solid #cbd5e1" }}
+                    title="Share Post"
+                  >
+                    <Icon source={ShareIcon} />
+                    <span>Share</span>
+                  </button>
+                </div>
                 {((modalSource === "story" && !config.stories.removeWatermark) || (modalSource === "grid" && !config.postFeed.removeWatermark)) && (
                    <div style={{ textAlign: "center", padding: "12px 0 0", fontSize: "11px", color: "#9ca3af" }}>
                      <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
