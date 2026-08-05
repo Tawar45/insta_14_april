@@ -738,6 +738,7 @@ export default function Index() {
       } else {
         blocker.reset();
       }
+    }
   }, [blocker]);
 
   // Modal keyboard controls (ArrowLeft, ArrowRight, Escape)
@@ -2966,9 +2967,6 @@ export default function Index() {
                                           ) : null}
                                         </div>
                                       </div>
-                                      <div style={{ fontSize: "9px", marginTop: "4px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                        {item.caption ? item.caption.split(" ")[0] : `Story ${i + 1}`}
-                                      </div>
                                     </div>
                                   ))}
                                 </div>
@@ -3008,9 +3006,6 @@ export default function Index() {
                            <div style={{ width: "10px", height: "10px", background: "#fbbf24", borderRadius: "50%" }} />
                            <div style={{ width: "10px", height: "10px", background: "#34d399", borderRadius: "50%" }} />
                          </div>
-                         <div style={{ height: "24px", width: "120px", background: "white", borderRadius: "6px 6px 0 0", padding: "0 10px", display: "flex", alignItems: "center", fontSize: "10px", fontWeight: "600", color: "#64748b", border: "1px solid #cbd5e1", borderBottom: "none", position: "relative", top: "8px" }}>
-                           Your Feed
-                         </div>
                       </div>
                       <div style={{ width: "100%", background: "#ffffff", padding: "10px 16px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid #cbd5e1" }}>
                          <div style={{ display: "flex", gap: "10px", fontSize: "12px", color: "#94a3b8" }}>
@@ -3032,6 +3027,7 @@ export default function Index() {
                                     {config.stories.heading?.trim() && (
                                       <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 8px 0", color: config.stories.typography.heading.color }}>
                                         {config.stories.heading}
+                                      </h4>
                                     )}
                                     {config.stories.subheading?.trim() && (
                                       <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" }}>
@@ -3097,9 +3093,7 @@ export default function Index() {
                                               ) : null}
                                             </div>
                                           </div>
-                                          <div style={{ fontSize: "10px", color: "#64748b", fontWeight: "600", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                            {item.caption ? item.caption.split(" ")[0] : `Story ${i + 1}`}
-                                          </div>
+
                                         </div>
                                       ))}
                                     </div>

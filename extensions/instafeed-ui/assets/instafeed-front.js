@@ -502,7 +502,6 @@
                     </svg>` : ''}
                   <div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#f1f5f9;position:relative;z-index:1;">${mediaTpl}</div>
                 </div>
-                <div class="ai-story-label" style="font-size:10px;color:#64748b;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</div>
               </a>
             </div>`;
         });
@@ -922,13 +921,8 @@
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   async function init() {
-    console.log("[AI Instafeed] Initializing...");
     const grids = document.querySelectorAll("instafeed-grid");
     const stories = document.querySelectorAll("instafeed-story");
-
-    if (grids.length === 0 && stories.length === 0) {
-      console.log("[AI Instafeed] No custom elements found on this page.");
-    }
 
     // Check if initial payload was pre-rendered by Liquid block
     let loadedFromPayload = false;
@@ -937,13 +931,10 @@
       try {
         const initial = JSON.parse(initialScript.textContent);
         if (initial && initial.config) {
-          console.log("[AI Instafeed] Loaded initial data from pre-rendered Liquid payload.");
           applyDataAndRender(initial.config, initial.instaData);
           loadedFromPayload = true;
         }
-      } catch (e) {
-        console.warn("[AI Instafeed] Could not parse initial Liquid payload:", e);
-      }
+      } catch (e) {}
     }
 
     // If no pre-rendered payload was rendered, fetch from proxy
@@ -953,13 +944,11 @@
 
     // Re-bind on theme editor events
     document.addEventListener("shopify:section:load", () => {
-      console.log("[AI Instafeed] Section load detected");
       loadAndRender();
     });
 
     // Polling restricted to Shopify Theme Editor (designMode) for live preview updates
     if (window.Shopify && window.Shopify.designMode) {
-      console.log("[AI Instafeed] Theme editor detected - enabling live 30s preview polling.");
       setInterval(async () => {
         await loadAndRender();
       }, POLL_INTERVAL);
@@ -988,10 +977,7 @@
     const grids = document.querySelectorAll("instafeed-grid");
     const stories = document.querySelectorAll("instafeed-story");
 
-    if (!config) {
-      console.warn("[AI Instafeed] No config available to render.");
-      return;
-    }
+    if (!config) return;
 
     let mediaData = instaData?.media?.data || [];
     
@@ -1053,28 +1039,21 @@
 
   async function loadAndRender() {
     try {
-      console.log("[AI Instafeed] Fetching data from:", PROXY_URL);
       const res = await fetch(PROXY_URL, {
         credentials: "same-origin",
       });
 
       if (!res.ok) {
-        const text = await res.text();
-        console.error("[AI Instafeed] Proxy error:", res.status, text.slice(0, 100));
         throw new Error("Proxy returned " + res.status);
       }
 
       const json = await res.json();
-      console.log("[AI Instafeed] Data received:", json ? "Success" : "Empty");
-
       if (json.error) throw new Error(json.error);
 
       const { config, instaData } = json;
       applyDataAndRender(config, instaData);
       
-    } catch (err) {
-      console.warn("[AI Instafeed] Could not load data:", err.message);
-    }
+    } catch (err) {}
   }
 
   if (document.readyState === "loading") {
