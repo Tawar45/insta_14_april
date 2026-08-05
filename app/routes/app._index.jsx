@@ -103,7 +103,7 @@ export const loader = async ({ request }) => {
     billing.check({ plans: ["Pro Monthly"], isTest }),
     withRateLimit(shop, () => fetchShopConfig(admin, shop)),
     fetchShopInstaData(admin, shop),
-    admin.graphql(`{ themes(first: 1, roles: [MAIN]) { nodes { id } } }`),
+    admin.graphql(`{ themes(first: 25) { nodes { id name role } } }`),
   ]);
 
   let subscription = null;
@@ -123,10 +123,35 @@ export const loader = async ({ request }) => {
 
   trackApiResponse(shop, {});
 
+  const requestUrl = new URL(request.url);
+  const selectedThemeParam = requestUrl.searchParams.get("selectedThemeId") || requestUrl.searchParams.get("themeId");
+
+  let allThemes = [];
   let themeId = "current";
+
   if (themeRes.status === "fulfilled") {
-    const themeJson = await themeRes.value.json();
-    themeId = themeJson.data?.themes?.nodes[0]?.id.split("/").pop() || "current";
+    try {
+      const themeJson = await themeRes.value.json();
+      const nodes = themeJson.data?.themes?.nodes || [];
+      allThemes = nodes.map(t => {
+        const numericId = t.id.split("/").pop();
+        const isLive = t.role === "MAIN";
+        return {
+          id: numericId,
+          name: t.name || `Theme #${numericId}`,
+          role: t.role,
+          isLive
+        };
+      });
+      // Sort live theme first, then by name
+      allThemes.sort((a, b) => (b.isLive ? 1 : 0) - (a.isLive ? 1 : 0));
+
+      const mainTheme = allThemes.find(t => t.isLive);
+      const matchedSelected = selectedThemeParam ? allThemes.find(t => t.id === selectedThemeParam) : null;
+      themeId = matchedSelected ? matchedSelected.id : (mainTheme ? mainTheme.id : (allThemes[0]?.id || "current"));
+    } catch (err) {
+      console.warn("Failed to parse themes JSON", err);
+    }
   }
 
   let dynamicAppEmbedEnabled = false;
@@ -215,6 +240,8 @@ export const loader = async ({ request }) => {
     subscription,
     shop,
     themeId,
+    allThemes,
+    selectedThemeId: themeId,
     clientId: process.env.SHOPIFY_API_KEY,
     dynamicAppEmbedEnabled,
     dynamicSections
@@ -1218,12 +1245,23 @@ export default function Index() {
             <span className="hidden-post-hint">tap to unhide</span>
           </div>
         )}
-        {isVideo && config.postFeed.autoplay ? (
-          <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        ) : (item.media_url || item.thumbnail_url) ? (
+        {isVideo ? (
+          config.postFeed.autoplay ? (
+            <video src={item.media_url} poster={item.thumbnail_url || undefined} autoPlay muted loop playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : item.thumbnail_url ? (
+            <img
+              loading="lazy"
+              src={item.thumbnail_url}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              alt="Instagram post"
+            />
+          ) : item.media_url ? (
+            <video src={item.media_url} muted playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : null
+        ) : item.media_url ? (
           <img
             loading="lazy"
-            src={isVideo ? (item.thumbnail_url || item.media_url) : item.media_url}
+            src={item.media_url}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
             alt="Instagram post"
           />
@@ -1754,17 +1792,49 @@ export default function Index() {
               <div id="store-setup-status-card" className="premium-card" style={{ padding: "32px", position: "relative", overflow: "hidden", marginBottom: "20px", animation: "fadeInBlur 0.5s ease" }}>
                 <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "120px", height: "120px", background: "var(--premium-accent)", opacity: 0.05, borderRadius: "50%", filter: "blur(50px)", pointerEvents: "none" }} />
                 <div 
-                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isSetupExpanded ? "24px" : "0", flexWrap: "wrap", gap: "10px", cursor: "pointer" }}
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isSetupExpanded ? "24px" : "0", flexWrap: "wrap", gap: "12px", cursor: "pointer" }}
                   onClick={() => setIsSetupExpanded(!isSetupExpanded)}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                     <span style={{ background: "var(--premium-accent)", color: "white", width: "22px", height: "22px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800", flexShrink: 0 }}>2</span>
                     <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "var(--premium-text-primary)" }}>Store Setup Status</h2>
                     <div style={{ color: "var(--premium-text-secondary)" }}>
                       <Icon source={isSetupExpanded ? ChevronUpIcon : ChevronDownIcon} />
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }} onClick={(e) => e.stopPropagation()}>
+                    {loaderData.allThemes?.length > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ fontSize: "11px", fontWeight: "600", color: "#64748b" }}>Theme:</span>
+                        <select
+                          className="premium-input"
+                          value={loaderData.selectedThemeId || loaderData.themeId}
+                          onChange={(e) => {
+                            const newThemeId = e.target.value;
+                            const searchParams = new URLSearchParams(window.location.search);
+                            searchParams.set("selectedThemeId", newThemeId);
+                            navigate(`?${searchParams.toString()}`, { replace: true });
+                          }}
+                          style={{
+                            padding: "4px 10px",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            background: "#f8fafc",
+                            border: "1px solid #cbd5e1",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            maxWidth: "220px"
+                          }}
+                          title="Select a theme to check app embed and section setup status"
+                        >
+                          {loaderData.allThemes.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.isLive ? "🟢 " : "⚪ "} {t.name} {t.isLive ? "(Live)" : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <div style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "10px", fontSize: "12px", fontWeight: "700", color: "#334155" }}>
                       {[(loaderData.dynamicAppEmbedEnabled ? 1 : 0), ((loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story) ? 1 : 0)].reduce((a,b)=>a+b, 0)} / 2 Completed
                     </div>
@@ -1772,7 +1842,12 @@ export default function Index() {
                       <button
                         className="premium-button"
                         style={{ padding: "4px 10px", fontSize: "11px", background: "white", color: "#64748b", border: "1px solid #e2e8f0" }}
-                        onClick={(e) => { e.stopPropagation(); navigate(".", { replace: true }); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const searchParams = new URLSearchParams(window.location.search);
+                          if (loaderData.selectedThemeId) searchParams.set("selectedThemeId", loaderData.selectedThemeId);
+                          navigate(`?${searchParams.toString()}`, { replace: true });
+                        }}
                         title="Check if theme changes are applied"
                       >
                         <Icon source={RefreshIcon} tone="inherit" /> Refresh
@@ -2065,6 +2140,7 @@ export default function Index() {
                             }
                             updateConfig("postFeed", "desktopColumns", val);
                           }}
+                          style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
                         >
                           {[3, 4, 5, 6].map((n) => (
                             <option key={n} value={n}>
@@ -2079,6 +2155,7 @@ export default function Index() {
                           className="premium-input"
                           value={config.postFeed.mobileColumns}
                           onChange={(e) => updateConfig("postFeed", "mobileColumns", parseInt(e.target.value))}
+                          style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
                         >
                           {[1, 2, 3].map((n) => <option key={n} value={n}>{n} Columns</option>)}
                         </select>
@@ -2101,6 +2178,7 @@ export default function Index() {
                               }
                               updateConfig("postFeed", "desktopLimit", val);
                             }}
+                            style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
                           >
                             {[4, 6, 8, 12, 16, 20, 24].map((n) => (
                               <option key={n} value={n}>
@@ -2115,6 +2193,7 @@ export default function Index() {
                             className="premium-input"
                             value={config.postFeed.mobileLimit || 4}
                             onChange={(e) => updateConfig("postFeed", "mobileLimit", parseInt(e.target.value))}
+                            style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
                           >
                             {[3, 4, 6, 8, 12].map((n) => <option key={n} value={n}>{n} Posts</option>)}
                           </select>
@@ -2176,6 +2255,7 @@ export default function Index() {
                         className="premium-input"
                         value={config.postFeed.aspectRatio || "auto"}
                         onChange={(e) => updateConfig("postFeed", "aspectRatio", e.target.value)}
+                        style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
                       >
                         <option value="auto">Auto (Original)</option>
                         <option value="1/1">1:1 (Square)</option>
@@ -2204,7 +2284,7 @@ export default function Index() {
 
                       <div style={{ marginBottom: "24px" }}>
                         <label className="input-label">Layout Alignment</label>
-                        <select className="premium-input" value={config.postFeed.alignment} onChange={(e) => updateConfig("postFeed", "alignment", e.target.value)} style={{ background: "#f8fafc" }}>
+                        <select className="premium-input" value={config.postFeed.alignment} onChange={(e) => updateConfig("postFeed", "alignment", e.target.value)} style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}>
                           <option value="left">Left Aligned</option>
                           <option value="center">Centered</option>
                           <option value="right">Right Aligned</option>
@@ -2828,19 +2908,29 @@ export default function Index() {
                                           </svg>
                                         )}
                                         <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
-                                          {(item.media_url || item.thumbnail_url) && (
-                                            item.media_type === "VIDEO" && config.stories.autoplay ? (
-                                              <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                            ) : (
+                                          {item.media_type === "VIDEO" ? (
+                                            config.stories.autoplay ? (
+                                              <video src={item.media_url} poster={item.thumbnail_url || undefined} autoPlay muted loop playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                            ) : item.thumbnail_url ? (
                                               <img 
                                                 loading="lazy" 
-                                                src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} 
+                                                src={item.thumbnail_url} 
                                                 className={config.stories.animateImages ? "ai-ken-burns" : ""}
                                                 style={{ width: "100%", height: "100%", objectFit: "cover" }} 
                                                 alt="story" 
                                               />
+                                            ) : (
+                                              <video src={item.media_url} muted playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                             )
-                                          )}
+                                          ) : item.media_url ? (
+                                            <img 
+                                              loading="lazy" 
+                                              src={item.media_url} 
+                                              className={config.stories.animateImages ? "ai-ken-burns" : ""}
+                                              style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                                              alt="story" 
+                                            />
+                                          ) : null}
                                         </div>
                                       </div>
                                       <div style={{ fontSize: "9px", marginTop: "4px", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -2871,7 +2961,7 @@ export default function Index() {
                   <div style={{ animation: "fadeInBlur 0.4s ease-out", width: "100%", marginTop: "0" }}>
                     <div style={{ width: "100%", maxWidth: "680px", margin: "0 auto" }}>
                       {/* Browser Frame */}
-                      <div style={{ width: "100%", background: "#e2e8f0", borderRadius: "12px 12px 0 0", padding: "8px 12px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid #cbd5e1", borderBottom: "none" }}>
+                      <div style={{ width: "100%", background: "#f8fafc", borderRadius: "12px 12px 0 0", padding: "8px 12px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid #cbd5e1", borderBottom: "none" }}>
                          <div style={{ display: "flex", gap: "6px" }}>
                            <div style={{ width: "10px", height: "10px", background: "#f87171", borderRadius: "50%" }} />
                            <div style={{ width: "10px", height: "10px", background: "#fbbf24", borderRadius: "50%" }} />
@@ -2881,7 +2971,7 @@ export default function Index() {
                            Your Feed
                          </div>
                       </div>
-                      <div style={{ width: "100%", background: "#f8fafc", padding: "10px 16px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid #cbd5e1" }}>
+                      <div style={{ width: "100%", background: "#ffffff", padding: "10px 16px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid #cbd5e1" }}>
                          <div style={{ display: "flex", gap: "10px", fontSize: "12px", color: "#94a3b8" }}>
                            <span>←</span> <span>→</span> <span>↻</span>
                          </div>
@@ -2942,19 +3032,29 @@ export default function Index() {
                                               </svg>
                                             )}
                                             <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
-                                              {(item.media_url || item.thumbnail_url) && (
-                                                item.media_type === "VIDEO" && config.stories.autoplay ? (
-                                                  <video src={item.media_url} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                                ) : (
+                                              {item.media_type === "VIDEO" ? (
+                                                config.stories.autoplay ? (
+                                                  <video src={item.media_url} poster={item.thumbnail_url || undefined} autoPlay muted loop playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                ) : item.thumbnail_url ? (
                                                   <img 
                                                     loading="lazy" 
-                                                    src={item.media_type === "VIDEO" ? (item.thumbnail_url || item.media_url) : item.media_url} 
+                                                    src={item.thumbnail_url} 
                                                     className={config.stories.animateImages ? "ai-ken-burns" : ""}
                                                     style={{ width: "100%", height: "100%", objectFit: "cover" }} 
                                                     alt="story" 
                                                   />
+                                                ) : (
+                                                  <video src={item.media_url} muted playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                                 )
-                                              )}
+                                              ) : item.media_url ? (
+                                                <img 
+                                                  loading="lazy" 
+                                                  src={item.media_url} 
+                                                  className={config.stories.animateImages ? "ai-ken-burns" : ""}
+                                                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                                                  alt="story" 
+                                                />
+                                              ) : null}
                                             </div>
                                           </div>
                                           <div style={{ fontSize: "10px", color: "#64748b", fontWeight: "600", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

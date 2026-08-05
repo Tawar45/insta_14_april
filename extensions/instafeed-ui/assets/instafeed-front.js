@@ -240,12 +240,21 @@
       const rawType   = (item.media_type || "").toUpperCase();
       const isVideo   = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
       const isAlbum   = rawType === "CAROUSEL_ALBUM" || rawType === "ALBUM";
-      const src       = isVideo ? (item.thumbnail_url || item.media_url) : item.media_url;
+      const thumbUrl  = item.thumbnail_url || "";
+      const posterAttr = thumbUrl ? ` poster="${esc(thumbUrl)}"` : "";
       let inner = "";
-      if (isVideo && c.autoplay) {
-        inner = `<video src="${esc(item.media_url)}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
-      } else if (src) {
-        inner = `<img loading="lazy" src="${esc(src)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      if (isVideo) {
+        if (c.autoplay) {
+          inner = `<video src="${esc(item.media_url)}"${posterAttr} autoplay muted loop playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+        } else if (thumbUrl) {
+          inner = `<img loading="lazy" src="${esc(thumbUrl)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+        } else if (item.media_url) {
+          inner = `<video src="${esc(item.media_url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+        } else {
+          inner = `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`;
+        }
+      } else if (item.media_url) {
+        inner = `<img loading="lazy" src="${esc(item.media_url)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
       } else {
         inner = `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`;
       }
@@ -447,14 +456,30 @@
             <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;${s.alignment === 'center' ? 'margin:0 auto;' : s.alignment === 'right' ? 'margin:0 0 0 auto;' : 'margin:0 auto 0 0;'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 12px;">`;
 
         storyItems.forEach((item, i) => {
-          const isVideo  = item.media_type === "VIDEO";
-          const src      = isVideo ? (item.thumbnail_url || item.media_url) : item.media_url;
-          const href     = item.permalink || "#";
-          const target   = href === "#" ? "_self" : "_blank";
-          const label    = item.caption ? esc(item.caption.split(" ")[0]) : `Story ${i + 1}`;
-          const mediaTpl = (isVideo && s.autoplay)
-            ? `<video src="${esc(item.media_url)}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>`
-            : (src ? `<img loading="lazy" src="${esc(src)}" alt="story" class="${s.animateImages ? 'ai-ken-burns' : ''}" style="width:100%;height:100%;object-fit:cover;display:block;">` : `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`);
+          const rawType   = (item.media_type || "").toUpperCase();
+          const isVideo   = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+          const thumbUrl  = item.thumbnail_url || "";
+          const posterAttr = thumbUrl ? ` poster="${esc(thumbUrl)}"` : "";
+          const href      = item.permalink || "#";
+          const target    = href === "#" ? "_self" : "_blank";
+          const label     = item.caption ? esc(item.caption.split(" ")[0]) : `Story ${i + 1}`;
+
+          let mediaTpl = "";
+          if (isVideo) {
+            if (s.autoplay) {
+              mediaTpl = `<video src="${esc(item.media_url)}"${posterAttr} autoplay muted loop playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+            } else if (thumbUrl) {
+              mediaTpl = `<img loading="lazy" src="${esc(thumbUrl)}" alt="story" class="${s.animateImages ? 'ai-ken-burns' : ''}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+            } else if (item.media_url) {
+              mediaTpl = `<video src="${esc(item.media_url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+            } else {
+              mediaTpl = `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`;
+            }
+          } else if (item.media_url) {
+            mediaTpl = `<img loading="lazy" src="${esc(item.media_url)}" alt="story" class="${s.animateImages ? 'ai-ken-burns' : ''}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+          } else {
+            mediaTpl = `<div style="width:100%;height:100%;background:#f1f5f9;"></div>`;
+          }
 
           const isPopup  = s.openPopup === true;
           const finalHref   = isPopup ? "javascript:void(0)" : href;
@@ -655,12 +680,13 @@
       let mediaHtml = '';
       if (subChildren.length > 0) {
         const slidesHtml = subChildren.map((child, cIdx) => {
-          const isChildVideo = child.media_type === 'VIDEO';
+          const isChildVideo = child.media_type === 'VIDEO' || (child.media_url && child.media_url.toLowerCase().includes('.mp4'));
           const childVideoAttrs = enableSound ? 'controls controlsList="nodownload"' : 'muted';
           const childSrc = child.media_url;
+          const childPosterAttr = child.thumbnail_url ? ` poster="${esc(child.thumbnail_url)}"` : '';
           return `<div class="ai-modal-carousel-slide">` +
             (isChildVideo
-              ? `<video class="ai-modal-carousel-video" src="${childSrc}" autoplay loop ${childVideoAttrs} playsinline style="width:100%;height:100%;object-fit:contain;display:block;"></video>`
+              ? `<video class="ai-modal-carousel-video" src="${childSrc}"${childPosterAttr} autoplay loop ${childVideoAttrs} playsinline preload="metadata" style="width:100%;height:100%;object-fit:contain;display:block;"></video>`
               : `<img src="${childSrc}" alt="Instagram carousel item" style="width:100%;height:100%;object-fit:contain;display:block;">`) +
             `</div>`;
         }).join('');
@@ -682,8 +708,9 @@
           (subChildren.length > 1 ? subPrevBtn + subNextBtn + dotsHtml : '') +
           `</div>`;
       } else {
+        const modalPosterAttr = item.thumbnail_url ? ' poster="' + esc(item.thumbnail_url) + '"' : '';
         mediaHtml = isVideo
-          ? '<video id="ai-modal-video" src="' + item.media_url + '" autoplay loop ' + videoAttrs + ' playsinline style="width:100%;height:100%;object-fit:contain;display:block;"></video>'
+          ? '<video id="ai-modal-video" src="' + item.media_url + '"' + modalPosterAttr + ' autoplay loop ' + videoAttrs + ' playsinline preload="metadata" style="width:100%;height:100%;object-fit:contain;display:block;"></video>'
           : '<img src="' + item.media_url + '" alt="Instagram post" style="width:100%;height:100%;object-fit:contain;display:block;">';
       }
 

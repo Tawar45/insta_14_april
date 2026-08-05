@@ -428,8 +428,13 @@ input:checked + .slider::before {
   background: #f8fafc;
   padding: 8px;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #cbd5e1;
   transition: all 0.3s ease;
+}
+
+.input-group-nested .premium-input {
+  border: none;
+  background: transparent;
 }
 
 .input-group-nested:focus-within {
@@ -442,11 +447,11 @@ input:checked + .slider::before {
 .premium-input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid transparent;
+  border: 1px solid #cbd5e1;
   border-radius: 12px;
   font-size: 15px;
   outline: none;
-  background: transparent;
+  background: #f8fafc;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: #0f172a;
   font-weight: 500;

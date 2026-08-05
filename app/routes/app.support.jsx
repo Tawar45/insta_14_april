@@ -40,6 +40,49 @@ import {
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// FAQ ACCORDION COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+const FAQItem = ({ question, answer, isLast }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div
+      onClick={() => setIsOpen(!isOpen)}
+      style={{
+        padding: "16px 0",
+        borderBottom: isLast ? "none" : "1px solid #f1f5f9",
+        cursor: "pointer"
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+        <Text variant="bodyMd" fontWeight="bold">{question}</Text>
+        <div style={{
+          width: "28px", height: "28px", borderRadius: "50%", background: "#f8fafc",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "all 0.3s ease",
+          transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
+          border: "1px solid #e2e8f0",
+          flexShrink: 0
+        }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </div>
+      </div>
+      <div style={{
+        maxHeight: isOpen ? "300px" : "0",
+        overflow: "hidden",
+        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+        marginTop: isOpen ? "10px" : "0",
+        opacity: isOpen ? 1 : 0
+      }}>
+        <Text variant="bodySm" tone="subdued">{answer}</Text>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // LOADER - Fetch shop info if needed
 // ─────────────────────────────────────────────────────────────────────────────
 export const loader = async ({ request }) => {
@@ -60,7 +103,7 @@ export const loader = async ({ request }) => {
   return {
     shop: session.shop,
     merchantEmail,
-    supportEmail: process.env.SUPPORT_EMAIL || "support@booststar.com",
+    supportEmail: process.env.SUPPORT_EMAIL || "contact@booststar.in",
     whatsappNumber: "+917000587074",
   };
 };
@@ -223,14 +266,6 @@ export default function Support() {
               </button>
             </div>
 
-            <div style={{ 
-              background: "rgba(255,255,255,0.15)", padding: "12px 20px", borderRadius: "14px", 
-              border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(8px)",
-              textAlign: "right"
-            }}>
-              <div style={{ fontSize: "10px", fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.9)" }}>Expert Response</div>
-              <div style={{ fontWeight: "900", fontSize: "15px", color: "white" }}>Under 2 hours</div>
-            </div>
           </div>
 
           {/* --- EXPERT CONSULTATION BANNER --- */}
@@ -262,260 +297,63 @@ export default function Support() {
           </div>
 
           <Layout>
-            {/* --- LEFT COLUMN: CONTACT FORM --- */}
+            {/* --- LEFT COLUMN: FAQ --- */}
             <Layout.Section>
-              <Card>
-                <div style={{ padding: "8px" }}>
-                  <BlockStack gap="400">
-                    <Text variant="headingMd" as="h3">Send us a message</Text>
-                    <fetcher.Form 
-                      method="post" 
-                      encType="multipart/form-data"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        const formData = new FormData();
-                        formData.append("email", email);
-                        formData.append("subject", subject);
-                        formData.append("message", message);
-                        selectedFiles.forEach(file => {
-                          formData.append("attachment", file);
-                        });
-                        fetcher.submit(formData, { method: "post", encType: "multipart/form-data" });
-                      }}
-                    >
-                      <FormLayout>
-                        <TextField
-                          label="Your Email"
-                          name="email"
-                          value={email}
-                          onChange={setEmail}
-                          autoComplete="email"
-                          placeholder="shop-owner@example.com"
-                          requiredIndicator
-                        />
-                        <TextField
-                          label="Subject"
-                          name="subject"
-                          value={subject}
-                          onChange={setSubject}
-                          autoComplete="off"
-                          placeholder="How can we help?"
-                          requiredIndicator
-                        />
-                        <div style={{ 
-                          position: "relative", 
-                          border: "1px solid #d1d5db", 
-                          borderRadius: "10px", 
-                          background: "white",
-                          overflow: "hidden",
-                          transition: "border-color 0.2s ease"
-                        }} className="message-container">
-                          <div
-                            contentEditable={true}
-                            onInput={(e) => setMessage(e.currentTarget.innerHTML)}
-                            onPaste={(e) => {
-                              // Optional: handle paste to ensure some styling is kept or cleaned
-                            }}
-                            placeholder="Describe your issue or question in detail..."
-                            style={{
-                              width: "100%",
-                              minHeight: "220px",
-                              padding: "20px",
-                              border: "none",
-                              outline: "none",
-                              background: "white",
-                              fontSize: "15px",
-                              lineHeight: "1.6",
-                              color: "#202124",
-                              fontFamily: "'Google Sans', Roboto, Arial, sans-serif",
-                              overflowY: "auto"
-                            }}
-                          />
-                          <input type="hidden" name="message" value={message} />
-                          
-                          {/* File Previews */}
-                          {selectedFiles.length > 0 && (
-                            <div style={{ 
-                              padding: "12px 20px", 
-                              display: "flex", 
-                              flexWrap: "wrap", 
-                              gap: "8px", 
-                              background: "#f8f9fa",
-                              borderTop: "1px solid #f1f3f4"
-                            }}>
-                              {selectedFiles.map((file, index) => (
-                                <div 
-                                  key={`${file.name}-${index}`}
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "6px",
-                                    padding: "4px 10px",
-                                    background: "white",
-                                    border: "1px solid #e2e8f0",
-                                    borderRadius: "16px",
-                                    fontSize: "12px",
-                                    color: "#475569",
-                                    boxShadow: "0 1px 2px rgba(0,0,0,0.02)"
-                                  }}
-                                >
-                                  <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                    {file.name}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== index))}
-                                    style={{
-                                      background: "none",
-                                      border: "none",
-                                      padding: 0,
-                                      cursor: "pointer",
-                                      color: "#94a3b8",
-                                      display: "flex",
-                                      alignItems: "center"
-                                    }}
-                                  >
-                                    <div style={{ width: "14px" }}>
-                                      <Icon source={XCircleIcon} tone="inherit" />
-                                    </div>
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          <div style={{ 
-                            padding: "12px 20px", 
-                            background: "#fdfdfd", 
-                            borderTop: "1px solid #f1f3f4",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between"
-                          }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                              <label style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                                <input
-                                  type="file"
-                                  name="attachment"
-                                  multiple
-                                  onChange={(e) => {
-                                    const newFiles = Array.from(e.target.files);
-                                    setSelectedFiles(prev => [...prev, ...newFiles]);
-                                    e.target.value = ''; // Reset to allow re-selection
-                                  }}
-                                  style={{ display: "none" }}
-                                />
-                                <div style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px",
-                                  padding: "8px 16px",
-                                  borderRadius: "24px",
-                                  background: "#f1f3f4",
-                                  color: "#5f6368",
-                                  fontSize: "14px",
-                                  fontWeight: "500",
-                                  border: "1px solid #dadce0",
-                                  transition: "all 0.2s"
-                                }} className="attach-btn-hover">
-                                  <Icon source={AttachmentIcon} tone="inherit" />
-                                  <span>Attach</span>
-                                </div>
-                              </label>
-                              <span id="file-name-label" style={{ 
-                                fontSize: "13px", 
-                                color: "#5f6368", 
-                                fontStyle: "italic",
-                                maxWidth: "180px", 
-                                overflow: "hidden", 
-                                textOverflow: "ellipsis", 
-                                whiteSpace: "nowrap" 
-                              }}>
-                                {selectedFiles.length === 0 ? "No file chosen" : `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected`}
-                              </span>
-                              
-                              <button 
-                                type="submit" 
-                                disabled={isSubmitting}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px",
-                                  padding: "10px 24px",
-                                  borderRadius: "24px",
-                                  background: "#303030",
-                                  color: "white",
-                                  fontSize: "14px",
-                                  fontWeight: "600",
-                                  border: "none",
-                                  cursor: isSubmitting ? "not-allowed" : "pointer",
-                                  boxShadow: "0 1px 0 rgba(0, 0, 0, 0.05)",
-                                  transition: "all 0.2s",
-                                  marginLeft: "8px"
-                                }}
-                                className="gmail-send-btn"
-                              >
-                                <span>{isSubmitting ? "Sending..." : "Send"}</span>
-                                <div style={{ width: "20px", display: "flex", alignItems: "center" }}>
-                                  <Icon source={SendIcon} tone="inherit" />
-                                </div>
-                              </button>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#5f6368" }}>
-                              <Icon source={MagicIcon} tone="inherit" />
-                              <Text variant="bodySm" tone="subdued">Rich formatting enabled</Text>
-                            </div>
-                          </div>
-                        </div>
-
-                        <style>{`
-                          .message-container:focus-within {
-                            border-color: #303030 !important;
-                            box-shadow: 0 0 0 1px #303030;
-                          }
-                          .attach-btn-hover:hover {
-                            background: #e8eaed !important;
-                            border-color: #d1d3d8 !important;
-                          }
-                          .gmail-send-btn:hover {
-                            background: #1a1a1a !important;
-                            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-                          }
-                          .gmail-send-btn:active {
-                            transform: scale(0.98);
-                          }
-                        `}</style>
-
-                        <div style={{ marginTop: "8px" }}>
-                        </div>
-                      </FormLayout>
-                    </fetcher.Form>
-                  </BlockStack>
-                </div>
-              </Card>
-
-              <div style={{ marginTop: "24px" }}>
+              <div style={{ marginTop: "0px" }}>
                 <Card>
-                  <div style={{ padding: "8px" }}>
+                  <div style={{ padding: "12px 16px" }}>
                     <BlockStack gap="400">
-                      <Text variant="headingMd" as="h3">Frequently Asked Questions</Text>
+                      <div>
+                        <Text variant="headingLg" as="h3">Frequently Asked Questions</Text>
+                        <Text variant="bodySm" tone="subdued">Everything you need to know about setting up and using AI Instafeed.</Text>
+                      </div>
                       <Divider />
-                      <BlockStack gap="300">
-                        <div style={{ padding: "8px 0" }}>
-                          <Text variant="bodyMd" fontWeight="bold">How do I connect my Instagram account?</Text>
-                          <Text variant="bodyMd" tone="subdued">Go to the Home tab, enter your Instagram handle, and our AI will automatically fetch your feed.</Text>
-                        </div>
-                        <Divider />
-                        <div style={{ padding: "8px 0" }}>
-                          <Text variant="bodyMd" fontWeight="bold">Can I hide specific posts from my feed?</Text>
-                          <Text variant="bodyMd" tone="subdued">Yes! Enable "Hide Mode" in the dashboard and click on any post to toggle its visibility.</Text>
-                        </div>
-                        <Divider />
-                        <div style={{ padding: "8px 0" }}>
-                          <Text variant="bodyMd" fontWeight="bold">Does the app slow down my website?</Text>
-                          <Text variant="bodyMd" tone="subdued">Absolutely not. We use advanced lazy-loading and an optimized CDN to ensure 0ms impact on your SEO.</Text>
-                        </div>
-                      </BlockStack>
+                      <div>
+                        {[
+                          {
+                            q: "How do I connect my Instagram account?",
+                            a: "Simply enter your public Instagram @handle on the dashboard. Our AI discovery automatically fetches your latest posts without requiring password sharing or complex API keys."
+                          },
+                          {
+                            q: "How do I display the Instagram feed on my Shopify store?",
+                            a: "Go to Shopify Admin > Online Store > Customize. Click 'Add section' or 'Add block', select 'Instafeed: Feed Grid' or 'Instafeed: Story Layout', position it anywhere on your page, and click Save."
+                          },
+                          {
+                            q: "How often does my Instagram feed automatically update?",
+                            a: "The app automatically syncs new posts in the background every 6 hours. You can also trigger an instant refresh anytime by saving your feed settings in the app dashboard."
+                          },
+                          {
+                            q: "Does the app support Instagram Reels and Video posts?",
+                            a: "Yes! Instagram Reels, MP4 videos, and Carousel Album posts are fully supported with autoplay, video indicators, cover thumbnail posters, and full-screen popup modal view."
+                          },
+                          {
+                            q: "Can I hide specific posts from showing on my store?",
+                            a: "Yes! Toggle on 'Hide Mode' in your app dashboard, then click on any post thumbnail to instantly hide or unhide it from your storefront feed."
+                          },
+                          {
+                            q: "Will this app slow down my website or affect page speed?",
+                            a: "No. AI Instafeed is built with native Web Components, lazy-loaded media assets, and an ultra-fast global CDN, ensuring 0ms impact on your store's speed and Lighthouse scores."
+                          },
+                          {
+                            q: "How do I customize the layout for Mobile vs Desktop?",
+                            a: "In the Post Feed settings, you can customize column counts independently for desktop (up to 6 columns) and mobile (1 or 2 columns), adjust image gaps, aspect ratios, titles, and typography."
+                          },
+                          {
+                            q: "What is the difference between Starter (Free) and Pro plans?",
+                            a: "The Starter plan supports up to 12 posts with standard grid feeds. The Pro plan unlocks unlimited posts, removes the app branding watermark, enables custom post sorting/filtering, and activates AI Comment Moderation."
+                          },
+                          {
+                            q: "Why is a video thumbnail showing a blank frame?",
+                            a: "Video posts use Instagram's generated cover poster. If a browser blocks video autoplay (e.g. in Low Power Mode), our built-in video fallback automatically extracts and displays the video's first frame."
+                          },
+                          {
+                            q: "Do I need an Instagram Business or Professional account?",
+                            a: "The app works directly with any public Instagram handle. Having an Instagram Business or Creator account connected to a Facebook page ensures maximum stability and access to engagement metrics."
+                          }
+                        ].map((faq, i, arr) => (
+                          <FAQItem key={i} question={faq.q} answer={faq.a} isLast={i === arr.length - 1} />
+                        ))}
+                      </div>
                     </BlockStack>
                   </div>
                 </Card>
@@ -605,12 +443,6 @@ export default function Support() {
                   </div>
                 </Card>
 
-                <Banner
-                  title="Priority Support"
-                  tone="info"
-                >
-                  <p>Pro plan users get priority support and response times under 1 hour.</p>
-                </Banner>
               </BlockStack>
             </Layout.Section>
           </Layout>

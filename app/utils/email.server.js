@@ -14,7 +14,7 @@ export async function sendSupportEmail({ from, subject, message, shop, attachmen
 
   const mailOptions = {
     from: `"AI Instafeed Support" <${process.env.SMTP_USER}>`,
-    to: process.env.SUPPORT_EMAIL || "support@booststar.com",
+    to: process.env.SUPPORT_EMAIL || "contact@booststar.in",
     replyTo: from,
     subject: `[New Support Request] ${subject} - From ${shop}`,
     attachments: attachments,
