@@ -1,8 +1,10 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import modernStyles from "./styles/modern.css?url";
+import plansStyles from "./styles/plans.css?url";
 
 export const links = () => [
   { rel: "stylesheet", href: modernStyles },
+  { rel: "stylesheet", href: plansStyles },
 ];
 
 export default function App() {

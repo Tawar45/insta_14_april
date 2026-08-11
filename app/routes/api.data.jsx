@@ -93,6 +93,11 @@ export const loader = async ({ request }) => {
         },
         stories: {
           enable: true,
+          promoEnable: true,
+          promoLabel: "Get 10% Off",
+          promoCode: "WELCOME10",
+          promoDesc: "Get 10% off your first purchase! Use code WELCOME10 at checkout.",
+          showLabels: true,
           carousel: true,
           autoplay: true,
           alignment: "center",

@@ -16,6 +16,8 @@ import {
   Text,
   Icon,
   Button,
+  Collapsible,
+  Divider,
 } from "@shopify/polaris";
 import {
   RefreshIcon,
@@ -938,6 +940,15 @@ export default function Index() {
 
   const [isConnectExpanded, setIsConnectExpanded] = useState(!isConnected);
   const [isSetupExpanded, setIsSetupExpanded] = useState(isConnected && !isSetupComplete);
+
+  // Collapsible section toggles for Feed Grid tab
+  const [isPostModulesExpanded, setIsPostModulesExpanded] = useState(true);
+  const [isPostLayoutExpanded, setIsPostLayoutExpanded] = useState(false);
+  const [isPostBrandingExpanded, setIsPostBrandingExpanded] = useState(false);
+
+  // Collapsible section toggles for Story tab
+  const [isStoryModulesExpanded, setIsStoryModulesExpanded] = useState(true);
+  const [isStoryBrandingExpanded, setIsStoryBrandingExpanded] = useState(false);
 
   useEffect(() => {
     setIsConnectExpanded(!isConnected);
@@ -2055,6 +2066,15 @@ export default function Index() {
                     </div>
                   </div>
 
+                  {/* ── Collapsible: Feature Modules ── */}
+                  <div
+                    onClick={() => setIsPostModulesExpanded(!isPostModulesExpanded)}
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                  >
+                    <h3 className="input-label" style={{ margin: 0 }}>Feature Modules</h3>
+                    <Icon source={isPostModulesExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                  </div>
+                  <Collapsible open={isPostModulesExpanded} id="post-modules-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
                   <h3 className="input-label" style={{ marginBottom: "12px" }}>Standard Modules</h3>
                   <div className="compact-settings-grid" style={{ marginBottom: "24px" }}>
                     {[
@@ -2145,7 +2165,19 @@ export default function Index() {
                       )}
                     </div>
                   )}
+                  </Collapsible>
 
+                  <Divider />
+
+                  {/* ── Collapsible: Layout & Grid Architecture ── */}
+                  <div
+                    onClick={() => setIsPostLayoutExpanded(!isPostLayoutExpanded)}
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                  >
+                    <h3 className="input-label" style={{ margin: 0 }}>Layout & Grid Architecture</h3>
+                    <Icon source={isPostLayoutExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                  </div>
+                  <Collapsible open={isPostLayoutExpanded} id="post-layout-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
                   <div className="visual-architecture">
                     <h3 className="input-label">Grid Architecture</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
@@ -2291,7 +2323,22 @@ export default function Index() {
 
                   </div>
 
+                  </Collapsible>
 
+                  <Divider />
+
+                  {/* ── Collapsible: Branding & Typography ── */}
+                  <div
+                    onClick={() => setIsPostBrandingExpanded(!isPostBrandingExpanded)}
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                  >
+                    <h3 className="input-label" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Icon source={ColorIcon} tone="base" />
+                      Branding & Typography
+                    </h3>
+                    <Icon source={isPostBrandingExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                  </div>
+                  <Collapsible open={isPostBrandingExpanded} id="post-branding-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
                     <div className="config-visual-card">
                       <div className="input-group-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -2419,6 +2466,7 @@ export default function Index() {
                         </div>
                       </div>
                     </div>
+                  </Collapsible>
                 </>
               ) : (
                 /* ── Story & Layouts Settings ── */
@@ -2516,6 +2564,15 @@ export default function Index() {
                     </div>
                   </div>
 
+                  {/* ── Collapsible: Story Highlight Modules ── */}
+                  <div
+                    onClick={() => setIsStoryModulesExpanded(!isStoryModulesExpanded)}
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                  >
+                    <h3 className="input-label" style={{ margin: 0 }}>Highlight Modules</h3>
+                    <Icon source={isStoryModulesExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                  </div>
+                  <Collapsible open={isStoryModulesExpanded} id="story-modules-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
                   <h3 className="input-label" style={{ marginBottom: "12px" }}>Highlight Modules</h3>
                   <div style={{ marginBottom: "32px" }}>
                     {[
@@ -2576,8 +2633,23 @@ export default function Index() {
                       </div>
                     )}
                   </div>
+                  </Collapsible>
 
-                  <div className="visual-architecture" style={{ marginTop: "32px", animation: "slideInUp 0.3s ease-out 0.2s both" }}>
+                  <Divider />
+
+                  {/* ── Collapsible: Story Branding & Typography ── */}
+                  <div
+                    onClick={() => setIsStoryBrandingExpanded(!isStoryBrandingExpanded)}
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                  >
+                    <h3 className="input-label" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Icon source={ColorIcon} tone="base" />
+                      Branding & Typography
+                    </h3>
+                    <Icon source={isStoryBrandingExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                  </div>
+                  <Collapsible open={isStoryBrandingExpanded} id="story-branding-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
+                  <div className="visual-architecture" style={{ animation: "slideInUp 0.3s ease-out 0.2s both" }}>
 
                     <div className="config-visual-card">
                       <div className="input-group-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
@@ -2742,6 +2814,7 @@ export default function Index() {
                     </div>
                     </div>
                     </div>
+                  </Collapsible>
                 </>
               )}
             </div>

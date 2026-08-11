@@ -402,6 +402,22 @@
     _handleClick(e) {
       const storyItem = e.target.closest(".ai-story-item");
       if (storyItem) {
+        if (storyItem.classList.contains("ai-promo-item")) {
+          e.preventDefault();
+          this.dispatchEvent(new CustomEvent("instafeed:open-modal", {
+            bubbles: true,
+            composed: true,
+            detail: {
+              id: "promo",
+              source: "promo",
+              media: [],
+              config: this.config,
+              cssUrl: this.getAttribute("css-url") || getCssUrl()
+            }
+          }));
+          return;
+        }
+
         const isPopup = this.config.stories.openPopup === true;
         if (isPopup) {
           e.preventDefault();
@@ -465,7 +481,30 @@
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg>
               </div>
             ` : ''}
-            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:${s.alignment === 'center' ? 'center' : s.alignment === 'right' ? 'flex-end' : 'flex-start'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 12px;">`;
+            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:${s.alignment === 'center' ? 'center' : s.alignment === 'right' ? 'flex-end' : 'flex-start'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 28px;">`;
+
+        // Prepend promo story if enabled
+        if (s.promoEnable) {
+          const promoLabelText = s.promoLabel || "Get 10% Off";
+          
+          html += `
+            <div class="ai-story-item ai-promo-item" style="flex-shrink:0;width:76px;text-align:center;cursor:pointer;overflow:visible;">
+              <a href="javascript:void(0)" style="text-decoration:none;display:block;width:100%;">
+                <div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border: ${isActiveRing ? 'none' : '2px solid ' + ringColor};background:white;margin:0 auto;position:relative; transform: translateZ(0); -webkit-transform: translateZ(0);">
+                  ${isActiveRing ? `
+                    <svg class="ai-story-ring-svg ${s.pulseRing !== false ? 'ai-story-ring-pulse' : ''}" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                      <circle class="ai-story-ring-circle" cx="50" cy="50" r="47.5" stroke="${ringColor}" />
+                    </svg>` : ''}
+                  <div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%);display:flex;align-items:center;justify-content:center;position:relative;z-index:1;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  </div>
+                </div>
+                <div style="margin-top:6px;text-align:center;">
+                  <span class="ai-promo-pill" style="display:inline-block;padding:2px 10px;border: 1.5px solid ${ringColor};color:${ringColor};font-size:10px;font-weight:700;border-radius:12px;white-space:nowrap;line-height:1.2;background:#fff;">${esc(promoLabelText)}</span>
+                </div>
+              </a>
+            </div>`;
+        }
 
         storyItems.forEach((item, i) => {
           const rawType   = (item.media_type || "").toUpperCase();
@@ -474,7 +513,10 @@
           const posterAttr = thumbUrl ? ` poster="${esc(thumbUrl)}"` : "";
           const href      = item.permalink || "#";
           const target    = href === "#" ? "_self" : "_blank";
-          const label     = item.caption ? esc(item.caption.split(" ")[0]) : `Story ${i + 1}`;
+          
+          const rawLabel  = item.caption ? item.caption.split(/\s+/)[0] : `Story ${i + 1}`;
+          const cleanLabel = rawLabel.replace(/[:,\.\-\s]+$/, '');
+          const labelHtml = (s.showLabels !== false) ? `<div class="ai-story-label" style="margin-top:6px;font-size:11.5px;color:#000;font-weight:500;text-align:center;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;">${esc(cleanLabel)}</div>` : '';
 
           let mediaTpl = "";
           if (isVideo) {
@@ -497,8 +539,8 @@
           const finalHref   = isPopup ? "javascript:void(0)" : href;
 
           html += `
-            <div class="ai-story-item" data-id="${item.id || (item.media_url ? item.media_url.slice(-20) : '')}" style="flex-shrink:0;width:68px;height:64px;text-align:center;cursor:pointer;overflow:hidden;">
-              <a href="${esc(finalHref)}" target="${isPopup ? '_self' : target}" rel="noopener noreferrer" style="text-decoration:none;display:block;width:100%;height:100%;">
+            <div class="ai-story-item" data-id="${item.id || (item.media_url ? item.media_url.slice(-20) : '')}" style="flex-shrink:0;width:76px;text-align:center;cursor:pointer;overflow:visible;">
+              <a href="${esc(finalHref)}" target="${isPopup ? '_self' : target}" rel="noopener noreferrer" style="text-decoration:none;display:block;width:100%;">
                 <div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border: ${isActiveRing ? 'none' : '2px solid ' + ringColor};background:white;margin:0 auto;position:relative; transform: translateZ(0); -webkit-transform: translateZ(0);">
                   ${isActiveRing ? `
                     <svg class="ai-story-ring-svg ${s.pulseRing !== false ? 'ai-story-ring-pulse' : ''}" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
@@ -506,6 +548,7 @@
                     </svg>` : ''}
                   <div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#f1f5f9;position:relative;z-index:1;">${mediaTpl}</div>
                 </div>
+                ${labelHtml}
               </a>
             </div>`;
         });
@@ -559,6 +602,9 @@
     _handleClick(e) {
       if (e.target.closest(".ai-modal-header-close") || e.target.closest(".ai-modal-float-close")) {
         this.close();
+      } else if (e.target.closest(".ai-modal-promo-link-btn")) {
+        this.source = 'promo';
+        this.renderModal(-1);
       } else if (e.target.closest(".ai-modal-prev")) {
         this.navigate(-1);
       } else if (e.target.closest(".ai-modal-next")) {
@@ -615,6 +661,13 @@
       this.activeMedia = mediaList;
       this.config = config;
       this.cssUrl = cssUrl;
+
+      if (source === 'promo') {
+        document.removeEventListener("keydown", this._boundKeydown);
+        this.renderModal(-1);
+        this.setAttribute("active", "");
+        return;
+      }
 
       const index = mediaList.findIndex(m => (m.id || (m.media_url ? m.media_url.slice(-20) : '')) === id);
       if (index === -1) return;
@@ -700,7 +753,7 @@
         const newIndex = Math.round(track.scrollLeft / slideWidth);
         if (newIndex !== this.currentSubIndex) {
           this.currentSubIndex = newIndex;
-          this.updateSubCarouselUI(newIndex, slides.length);
+        this.updateSubCarouselUI(newIndex, slides.length);
         }
       }, { passive: true });
     }
@@ -708,6 +761,53 @@
     renderModal(index) {
       this.currentIndex = index;
       this.currentSubIndex = 0; // Reset sub-carousel index
+
+      if (this.source === 'promo') {
+        const s = (this.config && this.config.stories) || {};
+        const promoLabelText = s.promoLabel || "Get 10% Off";
+        const igHandle = (this.config && this.config.instagramHandle) ? this.config.instagramHandle.replace("@", "").trim() : "instagram";
+
+        let styleLink = "";
+        if (this.cssUrl) {
+          styleLink = `<link rel="stylesheet" href="${this.cssUrl}">`;
+        }
+
+        this.shadowRoot.innerHTML =
+          styleLink +
+          `<style>
+            @media (max-width: 520px) {
+              .ai-modal-layout-promo {
+                flex-direction: column !important;
+                max-height: 85vh !important;
+                max-width: 90% !important;
+              }
+            }
+          </style>
+          <div id="ai-instafeed-modal-root" style="display: flex;">
+            <div class="ai-modal-layout ai-modal-layout-promo" style="max-width: 600px; display: flex; flex-direction: row; overflow: hidden; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); background: white;">
+              <!-- Left side: Gradient visual card -->
+              <div style="flex: 1; background: linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 32px; text-align: center; min-height: 200px; box-sizing: border-box;">
+                <div style="background: rgba(255, 255, 255, 0.2); border-radius: 50%; padding: 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center;">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 800; margin: 0 0 8px 0; letter-spacing: 0.5px; line-height: 1.2;">SPECIAL OFFER</h3>
+                <p style="font-size: 12px; opacity: 0.9; margin: 0; font-weight: 600;">Exclusive Offer</p>
+              </div>
+              <!-- Right side: offer details panel -->
+              <div style="flex: 1.2; display: flex; flex-direction: column; background: white; padding: 32px; position: relative; justify-content: center; box-sizing: border-box;">
+                <button class="ai-modal-header-close" aria-label="Close" style="position: absolute; top: 16px; right: 16px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; z-index: 10; display: flex; align-items: center; justify-content: center;">✕</button>
+                <h4 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 0 0 16px 0; line-height: 1.2;">${esc(promoLabelText)}</h4>
+                <p style="font-size: 14px; line-height: 1.6; color: #334155; margin: 0 0 24px 0; font-weight: 500;">
+                  Take a screenshot of a product you wish to buy and tag <span style="color: #e1306c; font-weight: 700;">@${esc(igHandle)}</span> and we will send you a 10% Off Discount Coupon Code!
+                </p>
+                
+                <a href="https://instagram.com/${esc(igHandle)}" target="_blank" rel="noopener noreferrer" class="ai-modal-header-close" style="width: 100%; display: flex; align-items: center; justify-content: center; padding: 10px; background: #0f172a; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; text-decoration: none; box-sizing: border-box;">Open Instagram</a>
+              </div>
+            </div>
+          </div>`;
+        return;
+      }
+
       const item = this.activeMedia[index];
       if (!item) return;
 
@@ -765,6 +865,8 @@
       const date     = item.timestamp ? new Date(item.timestamp).toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}) : 'Recently';
       const link     = item.permalink || '#';
       const likes    = item.like_count || 0;
+
+      const isPromoEnabled = this.config && this.config.stories && this.config.stories.promoEnable === true;
 
       const showBranding = (this.source === 'story') 
         ? !this.config.stories.removeWatermark 
@@ -883,9 +985,23 @@
                     '<span class="ai-modal-likes-count">' + likes + '</span> likes' +
                   '</div>' +
                   '<div class="ai-modal-date">' + date + '</div>' +
-                  '<div style="margin-top:12px;">' +
-                    '<a href="' + link + '" target="_blank" rel="noreferrer" class="ai-modal-ig-btn">View on Instagram</a>' +
-                  '</div>' +
+                  (isPromoEnabled
+                    ? '<div style="margin-top:12px;">' +
+                        '<button type="button" class="ai-modal-promo-link-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, #e1306c 0%, #f77737 100%); color:white; border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; box-sizing:border-box;">' +
+                          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+                            '<polyline points="20 12 20 22 4 22 4 12"></polyline>' +
+                            '<rect x="2" y="7" width="20" height="5"></rect>' +
+                            '<line x1="12" y1="22" x2="12" y2="7"></line>' +
+                            '<path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>' +
+                            '<path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>' +
+                          '</svg>' +
+                          'Get 10% Off' +
+                        '</button>' +
+                      '</div>'
+                    : '<div style="margin-top:12px;">' +
+                        '<a href="' + link + '" target="_blank" rel="noreferrer" class="ai-modal-ig-btn">View on Instagram</a>' +
+                      '</div>'
+                  ) +
                   '<div class="ai-modal-watermark-wrap">' + watermarkHtml + '</div>' +
                 '</div>' +
               '</div>' +
