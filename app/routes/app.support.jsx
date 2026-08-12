@@ -339,8 +339,8 @@ export default function Support() {
                             a: "In the Post Feed settings, you can customize column counts independently for desktop (up to 6 columns) and mobile (1 or 2 columns), adjust image gaps, aspect ratios, titles, and typography."
                           },
                           {
-                            q: "What is the difference between Starter (Free) and Pro plans?",
-                            a: "The Starter plan supports up to 12 posts with standard grid feeds. The Pro plan unlocks unlimited posts, removes the app branding watermark, enables custom post sorting/filtering, and activates AI Comment Moderation."
+                            q: "Is the app free to use for my store?",
+                            a: "Yes! AI Instafeed is 100% Free Forever with unlimited posts, story highlights, custom layout configurations, and discount promo offers included out of the box."
                           },
                           {
                             q: "Why is a video thumbnail showing a blank frame?",

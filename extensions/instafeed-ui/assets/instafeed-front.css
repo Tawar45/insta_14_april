@@ -132,6 +132,8 @@
   -webkit-overflow-scrolling: touch !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
+  bottom: 0px !important;
+  padding-bottom: 0px !important;
 }
 
 /* ── Carousel nav buttons ────────────────────────────────────────────────── */
@@ -905,15 +907,7 @@
   border-radius: 50% !important;
 }
 
-.ai-story-label {
-  margin-top: 4px;
-  font-size: 10px;
-  color: #64748b;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+
 
 /* ── Modal Multi-Image Sub-Carousel ────────────────────────────────────────── */
 .ai-modal-carousel-container {

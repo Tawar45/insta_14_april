@@ -41,7 +41,8 @@ import {
   StoreIcon,
   DesktopIcon,
   CollectionIcon,
-  CheckIcon
+  CheckIcon,
+  ShareIcon
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -397,6 +398,10 @@ const DEFAULT_CONFIG = {
   },
   stories: {
     enable: true,
+    promoEnable: true,
+    promoLabel: "Get 10% Off",
+    promoDesc: "Take a screenshot of a product you wish to buy and tag @account and we will send you a 10% Off Discount Coupon Code!",
+    showLabels: false,
     carousel: true,
     autoplay: true,
     alignment: "center",
@@ -1591,7 +1596,7 @@ export default function Index() {
             onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"; }}
           >
             <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#e1306c" }} />
-            {planName.toUpperCase()} {isPaid ? "PRO" : "PLAN"}
+            FREE PLAN
           </div>
         </div>
       </div>
@@ -2577,6 +2582,7 @@ export default function Index() {
                   <div style={{ marginBottom: "32px" }}>
                     {[
                       { id: "enable",     label: "Active Stories",    sub: "Render top highlight-bar",  icon: StarIcon },
+                      { id: "promoEnable", label: "Get 10% Off Promo Offer", sub: "Show 10% discount promo story circle", icon: MagicIcon },
                       { id: "carousel",   label: "Snap Scrolling",    sub: "Touch-optimized motion",    icon: MagicIcon },
                       { id: "autoplay",   label: "Auto Play Stories", sub: "Animate top highlights",    icon: PlayIcon },
                       { id: "animateImages", label: "Animate Images", sub: "Subtle zoom effect on photos", icon: MagicIcon },
@@ -2997,6 +3003,31 @@ export default function Index() {
                                   </button>
                                 )}
                                 <div className="carousel-container" ref={mobileStoryRef} style={{ display: "flex", width: "max-content", maxWidth: "100%", margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0 auto 0 0", gap: "12px", padding: "0 4px 10px" }}>
+                                  {config.stories.promoEnable !== false && (
+                                    <div 
+                                      style={{ flexShrink: 0, width: "60px", textAlign: "center", cursor: "pointer", overflow: "visible" }}
+                                      onClick={() => {
+                                        setModalSource("promo");
+                                        setSelectedPost({ isPromo: true });
+                                      }}
+                                    >
+                                      <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: config.stories.activeRing ? "none" : `2px solid ${config.stories.ringColor || "var(--premium-accent)"}`, background: "white", margin: "0 auto", position: "relative" }}>
+                                        {config.stories.activeRing && (
+                                          <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
+                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing !== false ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                          </svg>
+                                        )}
+                                        <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
+                                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                        </div>
+                                      </div>
+                                      <div style={{ marginTop: "4px", textAlign: "center" }}>
+                                        <span style={{ display: "inline-block", padding: "1px 6px", border: `1.5px solid ${config.stories.ringColor || "var(--premium-accent)"}`, color: config.stories.ringColor || "var(--premium-accent)", fontSize: "9px", fontWeight: "700", borderRadius: "12px", whiteSpace: "nowrap", background: "#fff", lineHeight: 1.2 }}>
+                                          {config.stories.promoLabel || "Get 10% Off"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
                                   {filteredStoriesMedia.slice(0, 12).map((item, i) => (
                                     <div 
                                       key={i} 
@@ -3123,6 +3154,31 @@ export default function Index() {
                                       </button>
                                     )}
                                     <div className="carousel-container" ref={desktopStoryRef} style={{ display: "flex", width: "max-content", maxWidth: "100%", margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0 auto 0 0", gap: "16px", padding: "8px 4px 12px" }}>
+                                      {config.stories.promoEnable !== false && (
+                                        <div 
+                                          style={{ textAlign: "center", width: "72px", flexShrink: 0, cursor: "pointer", overflow: "visible" }}
+                                          onClick={() => {
+                                            setModalSource("promo");
+                                            setSelectedPost({ isPromo: true });
+                                          }}
+                                        >
+                                          <div style={{ width: "64px", height: "64px", borderRadius: "50%", padding: "3px", border: config.stories.activeRing ? "none" : `2px solid ${config.stories.ringColor || "var(--premium-accent)"}`, background: "white", marginBottom: "4px", overflow: "hidden", margin: "0 auto 4px", position: "relative" }}>
+                                            {config.stories.activeRing && (
+                                              <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
+                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing !== false ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                              </svg>
+                                            )}
+                                            <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
+                                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                            </div>
+                                          </div>
+                                          <div style={{ textAlign: "center" }}>
+                                            <span style={{ display: "inline-block", padding: "2px 8px", border: `1.5px solid ${config.stories.ringColor || "var(--premium-accent)"}`, color: config.stories.ringColor || "var(--premium-accent)", fontSize: "10px", fontWeight: "700", borderRadius: "12px", whiteSpace: "nowrap", background: "#fff", lineHeight: 1.2 }}>
+                                              {config.stories.promoLabel || "Get 10% Off"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      )}
                                       {filteredStoriesMedia.slice(0, 8).map((item, i) => (
                                         <div 
                                           key={i} 
@@ -3269,13 +3325,12 @@ export default function Index() {
             </div>
           </div>
         </Layout.Section>
-      </Layout>
-      </div>
+        </Layout>
+        </div>
       </>
       )}
-    </div>
 
-      {/* ── Premium Post Modal ── */}
+      {/* ── Premium Post / Promo Modal ── */}
       {selectedPost && (
         <div 
           className="premium-modal-overlay" 
@@ -3293,21 +3348,55 @@ export default function Index() {
             animation: "fadeInBlur 0.3s ease"
           }}
         >
-          <div 
-            className="premium-modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "white",
-              width: "100%",
-              maxWidth: "1000px",
-              maxHeight: "90vh",
-              borderRadius: "20px",
-              display: "flex",
-              overflow: "hidden",
-              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
-              flexDirection: window.innerWidth < 768 ? "column" : "row"
-            }}
-          >
+          {selectedPost.isPromo || modalSource === "promo" ? (
+            <div 
+              className="premium-modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                maxWidth: "600px",
+                width: "100%",
+                display: "flex",
+                flexDirection: window.innerWidth < 520 ? "column" : "row",
+                overflow: "hidden",
+                borderRadius: "20px",
+                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+                background: "white"
+              }}
+            >
+              {/* Left side: Gradient visual card */}
+              <div style={{ flex: 1, background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "white", padding: "32px", textAlign: "center", minHeight: "200px", boxSizing: "border-box" }}>
+                <div style={{ background: "rgba(255, 255, 255, 0.2)", borderRadius: "50%", padding: "16px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </div>
+                <h3 style={{ fontSize: "20px", fontWeight: "800", margin: "0 0 8px 0", letterSpacing: "0.5px", lineHeight: "1.2" }}>SPECIAL OFFER</h3>
+                <p style={{ fontSize: "12px", opacity: 0.9, margin: 0, fontWeight: "600" }}>Exclusive Offer</p>
+              </div>
+              {/* Right side: offer details panel */}
+              <div style={{ flex: 1.2, display: "flex", flexDirection: "column", background: "white", padding: "32px", position: "relative", justifyContent: "center", boxSizing: "border-box" }}>
+                <button onClick={() => setSelectedPost(null)} aria-label="Close" style={{ position: "absolute", top: "16px", right: "16px", background: "#f1f5f9", border: "none", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                <h4 style={{ fontSize: "18px", fontWeight: "800", color: "#0f172a", margin: "0 0 16px 0", lineHeight: "1.2" }}>{config.stories.promoLabel || "Get 10% Off"}</h4>
+                <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", margin: "0 0 24px 0", fontWeight: "500" }}>
+                  {config.stories.promoDesc || `Take a screenshot of a product you wish to buy and tag @${(config.instagramHandle || "instagram").replace("@", "").trim()} and we will send you a 10% Off Discount Coupon Code!`}
+                </p>
+                <a href={`https://instagram.com/${(config.instagramHandle || "instagram").replace("@", "").trim()}`} target="_blank" rel="noopener noreferrer" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", background: "#0f172a", color: "white", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "13px", cursor: "pointer", textDecoration: "none", boxSizing: "border-box" }}>Open Instagram</a>
+              </div>
+            </div>
+          ) : (
+            <div 
+              className="premium-modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "white",
+                width: "100%",
+                maxWidth: "1000px",
+                maxHeight: "90vh",
+                borderRadius: "20px",
+                display: "flex",
+                overflow: "hidden",
+                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+                flexDirection: window.innerWidth < 768 ? "column" : "row"
+              }}
+            >
             {/* Left: Media Area */}
             <div style={{ flex: 1.2, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
               {((selectedPost.media_type || "").toUpperCase() === "VIDEO" || (selectedPost.media_type || "").toUpperCase() === "REEL" || (selectedPost.media_url && (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov")))) ? (
@@ -3315,10 +3404,6 @@ export default function Index() {
               ) : (
                 <img src={selectedPost.media_url} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} alt="Post" />
               )}
-              <button 
-                onClick={() => setSelectedPost(null)}
-                style={{ position: "absolute", top: "16px", right: "16px", background: "white", border: "none", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}
-              >✕</button>
             </div>
 
             {/* Right: Info Area */}
@@ -3360,15 +3445,17 @@ export default function Index() {
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: "10px" }}>
-                  <a 
-                    href={selectedPost.permalink} 
-                    target="_blank" 
-                    rel="noreferrer"
+                  <button
+                    type="button"
                     className="premium-button button-accent"
-                    style={{ flex: 1, textDecoration: "none", justifyContent: "center" }}
+                    onClick={() => {
+                      setModalSource("promo");
+                      setSelectedPost({ isPromo: true });
+                    }}
+                    style={{ flex: 1, textDecoration: "none", justifyContent: "center", cursor: "pointer", background: "linear-gradient(135deg, #e1306c 0%, #f77737 100%)", color: "white", border: "none" }}
                   >
-                    View on Instagram
-                  </a>
+                    🎁 {config.stories.promoLabel || "Get 10% Off"}
+                  </button>
                   <button
                     type="button"
                     className="premium-button"
@@ -3396,49 +3483,11 @@ export default function Index() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    )}
 
-      {!isPaid && isConnected && (
-        <div style={{ 
-          margin: "24px auto 24px", 
-          maxWidth: "1300px", 
-          background: "var(--premium-accent-gradient)", 
-          boxShadow: "0 10px 25px -5px rgba(225, 48, 108, 0.3)",
-          borderRadius: "16px", 
-          padding: "16px 24px", 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "space-between",
-          animation: "fadeInBlur 0.6s ease-out",
-          border: "1px solid rgba(255, 255, 255, 0.1)"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <div style={{ background: "rgba(255, 255, 255, 0.2)", color: "white", padding: "8px", borderRadius: "12px" }}>
-              <Icon source={StarIcon} />
-            </div>
-            <div>
-              <p style={{ fontWeight: "700", color: "white", margin: 0 }}>Unlock PRO Features</p>
-              <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.85)", margin: 0 }}>Hiding posts, removing watermark, and infinite scroll are PRO features.</p>
-            </div>
-          </div>
-          <button 
-            className="premium-button" 
-            style={{ 
-              padding: "8px 20px",
-              background: "white",
-              color: "#e1306c",
-              fontWeight: "800",
-              fontSize: "12px",
-              borderRadius: "10px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-            }}
-            onClick={() => navigate("/app/plans")}
-          >
-            Upgrade Now
-          </button>
-        </div>
-      )}
+
 
       <footer style={{ textAlign: "center", padding: "40px 0", marginTop: "24px" }}>
         <BlockStack gap="200">
@@ -3464,6 +3513,7 @@ export default function Index() {
         <button variant="primary" onClick={applyChanges}>Save</button>
         <button onClick={discardChanges}>Discard</button>
       </ui-save-bar>
+    </div>
     </div>
   );
 }

@@ -21,7 +21,10 @@
   // Helper to find the stylesheet link URL in host page fallback
   function getCssUrl() {
     const link = document.querySelector('link[href*="instafeed-front.css"]');
-    return link ? link.getAttribute('href') : '';
+    if (link) return link.getAttribute('href') || link.href || '';
+    const script = document.querySelector('script[src*="instafeed-front.js"]');
+    if (script && script.src) return script.src.replace('instafeed-front.js', 'instafeed-front.css');
+    return '';
   }
 
   // ── Placeholder images (same as dashboard fallbacks) ─────────────────────
@@ -132,6 +135,9 @@
     _handleClick(e) {
       const gridItem = e.target.closest(".ai-grid-item");
       if (gridItem) {
+        const isPopup = this.config?.postFeed?.openPopup !== false;
+        if (!isPopup) return;
+        e.preventDefault();
         const itemId = gridItem.getAttribute("data-id");
         this.dispatchEvent(new CustomEvent("instafeed:open-modal", {
           bubbles: true,
@@ -139,8 +145,8 @@
           detail: {
             id: itemId,
             source: "grid",
-            media: this.mediaData,
-            config: this.config,
+            media: this.mediaData || cachedGridMedia || [],
+            config: this.config || cachedConfig || {},
             cssUrl: this.getAttribute("css-url") || getCssUrl()
           }
         }));
@@ -402,7 +408,7 @@
     _handleClick(e) {
       const storyItem = e.target.closest(".ai-story-item");
       if (storyItem) {
-        if (storyItem.classList.contains("ai-promo-item")) {
+        if (storyItem.classList.contains("ai-promo-item") || storyItem.querySelector(".ai-promo-pill")) {
           e.preventDefault();
           this.dispatchEvent(new CustomEvent("instafeed:open-modal", {
             bubbles: true,
@@ -418,7 +424,7 @@
           return;
         }
 
-        const isPopup = this.config.stories.openPopup === true;
+        const isPopup = this.config?.stories?.openPopup !== false;
         if (isPopup) {
           e.preventDefault();
           const itemId = storyItem.getAttribute("data-id");
@@ -428,8 +434,8 @@
             detail: {
               id: itemId,
               source: "story",
-              media: this.mediaData,
-              config: this.config,
+              media: this.mediaData || cachedStoryMedia || [],
+              config: this.config || cachedConfig || {},
               cssUrl: this.getAttribute("css-url") || getCssUrl()
             }
           }));
@@ -484,7 +490,7 @@
             <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:${s.alignment === 'center' ? 'center' : s.alignment === 'right' ? 'flex-end' : 'flex-start'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 28px;">`;
 
         // Prepend promo story if enabled
-        if (s.promoEnable) {
+        if (s.promoEnable !== false) {
           const promoLabelText = s.promoLabel || "Get 10% Off";
           
           html += `
@@ -516,7 +522,7 @@
           
           const rawLabel  = item.caption ? item.caption.split(/\s+/)[0] : `Story ${i + 1}`;
           const cleanLabel = rawLabel.replace(/[:,\.\-\s]+$/, '');
-          const labelHtml = (s.showLabels !== false) ? `<div class="ai-story-label" style="margin-top:6px;font-size:11.5px;color:#000;font-weight:500;text-align:center;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;">${esc(cleanLabel)}</div>` : '';
+          const labelHtml = (s.showLabels === true) ? `<div class="ai-story-label" style="margin-top:6px;font-size:11.5px;color:#000;font-weight:500;text-align:center;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;">${esc(cleanLabel)}</div>` : '';
 
           let mediaTpl = "";
           if (isVideo) {
@@ -548,7 +554,6 @@
                     </svg>` : ''}
                   <div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#f1f5f9;position:relative;z-index:1;">${mediaTpl}</div>
                 </div>
-                ${labelHtml}
               </a>
             </div>`;
         });
@@ -590,6 +595,7 @@
     }
 
     connectedCallback() {
+      this.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2147483647; display: none;";
       this._handleClickBound = this._handleClickBound || this._handleClick.bind(this);
       this.shadowRoot.addEventListener("click", this._handleClickBound);
     }
@@ -631,6 +637,8 @@
         } else {
           window.prompt("Copy post link:", shareUrl);
         }
+      } else if (e.target.closest(".ai-modal-promo-link-btn")) {
+        this.open(null, "promo", [], this.config, this.cssUrl);
       } else if (e.target.id === "ai-instafeed-modal-root") {
         this.close();
       }
@@ -665,17 +673,35 @@
       if (source === 'promo') {
         document.removeEventListener("keydown", this._boundKeydown);
         this.renderModal(-1);
+        this.style.display = "block";
         this.setAttribute("active", "");
         return;
       }
 
-      const index = mediaList.findIndex(m => (m.id || (m.media_url ? m.media_url.slice(-20) : '')) === id);
-      if (index === -1) return;
+      let list = (mediaList && mediaList.length > 0) ? mediaList : (cachedGridMedia.length > 0 ? cachedGridMedia : cachedStoryMedia);
+      if (!list || list.length === 0) {
+        list = [{
+          id: id || 'placeholder_0',
+          media_type: 'IMAGE',
+          media_url: PLACEHOLDERS[0],
+          caption: 'Shop our latest Instagram styles!',
+          like_count: 36,
+          comments_count: 8,
+          timestamp: new Date().toISOString()
+        }];
+      }
+      this.activeMedia = list;
+
+      let index = list.findIndex(m => String(m.id || (m.media_url ? m.media_url.slice(-20) : '')) === String(id));
+      if (index === -1) {
+        index = 0;
+      }
 
       document.removeEventListener("keydown", this._boundKeydown);
       document.addEventListener("keydown", this._boundKeydown);
 
       this.renderModal(index);
+      this.style.display = "block";
       this.setAttribute("active", "");
     }
 
@@ -690,6 +716,7 @@
         v.src = '';
       });
 
+      this.style.display = "none";
       this.removeAttribute("active");
       this.shadowRoot.innerHTML = '';
       document.removeEventListener('keydown', this._boundKeydown);
@@ -783,7 +810,7 @@
               }
             }
           </style>
-          <div id="ai-instafeed-modal-root" style="display: flex;">
+          <div id="ai-instafeed-modal-root" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 2147483647; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; animation: aiFadeIn 0.3s ease-out;">
             <div class="ai-modal-layout ai-modal-layout-promo" style="max-width: 600px; display: flex; flex-direction: row; overflow: hidden; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); background: white;">
               <!-- Left side: Gradient visual card -->
               <div style="flex: 1; background: linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 32px; text-align: center; min-height: 200px; box-sizing: border-box;">
@@ -867,6 +894,7 @@
       const likes    = item.like_count || 0;
 
       const isPromoEnabled = this.config && this.config.stories && this.config.stories.promoEnable === true;
+      const promoLabel = (this.config && this.config.stories && this.config.stories.promoLabel) || 'Get 10% Off';
 
       const showBranding = (this.source === 'story') 
         ? !this.config.stories.removeWatermark 
@@ -893,9 +921,10 @@
         ? '<div class="ai-modal-counter">' + (index + 1) + ' / ' + this.activeMedia.length + '</div>'
         : '';
 
-      // Check if root already exists to avoid re-triggering entrance animations
+      // Check if root and media pane already exist to avoid re-triggering entrance animations
       const existingRoot = this.shadowRoot.querySelector('#ai-instafeed-modal-root');
-      if (existingRoot) {
+      const existingMediaPane = this.shadowRoot.querySelector('.ai-modal-media-pane');
+      if (existingRoot && existingMediaPane) {
         // Stop any existing video before updating
         existingRoot.querySelectorAll('video').forEach(v => {
           v.pause();
@@ -939,9 +968,60 @@
           styleLink = `<link rel="stylesheet" href="${this.cssUrl}">`;
         }
 
+        const embeddedModalStyles = `<style>
+          #ai-instafeed-modal-root {
+            position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+            width: 100vw !important; height: 100vh !important; background: rgba(0, 0, 0, 0.85) !important;
+            backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
+            z-index: 2147483647 !important; display: flex !important; align-items: center !important; justify-content: center !important;
+            padding: 20px !important; box-sizing: border-box !important; margin: 0 !important;
+          }
+          .ai-modal-layout {
+            display: flex !important; flex-direction: row !important; width: 100% !important; max-width: 960px !important;
+            max-height: 85vh !important; height: 600px !important; background: #ffffff !important; border-radius: 16px !important;
+            overflow: hidden !important; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5) !important; position: relative !important;
+          }
+          .ai-modal-media-pane {
+            flex: 1.3 !important; background: #000000 !important; display: flex !important; align-items: center !important;
+            justify-content: center !important; position: relative !important; overflow: hidden !important;
+          }
+          .ai-modal-media-pane img, .ai-modal-media-pane video {
+            max-width: 100% !important; max-height: 100% !important; width: 100% !important; height: 100% !important; object-fit: contain !important;
+          }
+          .ai-modal-info-pane {
+            flex: 1 !important; display: flex !important; flex-direction: column !important; background: #ffffff !important;
+            position: relative !important; overflow: hidden !important;
+          }
+          .ai-modal-header {
+            display: flex !important; align-items: center !important; gap: 12px !important; padding: 16px 20px !important; border-bottom: 1px solid #f1f5f9 !important;
+          }
+          .ai-modal-header-close {
+            background: #f1f5f9 !important; border: none !important; width: 32px !important; height: 32px !important; border-radius: 50% !important;
+            cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; margin-left: auto !important; font-size: 16px !important; font-weight: bold !important; color: #64748b !important;
+          }
+          .ai-modal-body {
+            flex: 1 !important; padding: 20px !important; overflow-y: auto !important;
+          }
+          .ai-modal-caption { font-size: 14px !important; line-height: 1.5 !important; color: #334155 !important; margin: 0 !important; }
+          .ai-modal-caption-handle { font-weight: 700 !important; color: #0f172a !important; margin-right: 6px !important; }
+          .ai-modal-footer { padding: 16px 20px !important; border-top: 1px solid #f1f5f9 !important; background: #fafafa !important; }
+          .ai-modal-actions { display: flex !important; align-items: center !important; gap: 16px !important; margin-bottom: 12px !important; }
+          .ai-modal-promo-link-btn {
+            display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; width: 100% !important;
+            padding: 10px 16px !important; background: linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%) !important; color: white !important;
+            border: none !important; border-radius: 8px !important; font-size: 13px !important; font-weight: 700 !important; cursor: pointer !important; text-decoration: none !important; box-shadow: 0 4px 12px rgba(225, 48, 108, 0.3) !important; box-sizing: border-box !important;
+          }
+          @media (max-width: 768px) {
+            .ai-modal-layout { flex-direction: column !important; height: 90vh !important; max-height: 90vh !important; }
+            .ai-modal-media-pane { flex: 1 !important; max-height: 50vh !important; }
+            .ai-modal-info-pane { flex: 1 !important; }
+          }
+        </style>`;
+
         this.shadowRoot.innerHTML =
           styleLink +
-          '<div id="ai-instafeed-modal-root" style="display: flex;">' +
+          embeddedModalStyles +
+          '<div id="ai-instafeed-modal-root">' +
             '<div class="ai-modal-layout">' +
               '<div class="ai-modal-media-pane">' +
                 mediaHtml +
@@ -985,23 +1065,18 @@
                     '<span class="ai-modal-likes-count">' + likes + '</span> likes' +
                   '</div>' +
                   '<div class="ai-modal-date">' + date + '</div>' +
-                  (isPromoEnabled
-                    ? '<div style="margin-top:12px;">' +
-                        '<button type="button" class="ai-modal-promo-link-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, #e1306c 0%, #f77737 100%); color:white; border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; box-sizing:border-box;">' +
-                          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-                            '<polyline points="20 12 20 22 4 22 4 12"></polyline>' +
-                            '<rect x="2" y="7" width="20" height="5"></rect>' +
-                            '<line x1="12" y1="22" x2="12" y2="7"></line>' +
-                            '<path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>' +
-                            '<path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>' +
-                          '</svg>' +
-                          'Get 10% Off' +
-                        '</button>' +
-                      '</div>'
-                    : '<div style="margin-top:12px;">' +
-                        '<a href="' + link + '" target="_blank" rel="noreferrer" class="ai-modal-ig-btn">View on Instagram</a>' +
-                      '</div>'
-                  ) +
+                  '<div style="margin-top:12px;">' +
+                    '<button type="button" class="ai-modal-promo-link-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, #e1306c 0%, #f77737 100%); color:white; border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; box-sizing:border-box;">' +
+                      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+                        '<polyline points="20 12 20 22 4 22 4 12"></polyline>' +
+                        '<rect x="2" y="7" width="20" height="5"></rect>' +
+                        '<line x1="12" y1="22" x2="12" y2="7"></line>' +
+                        '<path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>' +
+                        '<path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>' +
+                      '</svg>' +
+                      (promoLabel || 'Get 10% Off') +
+                    '</button>' +
+                  '</div>' +
                   '<div class="ai-modal-watermark-wrap">' + watermarkHtml + '</div>' +
                 '</div>' +
               '</div>' +
@@ -1032,11 +1107,12 @@
     const gridEl = document.querySelector("instafeed-grid");
     const storyEl = document.querySelector("instafeed-story");
     const logoUrl = (gridEl && gridEl.getAttribute("data-logo-url")) || (storyEl && storyEl.getAttribute("data-logo-url")) || "";
-    e.detail.config.logoUrl = logoUrl;
+    const config = (e.detail && e.detail.config) || cachedConfig || {};
+    config.logoUrl = logoUrl;
 
-    const cssUrl = e.detail.cssUrl || (gridEl && gridEl.getAttribute("css-url")) || (storyEl && storyEl.getAttribute("css-url")) || getCssUrl();
+    const cssUrl = (e.detail && e.detail.cssUrl) || (gridEl && gridEl.getAttribute("css-url")) || (storyEl && storyEl.getAttribute("css-url")) || getCssUrl();
 
-    modalEl.open(e.detail.id, e.detail.source, e.detail.media, e.detail.config, cssUrl);
+    modalEl.open(e.detail ? e.detail.id : null, e.detail ? e.detail.source : 'grid', (e.detail ? e.detail.media : null) || cachedGridMedia || cachedStoryMedia, config, cssUrl);
   });
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────

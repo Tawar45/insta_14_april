@@ -285,35 +285,20 @@ export default function Plans() {
 
   const plans = [
     {
-      name: "Starter", badge: "STARTER", tone: "new",
-      description: "Essential tools for social proof.",
+      name: "Free", badge: "FREE FOREVER", tone: "new",
+      description: "Complete access to all Instagram feed features for free.",
       priceMonthly: 0,
+      isCurrent: true,
       features: [
-        "Up to 12 Latest Posts",
-        "Up to 4 Posts per Row",
-        "Post Metrics on Hover",
-        "Responsive Grid Layout",
-        "Standard Support"
+        "Unlimited Posts & Custom Columns",
+        "Story Highlight & Grid Feed Layouts",
+        "Snap & Touch-Optimized Scrolling",
+        "Get 10% Off Promo Offer Module",
+        "Full Custom Branding & Colors",
+        "Post Metrics & Fullscreen Lightbox",
+        "24/7 Dedicated Support"
       ],
-      isCurrent: currentPlanName === "Starter",
-    },
-    {
-      name: "Pro", badge: "PRO", tone: "info",
-      description: "Advanced controls with 3-Day Free Trial.",
-      priceMonthly: 4.99,
-      isPopular: true,
-      features: [
-        "Everything in Starter+",
-        "Remove 'Ai-Instafeed' Watermark",
-        "Infinite Scrolling Feature",
-        "Premium Story Layouts",
-        "Unlimited Posts & Columns",
-        "AI Comment & Sentiment Moderation",
-        "Priority 24/7 Support"
-      ],
-      isCurrent: currentPlanName.includes("Pro"),
-      monthlyName: "Pro Monthly",
-    },
+    }
   ];
 
   const handlePlan = (plan) => {
@@ -390,20 +375,22 @@ export default function Plans() {
 
             {/* --- PLANS GRID --- */}
             <div style={{
-              display: "grid", gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "48px", width: "100%", marginBottom: "48px"
+              display: "flex", justifyContent: "center",
+              width: "100%", marginBottom: "48px"
             }}>
               {plans.map((p) => (
                 <div key={p.name} className="premium-card" style={{
+                  maxWidth: "560px",
+                  width: "100%",
                   padding: "40px",
                   display: "flex",
                   flexDirection: "column",
                   gap: "32px",
                   position: "relative",
                   overflow: "visible",
-                  border: p.isCurrent ? "2px solid var(--premium-accent)" : "1px solid #e2e8f0",
-                  background: p.isCurrent ? "white" : "white",
-                  boxShadow: p.isCurrent ? "0 20px 25px -5px rgba(225, 48, 108, 0.1), 0 8px 10px -6px rgba(225, 48, 108, 0.1)" : "none"
+                  border: "2px solid var(--premium-accent)",
+                  background: "white",
+                  boxShadow: "0 20px 25px -5px rgba(225, 48, 108, 0.1), 0 8px 10px -6px rgba(225, 48, 108, 0.1)"
                 }}>
                   {p.isPopular && (
                     <div style={{
@@ -495,10 +482,10 @@ export default function Plans() {
               </div>
               <div>
                 {[
-                  { q: "How does the 3-day Free Trial work?", a: "Every premium plan starts with a 3-day free trial. You won't be charged until the trial ends, and you can cancel anytime." },
-                  { q: "Is Ai-Instafeed really hands-free?", a: "Yes! Once set up, the app automatically syncs your latest Instagram posts to your store." },
+                  { q: "Is AI Instafeed really 100% Free?", a: "Yes! AI Instafeed is 100% free forever with access to all features including story highlights, grid feeds, custom styling, and promo discount offers with no hidden fees." },
+                  { q: "Is AI Instafeed really hands-free?", a: "Yes! Once set up, the app automatically syncs your latest Instagram posts directly to your store." },
                   { q: "Will this slow down my store?", a: "No. Our scripts are loaded asynchronously and optimized for blazing fast performance." },
-                  { q: "Do you offer support?", a: "Yes, we provide 24/7 priority support to help you with setup and customization." }
+                  { q: "Do you offer support?", a: "Yes, we provide 24/7 priority support to help you with setup and customization anytime." }
                 ].map((faq, i, arr) => (
                   <FAQItem key={i} question={faq.q} answer={faq.a} isLast={i === arr.length - 1} />
                 ))}
