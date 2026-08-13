@@ -1418,4 +1418,11 @@ input[type="color"].premium-input {
   box-sizing: border-box !important;
 }
 
+/* ── Centered Track Containers for Stories & Grids ────────────────────────── */
+.ai-fw-track,
+.carousel-container,
+#ai-grid-body {
+  justify-content: center !important;
+}
+
 

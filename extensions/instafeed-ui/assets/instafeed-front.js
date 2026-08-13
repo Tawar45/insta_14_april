@@ -66,6 +66,13 @@
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
+  function formatDynamicAccountText(str, handle) {
+    if (!str) return "";
+    const cleanHandle = (handle || "").replace("@", "").trim();
+    const replacement = cleanHandle ? `@${cleanHandle}` : "@gpmbazaar";
+    return String(str).replace(/@account/gi, replacement);
+  }
+
   function checkTrackOverflow(track, wrapper) {
     if (!track || !wrapper) return;
     const maxScroll = track.scrollWidth - track.clientWidth;
@@ -295,10 +302,10 @@
       if (c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) {
         html += '<div style="text-align:' + c.alignment + ';margin-bottom:24px;">';
         if (c.heading && c.heading.trim()) {
-          html += '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 8px 0;line-height:1.2;">' + esc(c.heading) + '</h2>';
+          html += '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 8px 0;line-height:1.2;">' + esc(formatDynamicAccountText(c.heading, config.instagramHandle)) + '</h2>';
         }
         if (c.subheading && c.subheading.trim()) {
-          html += '<p style="font-size:' + subSize + 'px;font-weight:' + (c.typography?.subheading?.weight || '500') + ';color:' + (c.typography?.subheading?.color || '#666') + ';margin:0;">' + esc(c.subheading) + '</p>';
+          html += '<p style="font-size:' + subSize + 'px;font-weight:' + (c.typography?.subheading?.weight || '500') + ';color:' + (c.typography?.subheading?.color || '#666') + ';margin:0;">' + esc(formatDynamicAccountText(c.subheading, config.instagramHandle)) + '</p>';
         }
         html += '</div>';
       }
@@ -308,7 +315,7 @@
         const navBtnStyle = 'outline:none!important;-webkit-appearance:none!important;appearance:none!important;color:#1e293b!important;';
         html += '<div class="ai-fw-carousel-wrapper" style="position:relative;width:100%;">'
               + '<div class="ai-fw-nav ai-fw-prev" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Previous" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg></div>'
-              + '<div class="ai-fw-track" id="' + trackId + '" style="display:flex;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:' + gap + 'px;padding:' + gap + 'px 0;">';
+              + '<div class="ai-fw-track" id="' + trackId + '" style="display:flex;justify-content:center;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:' + gap + 'px;padding:' + gap + 'px 0;">';
         mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, itemWidth); });
         
         if (c.load && mediaData.length > limit) {
@@ -320,7 +327,7 @@
               + '<div class="ai-fw-nav ai-fw-next" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Next" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M8 16l4-4-4-4"/></svg></div>'
               + '</div>';
       } else {
-        html += '<div id="ai-grid-body" style="display:grid;grid-template-columns:repeat(' + columns + ',1fr);gap:' + gap + 'px;">';
+        html += '<div id="ai-grid-body" style="display:grid;grid-template-columns:repeat(' + columns + ',1fr);justify-content:center;gap:' + gap + 'px;">';
         mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, '100%'); });
         html += '</div>';
         
@@ -576,10 +583,10 @@
         html += `
           <div style="text-align:${s.alignment};margin-bottom:24px;">`;
         if (s.heading && s.heading.trim()) {
-          html += `<h4 style="font-size:${s.typography?.heading?.size || 28}px;font-weight:${s.typography?.heading?.weight || '800'};color:${s.typography?.heading?.color || '#000'};margin:0 0 8px 0;line-height:1.2;">${esc(s.heading)}</h4>`;
+          html += `<h4 style="font-size:${s.typography?.heading?.size || 28}px;font-weight:${s.typography?.heading?.weight || '800'};color:${s.typography?.heading?.color || '#000'};margin:0 0 8px 0;line-height:1.2;">${esc(formatDynamicAccountText(s.heading, config.instagramHandle))}</h4>`;
         }
         if (s.subheading && s.subheading.trim()) {
-          html += `<p style="font-size:${s.typography?.subheading?.size || 14}px;font-weight:${s.typography?.subheading?.weight || '400'};color:${s.typography?.subheading?.color || '#666'};margin:0;">${esc(s.subheading)}</p>`;
+          html += `<p style="font-size:${s.typography?.subheading?.size || 14}px;font-weight:${s.typography?.subheading?.weight || '400'};color:${s.typography?.subheading?.color || '#666'};margin:0;">${esc(formatDynamicAccountText(s.subheading, config.instagramHandle))}</p>`;
         }
         html += `</div>`;
       }
@@ -594,7 +601,7 @@
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg>
               </div>
             ` : ''}
-            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:flex-start;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 28px;">`;
+            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:center;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 28px;">`;
 
         // Prepend promo story if enabled
         if (s.promoEnable !== false) {

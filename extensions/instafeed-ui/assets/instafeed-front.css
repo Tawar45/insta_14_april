@@ -329,7 +329,10 @@
 }
 
 /* ── Enhanced Story Slider Action & Interaction Micro-Effects ────────────── */
-.ai-fw-track {
+.ai-fw-track,
+#ai-grid-body,
+.ai-grid-body {
+  justify-content: center !important;
   cursor: grab;
   user-select: none;
 }

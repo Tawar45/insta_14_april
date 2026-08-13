@@ -686,6 +686,13 @@ export default function Index() {
     return media.slice(0, 10);
   }, [baseMedia, config?.stories?.mediaTypeFilter, config?.stories?.sortBy]);
 
+  const formatDynamicAccountText = (str) => {
+    if (!str) return "";
+    const cleanHandle = (config.instagramHandle || "").replace("@", "").trim();
+    const replacement = cleanHandle ? `@${cleanHandle}` : "@gpmbazaar";
+    return String(str).replace(/@account/gi, replacement);
+  };
+
   const handleToggleHidePost = (itemIdentifier) => {
     setConfig(prev => {
       const isHidden = prev.postFeed.hiddenPostIds.includes(itemIdentifier);
@@ -2940,12 +2947,12 @@ export default function Index() {
                               <div style={{ padding: "12px 16px 0", textAlign: config.postFeed.alignment }}>
                                 {config.postFeed.heading?.trim() && (
                                   <h4 style={{ fontSize: `${config.postFeed.typography.heading.size}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
-                                    {config.postFeed.heading}
+                                    {formatDynamicAccountText(config.postFeed.heading)}
                                   </h4>
                                 )}
                                 {config.postFeed.subheading?.trim() && (
-                                  <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, fontWeight: config.postFeed.typography.subheading.weight, color: config.postFeed.typography.subheading.color, margin: 0 }}>
-                                    {config.postFeed.subheading}
+                                  <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, fontWeight: config.postFeed.typography.subheading.color, color: config.postFeed.typography.subheading.color, margin: 0 }}>
+                                    {formatDynamicAccountText(config.postFeed.subheading)}
                                   </p>
                                 )}
                               </div>
@@ -3009,12 +3016,12 @@ export default function Index() {
                               <div style={{ textAlign: config.stories.alignment, marginBottom: "24px" }}>
                                 {config.stories.heading?.trim() && (
                                   <h4 style={{ fontSize: `${Math.min(config.stories.typography.heading.size, 22)}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 6px 0", lineHeight: 1.2, color: config.stories.typography.heading.color }}>
-                                    {config.stories.heading}
+                                    {formatDynamicAccountText(config.stories.heading)}
                                   </h4>
                                 )}
                                 {config.stories.subheading?.trim() && (
                                   <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: 0 }}>
-                                    {config.stories.subheading}
+                                    {formatDynamicAccountText(config.stories.subheading)}
                                   </p>
                                 )}
                               </div>
@@ -3160,12 +3167,12 @@ export default function Index() {
                                   <div style={{ textAlign: config.stories.alignment, marginBottom: "24px" }}>
                                     {config.stories.heading?.trim() && (
                                       <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 8px 0", color: config.stories.typography.heading.color }}>
-                                        {config.stories.heading}
+                                        {formatDynamicAccountText(config.stories.heading)}
                                       </h4>
                                     )}
                                     {config.stories.subheading?.trim() && (
                                       <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" }}>
-                                        {config.stories.subheading}
+                                        {formatDynamicAccountText(config.stories.subheading)}
                                       </p>
                                     )}
                                   </div>
@@ -3284,12 +3291,12 @@ export default function Index() {
                                   <div style={{ marginBottom: "16px", textAlign: config.postFeed.alignment }}>
                                     {config.postFeed.heading?.trim() && (
                                       <h4 style={{ fontSize: `${config.postFeed.typography.heading.size + 2}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
-                                        {config.postFeed.heading}
+                                        {formatDynamicAccountText(config.postFeed.heading)}
                                       </h4>
                                     )}
                                     {config.postFeed.subheading?.trim() && (
                                       <p style={{ fontSize: `${config.postFeed.typography.subheading.size + 1}px`, color: config.postFeed.typography.subheading.color, fontWeight: config.postFeed.typography.subheading.weight, margin: 0 }}>
-                                        {config.postFeed.subheading}
+                                        {formatDynamicAccountText(config.postFeed.subheading)}
                                       </p>
                                     )}
                                   </div>
@@ -3406,9 +3413,11 @@ export default function Index() {
                 <button onClick={() => setSelectedPost(null)} aria-label="Close" style={{ position: "absolute", top: "16px", right: "16px", background: "#f1f5f9", border: "none", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                 <h4 style={{ fontSize: "18px", fontWeight: "800", color: "#0f172a", margin: "0 0 16px 0", lineHeight: "1.2" }}>{config.stories.promoLabel || "Get 10% Off"}</h4>
                 <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", margin: "0 0 24px 0", fontWeight: "500" }}>
-                  {(config.stories.promoDesc && !config.stories.promoDesc.includes("WELCOME10"))
-                    ? config.stories.promoDesc
-                    : `Take a screenshot of a product you wish to buy and tag @${(config.instagramHandle || "gpmbazaar").replace("@", "").trim()} and we will send you a 10% Off Discount Coupon Code!`}
+                  {formatDynamicAccountText(
+                    (config.stories.promoDesc && !config.stories.promoDesc.includes("WELCOME10"))
+                      ? config.stories.promoDesc
+                      : "Take a screenshot of a product you wish to buy and tag @account and we will send you a 10% Off Discount Coupon Code!"
+                  )}
                 </p>
                 <a href={`https://instagram.com/${(config.instagramHandle || "instagram").replace("@", "").trim()}`} target="_blank" rel="noopener noreferrer" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", background: "#0f172a", color: "white", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "13px", cursor: "pointer", textDecoration: "none", boxSizing: "border-box" }}>Open Instagram</a>
               </div>
