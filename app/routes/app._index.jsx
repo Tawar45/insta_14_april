@@ -400,7 +400,7 @@ const DEFAULT_CONFIG = {
     enable: true,
     promoEnable: true,
     promoLabel: "Get 10% Off",
-    promoDesc: "Take a screenshot of a product you wish to buy and tag @account and we will send you a 10% Off Discount Coupon Code!",
+    promoDesc: "Take a screenshot of a product you wish to buy and tag @gpmbazaar and we will send you a 10% Off Discount Coupon Code!",
     showLabels: false,
     carousel: true,
     autoplay: true,
@@ -413,13 +413,13 @@ const DEFAULT_CONFIG = {
       subheading: { size: 14, weight: "400", color: "#666" },
     },
     animateImages: false,
-    activeRing: true,
-    pulseRing: true,
+    activeRing: false,
+    pulseRing: false,
     ringColor: "#e1306c",
     showNavigation: true,
     paddingTop: 24,
     paddingBottom: 24,
-    openPopup: false,
+    openPopup: true,
     removeWatermark: false,
     showFollowButton: false,
     mediaTypeFilter: "all",
@@ -682,7 +682,8 @@ export default function Index() {
       const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
       media = [...media].sort((a, b) => getEngagement(b) - getEngagement(a));
     }
-    return media;
+    // Limit to maximum 10 story items
+    return media.slice(0, 10);
   }, [baseMedia, config?.stories?.mediaTypeFilter, config?.stories?.sortBy]);
 
   const handleToggleHidePost = (itemIdentifier) => {
@@ -1266,7 +1267,9 @@ export default function Index() {
         style={{ 
           aspectRatio: aspect, 
           background: "#f1f5f9", 
-          borderRadius: isDesktop ? "8px" : "4px", 
+          borderRadius: 0, 
+          border: "1px solid #e2e8f0",
+          boxSizing: "border-box",
           overflow: "hidden", 
           position: "relative",
           cursor: isHideMode ? "pointer" : "default",
@@ -2074,7 +2077,7 @@ export default function Index() {
                   {/* ── Collapsible: Feature Modules ── */}
                   <div
                     onClick={() => setIsPostModulesExpanded(!isPostModulesExpanded)}
-                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
                   >
                     <h3 className="input-label" style={{ margin: 0 }}>Feature Modules</h3>
                     <Icon source={isPostModulesExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
@@ -2177,7 +2180,7 @@ export default function Index() {
                   {/* ── Collapsible: Layout & Grid Architecture ── */}
                   <div
                     onClick={() => setIsPostLayoutExpanded(!isPostLayoutExpanded)}
-                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
                   >
                     <h3 className="input-label" style={{ margin: 0 }}>Layout & Grid Architecture</h3>
                     <Icon source={isPostLayoutExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
@@ -2335,7 +2338,7 @@ export default function Index() {
                   {/* ── Collapsible: Branding & Typography ── */}
                   <div
                     onClick={() => setIsPostBrandingExpanded(!isPostBrandingExpanded)}
-                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
                   >
                     <h3 className="input-label" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                       <Icon source={ColorIcon} tone="base" />
@@ -2572,7 +2575,7 @@ export default function Index() {
                   {/* ── Collapsible: Story Highlight Modules ── */}
                   <div
                     onClick={() => setIsStoryModulesExpanded(!isStoryModulesExpanded)}
-                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
                   >
                     <h3 className="input-label" style={{ margin: 0 }}>Highlight Modules</h3>
                     <Icon source={isStoryModulesExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
@@ -2638,6 +2641,33 @@ export default function Index() {
                         />
                       </div>
                     )}
+
+                    {/* ── Promo Offer Settings (Label & Description) ── */}
+                    {config.stories.promoEnable !== false && (
+                      <div style={{ marginTop: "16px", padding: "16px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                        <h4 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "12px", color: "#1e293b" }}>Promo Offer Customization</h4>
+                        <div style={{ marginBottom: "12px" }}>
+                          <label className="input-label" style={{ fontSize: "11px" }}>Promo Offer Label</label>
+                          <input
+                            className="premium-input"
+                            value={config.stories.promoLabel ?? "Get 10% Off"}
+                            onChange={(e) => updateConfig("stories", "promoLabel", e.target.value)}
+                            placeholder="e.g. Get 10% Off"
+                          />
+                        </div>
+                        <div>
+                          <label className="input-label" style={{ fontSize: "11px" }}>Promo Offer Popup Message</label>
+                          <textarea
+                            className="premium-input"
+                            rows={3}
+                            value={config.stories.promoDesc ?? "Take a screenshot of a product you wish to buy and tag @gpmbazaar and we will send you a 10% Off Discount Coupon Code!"}
+                            onChange={(e) => updateConfig("stories", "promoDesc", e.target.value)}
+                            placeholder="Take a screenshot of a product you wish to buy and tag @gpmbazaar..."
+                            style={{ resize: "vertical", fontFamily: "inherit" }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                   </Collapsible>
 
@@ -2646,7 +2676,7 @@ export default function Index() {
                   {/* ── Collapsible: Story Branding & Typography ── */}
                   <div
                     onClick={() => setIsStoryBrandingExpanded(!isStoryBrandingExpanded)}
-                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", padding: "12px 0", marginBottom: "4px" }}
+                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
                   >
                     <h3 className="input-label" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                       <Icon source={ColorIcon} tone="base" />
@@ -2946,7 +2976,7 @@ export default function Index() {
                                 </button>
                               </div>
                             ) : (
-                              <div style={{ padding: `${config.postFeed.gap}px`, display: "grid", gridTemplateColumns: `repeat(${config.postFeed.mobileColumns}, 1fr)`, gap: `${config.postFeed.gap}px` }}>
+                              <div style={{ padding: `${config.postFeed.gap}px`, display: "grid", gridTemplateColumns: `repeat(${config.postFeed.mobileColumns}, 1fr)`, gap: `${config.postFeed.gap}px`, justifyContent: "center", justifyItems: "center", margin: "0 auto", width: "100%" }}>
                                 {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
                               </div>
                             )}
@@ -3014,7 +3044,7 @@ export default function Index() {
                                       <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: config.stories.activeRing ? "none" : `2px solid ${config.stories.ringColor || "var(--premium-accent)"}`, background: "white", margin: "0 auto", position: "relative" }}>
                                         {config.stories.activeRing && (
                                           <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing !== false ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
                                           </svg>
                                         )}
                                         <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
@@ -3042,7 +3072,7 @@ export default function Index() {
                                       <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", overflow: "hidden", margin: "0 auto", position: "relative" }}>
                                         {config.stories.activeRing && (
                                           <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing !== false ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
                                           </svg>
                                         )}
                                         <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
@@ -3165,7 +3195,7 @@ export default function Index() {
                                           <div style={{ width: "64px", height: "64px", borderRadius: "50%", padding: "3px", border: config.stories.activeRing ? "none" : `2px solid ${config.stories.ringColor || "var(--premium-accent)"}`, background: "white", marginBottom: "4px", overflow: "hidden", margin: "0 auto 4px", position: "relative" }}>
                                             {config.stories.activeRing && (
                                               <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing !== false ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
                                               </svg>
                                             )}
                                             <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
@@ -3193,7 +3223,7 @@ export default function Index() {
                                           <div style={{ width: "64px", height: "64px", borderRadius: "50%", padding: "3px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", marginBottom: "6px", overflow: "hidden", margin: "0 auto 6px", position: "relative" }}>
                                             {config.stories.activeRing && (
                                               <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing !== false ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
+                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
                                               </svg>
                                             )}
                                             <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
@@ -3289,7 +3319,7 @@ export default function Index() {
                                     </button>
                                   </div>
                                 ) : (
-                                  <div style={{ display: "grid", gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`, gap: `${config.postFeed.gap}px` }}>
+                                  <div style={{ display: "grid", gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`, gap: `${config.postFeed.gap}px`, justifyContent: "center", justifyItems: "center", margin: "0 auto", width: "100%" }}>
                                     {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i, true))}
                                   </div>
                                 )}
@@ -3376,7 +3406,9 @@ export default function Index() {
                 <button onClick={() => setSelectedPost(null)} aria-label="Close" style={{ position: "absolute", top: "16px", right: "16px", background: "#f1f5f9", border: "none", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                 <h4 style={{ fontSize: "18px", fontWeight: "800", color: "#0f172a", margin: "0 0 16px 0", lineHeight: "1.2" }}>{config.stories.promoLabel || "Get 10% Off"}</h4>
                 <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", margin: "0 0 24px 0", fontWeight: "500" }}>
-                  {config.stories.promoDesc || `Take a screenshot of a product you wish to buy and tag @${(config.instagramHandle || "instagram").replace("@", "").trim()} and we will send you a 10% Off Discount Coupon Code!`}
+                  {(config.stories.promoDesc && !config.stories.promoDesc.includes("WELCOME10"))
+                    ? config.stories.promoDesc
+                    : `Take a screenshot of a product you wish to buy and tag @${(config.instagramHandle || "gpmbazaar").replace("@", "").trim()} and we will send you a 10% Off Discount Coupon Code!`}
                 </p>
                 <a href={`https://instagram.com/${(config.instagramHandle || "instagram").replace("@", "").trim()}`} target="_blank" rel="noopener noreferrer" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", background: "#0f172a", color: "white", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "13px", cursor: "pointer", textDecoration: "none", boxSizing: "border-box" }}>Open Instagram</a>
               </div>

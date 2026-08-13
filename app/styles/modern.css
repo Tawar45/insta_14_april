@@ -1389,3 +1389,33 @@ input[type="color"].premium-input {
   border-color: rgba(225, 48, 108, 0.7) !important;
 }
 
+/* ── Full Width Light Grey Accordion Highlights ───────────────────────────── */
+.accordion-item,
+.faq-accordion-item,
+.collapsible-accordion-header {
+  width: 100% !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  margin-bottom: 12px !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.accordion-item:hover,
+.faq-accordion-item:hover,
+.collapsible-accordion-header:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* ── Light Grey Border for Post Grid Cards ────────────────────────────────── */
+.ai-grid-item,
+.grid-item {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0 !important;
+  box-sizing: border-box !important;
+}
+
+

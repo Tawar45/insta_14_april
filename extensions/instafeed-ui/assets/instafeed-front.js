@@ -68,11 +68,43 @@
 
   function checkTrackOverflow(track, wrapper) {
     if (!track || !wrapper) return;
-    const hasOverflow = track.scrollWidth > track.clientWidth;
-    const navButtons = wrapper.querySelectorAll(".ai-fw-nav");
-    navButtons.forEach(btn => {
-      btn.style.setProperty("display", hasOverflow ? "flex" : "none", "important");
-    });
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    const prevBtn = wrapper.querySelector(".ai-fw-prev");
+    const nextBtn = wrapper.querySelector(".ai-fw-next");
+
+    if (maxScroll <= 5) {
+      if (prevBtn) prevBtn.style.setProperty("display", "none", "important");
+      if (nextBtn) nextBtn.style.setProperty("display", "none", "important");
+      return;
+    }
+
+    const currentScroll = track.scrollLeft;
+
+    if (prevBtn) {
+      prevBtn.style.setProperty("display", "flex", "important");
+      if (currentScroll <= 5) {
+        prevBtn.style.opacity = "0.35";
+        prevBtn.style.pointerEvents = "none";
+        prevBtn.setAttribute("aria-disabled", "true");
+      } else {
+        prevBtn.style.opacity = "1";
+        prevBtn.style.pointerEvents = "auto";
+        prevBtn.removeAttribute("aria-disabled");
+      }
+    }
+
+    if (nextBtn) {
+      nextBtn.style.setProperty("display", "flex", "important");
+      if (currentScroll >= maxScroll - 5) {
+        nextBtn.style.opacity = "0.35";
+        nextBtn.style.pointerEvents = "none";
+        nextBtn.setAttribute("aria-disabled", "true");
+      } else {
+        nextBtn.style.opacity = "1";
+        nextBtn.style.pointerEvents = "auto";
+        nextBtn.removeAttribute("aria-disabled");
+      }
+    }
   }
 
   function bindCarouselNav(root) {
@@ -80,8 +112,16 @@
     const track = root.querySelector(".ai-fw-track");
     
     if (track && wrapper) {
-      setTimeout(() => checkTrackOverflow(track, wrapper), 50);
-      setTimeout(() => checkTrackOverflow(track, wrapper), 300);
+      // Ensure scrolling always starts at the first block
+      track.scrollLeft = 0;
+      setTimeout(() => {
+        if (track) track.scrollLeft = 0;
+        checkTrackOverflow(track, wrapper);
+      }, 50);
+      setTimeout(() => {
+        if (track) track.scrollLeft = 0;
+        checkTrackOverflow(track, wrapper);
+      }, 300);
       
       if (window.ResizeObserver) {
         const observer = new ResizeObserver(() => {
@@ -93,15 +133,82 @@
         }
         track.__resizeObserver = observer;
       }
+
+      if (!track.__dragBound) {
+        track.__dragBound = true;
+        let isDown = false;
+        let startX = 0;
+        let scrollStart = 0;
+
+        track.addEventListener("pointerdown", (e) => {
+          if (e.target.closest(".ai-fw-nav")) return;
+          isDown = true;
+          track.style.cursor = "grabbing";
+          track.style.userSelect = "none";
+          startX = e.pageX - track.offsetLeft;
+          scrollStart = track.scrollLeft;
+        });
+
+        track.addEventListener("pointerleave", () => {
+          isDown = false;
+          track.style.cursor = "";
+          track.style.userSelect = "";
+        });
+
+        track.addEventListener("pointerup", () => {
+          isDown = false;
+          track.style.cursor = "";
+          track.style.userSelect = "";
+        });
+
+        track.addEventListener("pointermove", (e) => {
+          if (!isDown) return;
+          e.preventDefault();
+          const x = e.pageX - track.offsetLeft;
+          const walk = (x - startX) * 1.5;
+          track.scrollLeft = scrollStart - walk;
+        });
+
+        track.setAttribute("tabindex", "0");
+        track.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            const amount = track.clientWidth * 0.6;
+            track.scrollBy({ left: -amount, behavior: "smooth" });
+          } else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            const amount = track.clientWidth * 0.6;
+            track.scrollBy({ left: amount, behavior: "smooth" });
+          }
+        });
+      }
+
+      if (!track.__navScrollBound) {
+        track.__navScrollBound = true;
+        track.addEventListener("scroll", () => {
+          checkTrackOverflow(track, wrapper);
+        });
+      }
     }
 
     root.querySelectorAll(".ai-fw-nav").forEach((btn) => {
+      btn.setAttribute("tabindex", "0");
+      btn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          btn.click();
+        }
+      });
       btn.addEventListener("click", () => {
         const trackId = btn.getAttribute("data-track-id");
         const track   = trackId ? root.querySelector("#" + trackId) : null;
         if (!track) return;
         const amount = track.clientWidth * 0.8;
-        track.scrollBy({ left: btn.classList.contains("ai-fw-prev") ? -amount : amount, behavior: "smooth" });
+        const isPrev = btn.classList.contains("ai-fw-prev");
+
+        track.scrollBy({ left: isPrev ? -amount : amount, behavior: "smooth" });
+        setTimeout(() => checkTrackOverflow(track, wrapper), 200);
+        setTimeout(() => checkTrackOverflow(track, wrapper), 400);
       });
     });
   }
@@ -298,7 +405,7 @@
       return `
         <div class="ai-grid-wrapper" style="flex-shrink:0; width:${width}; box-sizing:border-box; display:flex;">
           <div class="ai-grid-item" data-id="${item.id || item.media_url.slice(-20)}" 
-               style="text-decoration:none; display:flex; flex-direction:column; cursor:pointer; width:100%; height:100%; background:#f1f5f9; position:relative; ${itemStyle}">
+               style="text-decoration:none; display:flex; flex-direction:column; cursor:pointer; width:100%; height:100%; background:#f1f5f9; position:relative; border:1px solid #e2e8f0; border-radius:0; box-sizing:border-box; ${itemStyle}">
               ${inner}
               <div class="ai-badge">${mediaIcon}</div>
               <div class="ai-card-overlay"></div>
@@ -453,8 +560,8 @@
 
       const s         = config.stories;
       const ringColor = s.ringColor || config.postFeed?.typography?.heading?.color || "#6366f1";
-      const storyItems = getMedia(mediaData, 15);
-      const isActiveRing = s.activeRing !== false;
+      const storyItems = getMedia(mediaData, 10);
+      const isActiveRing = s.activeRing === true;
       const trackId = "ai-story-track-" + Date.now();
       const cssUrl = this.getAttribute("css-url") || getCssUrl();
 
@@ -487,26 +594,26 @@
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg>
               </div>
             ` : ''}
-            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:${s.alignment === 'center' ? 'center' : s.alignment === 'right' ? 'flex-end' : 'flex-start'};overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 28px;">`;
+            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:flex-start;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 28px;">`;
 
         // Prepend promo story if enabled
         if (s.promoEnable !== false) {
           const promoLabelText = s.promoLabel || "Get 10% Off";
           
           html += `
-            <div class="ai-story-item ai-promo-item" style="flex-shrink:0;width:76px;text-align:center;cursor:pointer;overflow:visible;">
+            <div class="ai-story-item ai-promo-item" style="flex-shrink:0;width:84px;min-width:84px;text-align:center;cursor:pointer;overflow:visible;">
               <a href="javascript:void(0)" style="text-decoration:none;display:block;width:100%;">
                 <div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border: ${isActiveRing ? 'none' : '2px solid ' + ringColor};background:white;margin:0 auto;position:relative; transform: translateZ(0); -webkit-transform: translateZ(0);">
                   ${isActiveRing ? `
-                    <svg class="ai-story-ring-svg ${s.pulseRing !== false ? 'ai-story-ring-pulse' : ''}" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                    <svg class="ai-story-ring-svg ${s.pulseRing === true ? 'ai-story-ring-pulse' : ''}" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                       <circle class="ai-story-ring-circle" cx="50" cy="50" r="47.5" stroke="${ringColor}" />
                     </svg>` : ''}
                   <div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%);display:flex;align-items:center;justify-content:center;position:relative;z-index:1;">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                   </div>
                 </div>
-                <div style="margin-top:6px;text-align:center;">
-                  <span class="ai-promo-pill" style="display:inline-block;padding:2px 10px;border: 1.5px solid ${ringColor};color:${ringColor};font-size:10px;font-weight:700;border-radius:12px;white-space:nowrap;line-height:1.2;background:#fff;">${esc(promoLabelText)}</span>
+                <div style="margin-top:6px;text-align:center;width:100%;">
+                  <span class="ai-promo-pill" style="display:inline-block;padding:3px 10px;border: 1.5px solid ${ringColor};color:${ringColor};font-size:10px;font-weight:700;border-radius:12px;white-space:nowrap;line-height:1.2;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.06);">${esc(promoLabelText)}</span>
                 </div>
               </a>
             </div>`;
@@ -541,7 +648,7 @@
             mediaTpl = `<div class="ai-skeleton-tile"></div>`;
           }
 
-          const isPopup  = s.openPopup === true;
+          const isPopup  = s.openPopup !== false;
           const finalHref   = isPopup ? "javascript:void(0)" : href;
 
           html += `
@@ -549,7 +656,7 @@
               <a href="${esc(finalHref)}" target="${isPopup ? '_self' : target}" rel="noopener noreferrer" style="text-decoration:none;display:block;width:100%;">
                 <div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border: ${isActiveRing ? 'none' : '2px solid ' + ringColor};background:white;margin:0 auto;position:relative; transform: translateZ(0); -webkit-transform: translateZ(0);">
                   ${isActiveRing ? `
-                    <svg class="ai-story-ring-svg ${s.pulseRing !== false ? 'ai-story-ring-pulse' : ''}" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                    <svg class="ai-story-ring-svg ${s.pulseRing === true ? 'ai-story-ring-pulse' : ''}" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                       <circle class="ai-story-ring-circle" cx="50" cy="50" r="47.5" stroke="${ringColor}" />
                     </svg>` : ''}
                   <div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#f1f5f9;position:relative;z-index:1;">${mediaTpl}</div>
@@ -792,7 +899,11 @@
       if (this.source === 'promo') {
         const s = (this.config && this.config.stories) || {};
         const promoLabelText = s.promoLabel || "Get 10% Off";
-        const igHandle = (this.config && this.config.instagramHandle) ? this.config.instagramHandle.replace("@", "").trim() : "instagram";
+        const igHandle = (this.config && this.config.instagramHandle) ? this.config.instagramHandle.replace("@", "").trim() : "gpmbazaar";
+        const defaultPromoText = "Take a screenshot of a product you wish to buy and tag @gpmbazaar and we will send you a 10% Off Discount Coupon Code!";
+        const rawPromoDesc = (s.promoDesc && !s.promoDesc.includes("WELCOME10")) ? s.promoDesc : defaultPromoText;
+        const handleTag = igHandle ? `@${esc(igHandle)}` : "@gpmbazaar";
+        const promoDescHtml = esc(rawPromoDesc).replace(/@gpmbazaar|@account/gi, `<span style="color: #e1306c; font-weight: 700;">${handleTag}</span>`);
 
         let styleLink = "";
         if (this.cssUrl) {
@@ -825,9 +936,8 @@
                 <button class="ai-modal-header-close" aria-label="Close" style="position: absolute; top: 16px; right: 16px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; z-index: 10; display: flex; align-items: center; justify-content: center;">✕</button>
                 <h4 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 0 0 16px 0; line-height: 1.2;">${esc(promoLabelText)}</h4>
                 <p style="font-size: 14px; line-height: 1.6; color: #334155; margin: 0 0 24px 0; font-weight: 500;">
-                  Take a screenshot of a product you wish to buy and tag <span style="color: #e1306c; font-weight: 700;">@${esc(igHandle)}</span> and we will send you a 10% Off Discount Coupon Code!
+                  ${promoDescHtml}
                 </p>
-                
                 <a href="https://instagram.com/${esc(igHandle)}" target="_blank" rel="noopener noreferrer" class="ai-modal-header-close" style="width: 100%; display: flex; align-items: center; justify-content: center; padding: 10px; background: #0f172a; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; text-decoration: none; box-sizing: border-box;">Open Instagram</a>
               </div>
             </div>

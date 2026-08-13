@@ -48,22 +48,29 @@ const FAQItem = ({ question, answer, isLast }) => {
     <div
       onClick={() => setIsOpen(!isOpen)}
       style={{
-        padding: "16px 0",
-        borderBottom: isLast ? "none" : "1px solid #f1f5f9",
-        cursor: "pointer"
+        width: "100%",
+        background: "#f8fafc",
+        padding: "16px 20px",
+        borderRadius: "12px",
+        border: "1px solid #e2e8f0",
+        marginTop: "16px",
+        marginBottom: "12px",
+        cursor: "pointer",
+        transition: "all 0.2s ease-in-out",
+        boxSizing: "border-box"
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
         <Text variant="bodyMd" fontWeight="bold">{question}</Text>
         <div style={{
-          width: "28px", height: "28px", borderRadius: "50%", background: "#f8fafc",
+          width: "28px", height: "28px", borderRadius: "50%", background: "#ffffff",
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "all 0.3s ease",
           transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
-          border: "1px solid #e2e8f0",
+          border: "1px solid #cbd5e1",
           flexShrink: 0
         }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
@@ -73,7 +80,7 @@ const FAQItem = ({ question, answer, isLast }) => {
         maxHeight: isOpen ? "300px" : "0",
         overflow: "hidden",
         transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-        marginTop: isOpen ? "10px" : "0",
+        marginTop: isOpen ? "12px" : "0",
         opacity: isOpen ? 1 : 0
       }}>
         <Text variant="bodySm" tone="subdued">{answer}</Text>
