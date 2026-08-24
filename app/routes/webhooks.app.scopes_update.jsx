@@ -7,16 +7,20 @@ export const action = async ({ request }) => {
   console.log(`Received ${topic} webhook for ${shop}`);
   const current = payload.current;
 
-  if (session) {
-    await db.session.update({
-      where: {
-        id: session.id,
-      },
-      data: {
-        scope: current.toString(),
-      },
-    });
+  try {
+    if (session) {
+      await db.session.update({
+        where: {
+          id: session.id,
+        },
+        data: {
+          scope: current.toString(),
+        },
+      });
+    }
+  } catch (error) {
+    console.error(`[Webhook Error] Failed updating scopes for ${shop}:`, error);
   }
 
-  return new Response();
+  return new Response(null, { status: 200 });
 };

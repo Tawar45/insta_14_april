@@ -53,14 +53,18 @@ export const loader = async ({ request }) => {
   const shop = session.shop;
 
   try {
-    // ── 2. Get Subscription Status ───────────────────────────────────────────
-    const isPro = await checkProPlan(admin, shop);
-
-    // ── 3. Fetch config (cached, 30 min) ────────────────────────────────────
-    let config = await withRateLimit(shop, () => fetchShopConfig(admin, shop));
+    // ── 2. Concurrent Fetch: Plan + Config + Instagram Data (cached) ────────
+    const [isPro, rawConfig, rawInstaData] = await Promise.all([
+      checkProPlan(admin, shop),
+      withRateLimit(shop, () => fetchShopConfig(admin, shop)),
+      withRateLimit(shop, () => fetchShopInstaData(admin, shop)),
+    ]);
     trackApiResponse(shop, {});
 
-    // ── 4. Fallback to default if no config exists ───────────────────────────
+    let config = rawConfig;
+    let instaData = rawInstaData;
+
+    // ── 3. Fallback to default if no config exists ───────────────────────────
     if (!config) {
       config = {
         instagramHandle: "",
@@ -120,7 +124,7 @@ export const loader = async ({ request }) => {
       };
     }
 
-    // ── 5. Enforce Restrictions for Starter Plan ─────────────────────────────
+    // ── 4. Enforce Restrictions for Starter Plan ─────────────────────────────
     if (!isPro) {
       config.aiCommentModeration = false; // Force AI Sentiment Moderation off on Starter plan
       if (config.postFeed) {
@@ -135,13 +139,7 @@ export const loader = async ({ request }) => {
       }
     }
 
-    // ── 6. Retrieve Persisted Instagram data ──────────────────────────────
-    let instaData = await withRateLimit(shop, () => fetchShopInstaData(admin, shop));
-    trackApiResponse(shop, {});
-
-    // ── 7. Auto-refresh stale Instagram data in the background ───────────────
-    // Instagram CDN media_url values expire. If data is >6 hours old and we
-    // have a configured handle, kick off a background refresh and re-save.
+    // ── 5. Auto-refresh stale Instagram data in the background (Non-blocking) ─
     if (instaData && config.instagramHandle) {
       const crawledAt = instaData._crawledAt ? new Date(instaData._crawledAt).getTime() : 0;
       const ageMs = Date.now() - crawledAt;
@@ -151,49 +149,7 @@ export const loader = async ({ request }) => {
       const needsUpgradeToChildren = hasCarouselAlbums && !hasChildrenField;
 
       if (ageMs > REFRESH_THRESHOLD_MS || needsUpgradeToChildren) {
-        console.info(
-          `[api.data] Instagram data needs refresh (age: ${Math.round(ageMs / 3600000)}h, needs children: ${needsUpgradeToChildren}) for ${shop}.`
-        );
-
-        if (needsUpgradeToChildren) {
-          try {
-            const freshData = await fetchAllInstagramMedia(config.instagramHandle, shop);
-            if (freshData) {
-              const shopRes = await admin.graphql(`{ shop { id } }`);
-              const shopJson = await shopRes.json();
-              const shopId = shopJson.data?.shop?.id;
-              if (shopId) {
-                await admin.graphql(
-                  `mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
-                    metafieldsSet(metafields: $metafields) {
-                      userErrors { message }
-                    }
-                  }`,
-                  {
-                    variables: {
-                      metafields: [
-                        {
-                          ownerId: shopId,
-                          namespace: "ai_instafeed",
-                          key: "insta_data",
-                          type: "json",
-                          value: JSON.stringify(freshData),
-                        },
-                      ],
-                    },
-                  }
-                );
-                await invalidateResource(shop, "insta_data");
-                instaData = freshData;
-                console.info(`[api.data] Synchronous upgrade/refresh complete for ${shop}.`);
-              }
-            }
-          } catch (e) {
-            console.warn(`[api.data] Synchronous refresh failed for ${shop}:`, e.message);
-          }
-        } else {
-
-        // Fire-and-forget background refresh (do NOT await — we return immediately)
+        // Fire-and-forget background refresh (never blocks the customer response)
         (async () => {
           try {
             const freshData = await fetchAllInstagramMedia(config.instagramHandle, shop);
@@ -225,7 +181,7 @@ export const loader = async ({ request }) => {
               }
             );
 
-            // Bust the cache so next poll serves fresh data
+            // Bust cache so subsequent requests get fresh data
             await invalidateResource(shop, "insta_data");
             console.info(`[api.data] Background refresh complete for ${shop}.`);
           } catch (e) {
@@ -233,48 +189,46 @@ export const loader = async ({ request }) => {
           }
         })();
       }
-    }
-  }
-
-    // ── 8. If no instaData yet but handle is set, try a live fetch right now ─
-    if (!instaData && config.instagramHandle) {
-      try {
-        instaData = await fetchAllInstagramMedia(config.instagramHandle, shop);
-        if (instaData) {
-          // Persist it so we don't have to re-fetch next time
-          const shopRes = await admin.graphql(`{ shop { id } }`);
-          const shopJson = await shopRes.json();
-          const shopId = shopJson.data?.shop?.id;
-          if (shopId) {
-            await admin.graphql(
-              `mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
-                metafieldsSet(metafields: $metafields) {
-                  userErrors { message }
+    } else if (!instaData && config.instagramHandle) {
+      // Background populate if no data exists yet
+      (async () => {
+        try {
+          const freshData = await fetchAllInstagramMedia(config.instagramHandle, shop);
+          if (freshData) {
+            const shopRes = await admin.graphql(`{ shop { id } }`);
+            const shopJson = await shopRes.json();
+            const shopId = shopJson.data?.shop?.id;
+            if (shopId) {
+              await admin.graphql(
+                `mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+                  metafieldsSet(metafields: $metafields) {
+                    userErrors { message }
+                  }
+                }`,
+                {
+                  variables: {
+                    metafields: [
+                      {
+                        ownerId: shopId,
+                        namespace: "ai_instafeed",
+                        key: "insta_data",
+                        type: "json",
+                        value: JSON.stringify(freshData),
+                      },
+                    ],
+                  },
                 }
-              }`,
-              {
-                variables: {
-                  metafields: [
-                    {
-                      ownerId: shopId,
-                      namespace: "ai_instafeed",
-                      key: "insta_data",
-                      type: "json",
-                      value: JSON.stringify(instaData),
-                    },
-                  ],
-                },
-              }
-            );
-            await invalidateResource(shop, "insta_data");
+              );
+              await invalidateResource(shop, "insta_data");
+            }
           }
+        } catch (e) {
+          console.warn(`[api.data] Background initial fetch failed for ${shop}:`, e.message);
         }
-      } catch (e) {
-        console.warn(`[api.data] On-demand fetch failed for ${shop}:`, e.message);
-      }
+      })();
     }
 
-    // ── 9. Return response with Edge / CDN Cache Headers ─────────────────────
+    // ── 6. Return response with Edge / CDN Cache Headers ─────────────────────
     return Response.json(
       { config, instaData },
       {
