@@ -576,6 +576,7 @@ export default function Index() {
 
   const [errors, setErrors] = useState({});
   const mobileCarouselRef = useRef(null);
+  const desktopCarouselRef = useRef(null);
 
   // ── Sync with Loader Data ──
   useEffect(() => {
@@ -1003,6 +1004,225 @@ export default function Index() {
       {renderMediaCard(item, i)}
     </div>
   );
+
+  const renderPromoStoryItem = () => {
+    const s = config.stories;
+    const ringColor = s.ringColor || "#e1306c";
+    const promoLabel = s.promoLabel || "Get 10% Off";
+
+    return (
+      <div
+        key="promo-story"
+        className="ai-story-item ai-promo-item"
+        onClick={() => setSelectedPost({ isPromo: true })}
+        style={{
+          flexShrink: 0,
+          width: "72px",
+          textAlign: "center",
+          cursor: "pointer",
+        }}
+      >
+        <div
+          className="ai-story-ring-wrapper"
+          style={{
+            width: "56px",
+            height: "56px",
+            borderRadius: "50%",
+            padding: "2px",
+            border: s.activeRing ? "none" : `2px solid ${ringColor}`,
+            background: "white",
+            margin: "0 auto",
+            position: "relative",
+          }}
+        >
+          {s.activeRing && (
+            <svg
+              className={`ai-story-ring-svg ${s.pulseRing ? "ai-story-ring-pulse" : ""}`}
+              viewBox="0 0 100 100"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                animation: "rotateRing 5s linear infinite",
+                pointerEvents: "none",
+              }}
+            >
+              <circle cx="50" cy="50" r="47.5" fill="none" stroke={ringColor} strokeWidth="5" strokeDasharray="8 4" />
+            </svg>
+          )}
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: "50%",
+              overflow: "hidden",
+              background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </div>
+        </div>
+        <div style={{ marginTop: "4px" }}>
+          <span
+            className="ai-promo-pill"
+            style={{
+              display: "inline-block",
+              padding: "2px 6px",
+              border: `1.5px solid ${ringColor}`,
+              color: ringColor,
+              fontSize: "9px",
+              fontWeight: "700",
+              borderRadius: "10px",
+              whiteSpace: "nowrap",
+              background: "white",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
+            }}
+          >
+            {promoLabel}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderStoryItem = (item, i) => {
+    const s = config.stories;
+    const ringColor = s.ringColor || "#e1306c";
+    const rawType = (item.media_type || "").toUpperCase();
+    const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+    const rawLabel = item.caption ? item.caption.split(/\s+/)[0] : `Story ${i + 1}`;
+    const cleanLabel = rawLabel.replace(/[:,\.\-\s]+$/, "");
+
+    return (
+      <div
+        key={item.id || i}
+        className="ai-story-item"
+        onClick={() => setSelectedPost(item)}
+        style={{
+          flexShrink: 0,
+          width: "66px",
+          textAlign: "center",
+          cursor: "pointer",
+        }}
+      >
+        <div
+          className="ai-story-ring-wrapper"
+          style={{
+            width: "56px",
+            height: "56px",
+            borderRadius: "50%",
+            padding: "2px",
+            border: s.activeRing ? "none" : `2px solid ${ringColor}`,
+            background: "white",
+            margin: "0 auto",
+            position: "relative",
+          }}
+        >
+          {s.activeRing && (
+            <svg
+              className={`ai-story-ring-svg ${s.pulseRing ? "ai-story-ring-pulse" : ""}`}
+              viewBox="0 0 100 100"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                animation: "rotateRing 5s linear infinite",
+                pointerEvents: "none",
+              }}
+            >
+              <circle cx="50" cy="50" r="47.5" fill="none" stroke={ringColor} strokeWidth="5" strokeDasharray="8 4" />
+            </svg>
+          )}
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: "50%",
+              overflow: "hidden",
+              background: "#f1f5f9",
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
+            {isVideo ? (
+              <video
+                src={item.media_url}
+                poster={item.thumbnail_url || undefined}
+                muted
+                playsInline
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <img
+                src={item.media_url || item.thumbnail_url}
+                alt="Story"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            )}
+          </div>
+        </div>
+        {s.showLabels && (
+          <div
+            style={{
+              marginTop: "4px",
+              fontSize: "10px",
+              fontWeight: "500",
+              color: "#1e293b",
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {cleanLabel}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderFollowButton = () => {
+    const handle = (instaData?.username || config.instagramHandle || "").replace("@", "").trim();
+    if (!handle) return null;
+    return (
+      <div style={{ textAlign: "center", marginTop: "16px", marginBottom: "8px" }}>
+        <a
+          href={`https://instagram.com/${handle}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ai-follow-btn"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "5px 12px",
+            borderRadius: "16px",
+            background: "linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)",
+            color: "#ffffff",
+            fontWeight: "700",
+            fontSize: "11px",
+            textDecoration: "none",
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+          </svg>
+          <span>Follow on Instagram</span>
+        </a>
+      </div>
+    );
+  };
 
   return (
     <Page
@@ -2030,6 +2250,8 @@ export default function Index() {
                                     {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
                                   </div>
                                 )}
+
+                                {config.postFeed.showFollowButton !== false && renderFollowButton()}
                               </div>
                             ) : (
                               /* Story Preview */
@@ -2049,33 +2271,11 @@ export default function Index() {
                                     </p>
                                   </div>
                                 )}
-                                <div style={{ display: "flex", gap: "10px", padding: "8px 12px", overflowX: "auto" }}>
-                                  {baseMedia.slice(0, 6).map((item, i) => (
-                                    <div key={i} style={{ textAlign: "center", flexShrink: 0 }}>
-                                      <div
-                                        style={{
-                                          width: "52px",
-                                          height: "52px",
-                                          borderRadius: "50%",
-                                          padding: "2px",
-                                          border: `2px solid ${config.stories.ringColor || "#e1306c"}`,
-                                          overflow: "hidden",
-                                        }}
-                                      >
-                                        <img
-                                          src={item.media_url || item.thumbnail_url}
-                                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
-                                          alt="Story highlight"
-                                        />
-                                      </div>
-                                      {config.stories.showLabels && (
-                                        <span style={{ fontSize: "9px", color: "#6b7280", marginTop: "2px", display: "block" }}>
-                                          Highlight {i + 1}
-                                        </span>
-                                      )}
-                                    </div>
-                                  ))}
+                                <div style={{ display: "flex", gap: "8px", padding: "8px 10px", overflowX: "auto" }}>
+                                  {config.stories.promoEnable !== false && renderPromoStoryItem()}
+                                  {baseMedia.slice(0, 8).map((item, i) => renderStoryItem(item, i))}
                                 </div>
+                                {config.stories.showFollowButton === true && renderFollowButton()}
                               </div>
                             )}
                           </div>
@@ -2113,15 +2313,48 @@ export default function Index() {
                                 </p>
                               </div>
                             )}
-                            <div
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`,
-                                gap: `${config.postFeed.gap}px`,
-                              }}
-                            >
-                              {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
-                            </div>
+
+                            {config.postFeed.carousel ? (
+                              <div className="carousel-wrapper" style={{ padding: `${config.postFeed.gap}px 0`, position: "relative" }}>
+                                <button
+                                  className="carousel-nav prev"
+                                  onClick={() => scrollCarousel(desktopCarouselRef, "prev")}
+                                  style={{ width: "32px", height: "32px", left: "0px" }}
+                                >
+                                  <Icon source={ChevronLeftIcon} />
+                                </button>
+                                <div
+                                  className="carousel-container"
+                                  ref={desktopCarouselRef}
+                                  style={{
+                                    padding: `0 ${config.postFeed.gap}px`,
+                                    "--carousel-gap": `${config.postFeed.gap}px`,
+                                    "--carousel-item-width": `calc((100% - ${(config.postFeed.desktopColumns - 1) * config.postFeed.gap}px) / ${config.postFeed.desktopColumns})`,
+                                  }}
+                                >
+                                  {simulatedInfiniteMedia.map((item, i) => renderCarouselCard(item, i))}
+                                </div>
+                                <button
+                                  className="carousel-nav next"
+                                  onClick={() => scrollCarousel(desktopCarouselRef, "next")}
+                                  style={{ width: "32px", height: "32px", right: "0px" }}
+                                >
+                                  <Icon source={ChevronRightIcon} />
+                                </button>
+                              </div>
+                            ) : (
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`,
+                                  gap: `${config.postFeed.gap}px`,
+                                }}
+                              >
+                                {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
+                              </div>
+                            )}
+
+                            {config.postFeed.showFollowButton !== false && renderFollowButton()}
                           </div>
                         ) : (
                           <div style={{ textAlign: config.stories.alignment }}>
@@ -2136,32 +2369,10 @@ export default function Index() {
                               </div>
                             )}
                             <div style={{ display: "flex", gap: "12px", justifyContent: config.stories.alignment === "center" ? "center" : "flex-start", overflowX: "auto", padding: "8px 0" }}>
-                              {baseMedia.slice(0, 8).map((item, i) => (
-                                <div key={i} style={{ textAlign: "center", flexShrink: 0 }}>
-                                  <div
-                                    style={{
-                                      width: "60px",
-                                      height: "60px",
-                                      borderRadius: "50%",
-                                      padding: "2px",
-                                      border: `2px solid ${config.stories.ringColor || "#e1306c"}`,
-                                      overflow: "hidden",
-                                    }}
-                                  >
-                                    <img
-                                      src={item.media_url || item.thumbnail_url}
-                                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
-                                      alt="Story highlight"
-                                    />
-                                  </div>
-                                  {config.stories.showLabels && (
-                                    <span style={{ fontSize: "10px", color: "#6b7280", marginTop: "4px", display: "block" }}>
-                                      Highlight {i + 1}
-                                    </span>
-                                  )}
-                                </div>
-                              ))}
+                              {config.stories.promoEnable !== false && renderPromoStoryItem()}
+                              {baseMedia.slice(0, 10).map((item, i) => renderStoryItem(item, i))}
                             </div>
+                            {config.stories.showFollowButton === true && renderFollowButton()}
                           </div>
                         )}
                       </div>
@@ -2173,68 +2384,212 @@ export default function Index() {
           </Layout>
         )}
 
-        {/* ── Modal Dialog for Post Preview ── */}
+        {/* ── High-Fidelity Instagram Modal Dialog ── */}
         {selectedPost && (
           <Modal
             open={Boolean(selectedPost)}
             onClose={() => setSelectedPost(null)}
-            title={selectedPost.isPromo ? "Special Promotion Offer" : `@${instaData?.username || config.instagramHandle || "Instagram Post"}`}
+            title={selectedPost.isPromo ? "Special Offer" : `@${instaData?.username || config.instagramHandle || "instagram"}`}
+            size="large"
             primaryAction={{
               content: "Close",
               onAction: () => setSelectedPost(null),
             }}
           >
-            <Modal.Section>
-              <BlockStack gap="400">
-                {selectedPost.isPromo ? (
-                  <Box padding="400" background="bg-surface-secondary" borderRadius="200">
-                    <BlockStack gap="300" align="center" inlineAlign="center">
-                      <Text variant="headingLg" as="h3" alignment="center">
-                        🎁 {config.stories.promoLabel || "Get 10% Off"}
-                      </Text>
-                      <Text variant="bodyMd" tone="subdued" alignment="center">
-                        {config.stories.promoDesc || "Take a screenshot of a product you wish to buy and tag us on Instagram for a 10% discount code!"}
-                      </Text>
-                    </BlockStack>
-                  </Box>
-                ) : (
-                  <>
-                    <div style={{ maxHeight: "380px", display: "flex", justifyContent: "center", background: "#000", borderRadius: "8px", overflow: "hidden" }}>
-                      {(selectedPost.media_type || "").toUpperCase() === "VIDEO" ||
-                      (selectedPost.media_type || "").toUpperCase() === "REEL" ||
-                      (selectedPost.media_url && (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov"))) ? (
-                        <video src={selectedPost.media_url} poster={selectedPost.thumbnail_url || undefined} autoPlay loop muted playsInline style={{ maxWidth: "100%", maxHeight: "380px" }} />
-                      ) : (
-                        <img src={selectedPost.media_url} style={{ maxWidth: "100%", maxHeight: "380px", objectFit: "contain" }} alt="Post preview" />
-                      )}
+            <Modal.Section flush>
+              {selectedPost.isPromo ? (
+                /* Promo Modal */
+                <div style={{ display: "flex", flexDirection: "row", minHeight: "260px", background: "white", borderRadius: "8px", overflow: "hidden" }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)",
+                      color: "white",
+                      padding: "32px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: "50%", padding: "14px", marginBottom: "12px" }}>
+                      <Icon source={StarIcon} tone="inherit" />
                     </div>
-                    <Text variant="bodyMd">{selectedPost.caption || "No caption provided for this post."}</Text>
-                    <InlineStack gap="400" align="space-between">
-                      <InlineStack gap="300">
-                        <Text variant="bodySm" tone="subdued">
-                          ❤️ {selectedPost.like_count || 0} Likes
-                        </Text>
-                        <Text variant="bodySm" tone="subdued">
-                          💬 {selectedPost.comments_count || 0} Comments
-                        </Text>
-                      </InlineStack>
-                      <Button
-                        icon={ShareIcon}
-                        size="slim"
-                        onClick={() => {
-                          const url = selectedPost.permalink || window.location.href;
-                          if (navigator.clipboard && navigator.clipboard.writeText) {
-                            navigator.clipboard.writeText(url);
-                            shopify?.toast?.show("Post link copied to clipboard!");
-                          }
+                    <Text variant="headingLg" as="h3" tone="inherit">
+                      SPECIAL OFFER
+                    </Text>
+                    <Text variant="bodySm" tone="inherit">
+                      Exclusive Store Reward
+                    </Text>
+                  </div>
+                  <div style={{ flex: 1.2, padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                    <Text variant="headingMd" as="h3">
+                      {config.stories.promoLabel || "Get 10% Off"}
+                    </Text>
+                    <Box paddingBlockStart="200" paddingBlockEnd="400">
+                      <Text variant="bodyMd" tone="subdued">
+                        {formatDynamicAccountText(
+                          config.stories.promoDesc ||
+                            "Take a screenshot of a product you wish to buy and tag us on Instagram for a 10% discount coupon code!"
+                        )}
+                      </Text>
+                    </Box>
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      url={`https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`}
+                      target="_blank"
+                    >
+                      Open Instagram
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                /* Authentic Instagram Lightbox Modal */
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    minHeight: "420px",
+                    maxHeight: "80vh",
+                    background: "white",
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* Left Column: Media Viewport */}
+                  <div
+                    style={{
+                      flex: 1.3,
+                      background: "#000",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                      minHeight: "360px",
+                      position: "relative",
+                    }}
+                  >
+                    {(selectedPost.media_type || "").toUpperCase() === "VIDEO" ||
+                    (selectedPost.media_type || "").toUpperCase() === "REEL" ||
+                    (selectedPost.media_url &&
+                      (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov"))) ? (
+                      <video
+                        src={selectedPost.media_url}
+                        poster={selectedPost.thumbnail_url || undefined}
+                        autoPlay
+                        loop
+                        controls
+                        playsInline
+                        style={{ width: "100%", height: "100%", maxHeight: "500px", objectFit: "contain" }}
+                      />
+                    ) : (
+                      <img
+                        src={selectedPost.media_url}
+                        alt="Instagram post"
+                        style={{ width: "100%", height: "100%", maxHeight: "500px", objectFit: "contain" }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Right Column: Instagram Profile & Details */}
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      background: "#fff",
+                      borderLeft: "1px solid #e2e8f0",
+                    }}
+                  >
+                    {/* Header */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "14px 16px",
+                        borderBottom: "1px solid #f1f5f9",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
-                        Share
-                      </Button>
-                    </InlineStack>
-                  </>
-                )}
-              </BlockStack>
+                        <InstagramIcon />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Text variant="bodyMd" fontWeight="bold">
+                          @{instaData?.username || config.instagramHandle || "account"}
+                        </Text>
+                        <Text variant="bodyXs" tone="subdued">
+                          Instagram Post
+                        </Text>
+                      </div>
+                    </div>
+
+                    {/* Caption */}
+                    <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+                      <Text variant="bodyMd">{selectedPost.caption || "Shop our featured Instagram style!"}</Text>
+                      <div style={{ marginTop: "12px" }}>
+                        <Text variant="bodyXs" tone="subdued">
+                          POSTED ON INSTAGRAM
+                        </Text>
+                      </div>
+                    </div>
+
+                    {/* Action Bar & Footer */}
+                    <div style={{ padding: "14px 16px", borderTop: "1px solid #f1f5f9" }}>
+                      <InlineStack align="space-between" blockAlign="center">
+                        <InlineStack gap="300">
+                          <Text variant="bodySm" fontWeight="bold">
+                            ❤️ {selectedPost.like_count || 0} Likes
+                          </Text>
+                          <Text variant="bodySm" fontWeight="bold">
+                            💬 {selectedPost.comments_count || 0} Comments
+                          </Text>
+                        </InlineStack>
+                        <Button
+                          size="slim"
+                          icon={ShareIcon}
+                          onClick={() => {
+                            const url =
+                              selectedPost.permalink ||
+                              `https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`;
+                            if (navigator.clipboard?.writeText) {
+                              navigator.clipboard.writeText(url);
+                              shopify?.toast?.show("Post link copied to clipboard!");
+                            }
+                          }}
+                        >
+                          Share
+                        </Button>
+                      </InlineStack>
+
+                      <Box paddingBlockStart="300">
+                        <Button
+                          variant="primary"
+                          fullWidth
+                          url={
+                            selectedPost.permalink ||
+                            `https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`
+                          }
+                          target="_blank"
+                        >
+                          View on Instagram
+                        </Button>
+                      </Box>
+                    </div>
+                  </div>
+                </div>
+              )}
             </Modal.Section>
           </Modal>
         )}
