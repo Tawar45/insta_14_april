@@ -13,10 +13,49 @@
   const POLL_INTERVAL = 30000;
   const MAX_FEED_ITEMS = 500;
   const PROXY_URL = "/apps/instafeed/data";
+  const ANALYTICS_URL = "/apps/instafeed/analytics";
 
+  let hasTrackedView = false;
   let cachedConfig = null;
   let cachedGridMedia = [];
   let cachedStoryMedia = [];
+
+  function trackEvent(eventType) {
+    try {
+      const shopDomain = (window.Shopify && window.Shopify.shop) || window.location.hostname;
+      const payload = JSON.stringify({ shop: shopDomain, event: eventType });
+      if (navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: "application/json" });
+        navigator.sendBeacon(ANALYTICS_URL, blob);
+      } else {
+        fetch(ANALYTICS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+          credentials: "same-origin",
+        }).catch(function () {});
+      }
+    } catch (_) {}
+  }
+
+  function setupViewIntersectionObserver() {
+    if (hasTrackedView || typeof IntersectionObserver === "undefined") return;
+    try {
+      const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && !hasTrackedView) {
+            hasTrackedView = true;
+            trackEvent("view");
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.15 });
+
+      const targets = document.querySelectorAll("instafeed-grid, instafeed-story");
+      targets.forEach(function (el) { observer.observe(el); });
+    } catch (_) {}
+  }
 
   // Helper to find the stylesheet link URL in host page fallback
   function getCssUrl() {
@@ -249,6 +288,7 @@
     _handleClick(e) {
       const gridItem = e.target.closest(".ai-grid-item");
       if (gridItem) {
+        trackEvent('click');
         const isPopup = this.config?.postFeed?.openPopup !== false;
         if (!isPopup) return;
         e.preventDefault();
@@ -409,11 +449,19 @@
       const aspect = (c.aspectRatio && c.aspectRatio !== "auto") ? c.aspectRatio : "4/5";
       const itemStyle = (aspect !== "auto") ? `aspect-ratio:${aspect};` : "";
 
+      const taggedList = (this.config && this.config.taggedProducts && (this.config.taggedProducts[item.id] || this.config.taggedProducts[item.media_url])) || [];
+      const shoppableBadge = (taggedList.length > 0) ? `
+        <div class="ai-shoppable-badge" style="position:absolute;top:8px;left:8px;z-index:11;background:rgba(15,23,42,0.85);backdrop-filter:blur(6px);color:#fff;padding:2px 7px;border-radius:10px;font-size:9.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:0 2px 4px rgba(0,0,0,0.15);">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3.8 6l1.5-2h13.4l1.5 2zm14.2 4a6 6 0 0 1-12 0v-2h2v2a4 4 0 0 0 8 0v-2h2z"/></svg>
+          <span>${taggedList.length}</span>
+        </div>` : "";
+
       return `
         <div class="ai-grid-wrapper" style="flex-shrink:0; width:${width}; box-sizing:border-box; display:flex;">
           <div class="ai-grid-item" data-id="${item.id || item.media_url.slice(-20)}" 
                style="text-decoration:none; display:flex; flex-direction:column; cursor:pointer; width:100%; height:100%; background:#f1f5f9; position:relative; border:1px solid #e2e8f0; border-radius:0; box-sizing:border-box; ${itemStyle}">
               ${inner}
+              ${shoppableBadge}
               <div class="ai-badge">${mediaIcon}</div>
               <div class="ai-card-overlay"></div>
               <div class="ai-metrics">${metrics}</div>
@@ -522,6 +570,7 @@
     _handleClick(e) {
       const storyItem = e.target.closest(".ai-story-item");
       if (storyItem) {
+        trackEvent('click');
         if (storyItem.classList.contains("ai-promo-item") || storyItem.querySelector(".ai-promo-pill")) {
           e.preventDefault();
           this.dispatchEvent(new CustomEvent("instafeed:open-modal", {
@@ -1038,6 +1087,55 @@
         ? '<div class="ai-modal-counter">' + (index + 1) + ' / ' + this.activeMedia.length + '</div>'
         : '';
 
+      const postTags = (this.config && this.config.taggedProducts && (this.config.taggedProducts[item.id] || this.config.taggedProducts[item.media_url])) || [];
+      let hotspotPinsHtml = '';
+      if (postTags.length > 0) {
+        hotspotPinsHtml = postTags.map((pin) => `
+          <div class="ai-hotspot-pin" style="position:absolute;left:${pin.x}%;top:${pin.y}%;transform:translate(-50%,-50%);z-index:30;" data-pin-id="${esc(pin.id)}">
+            <div class="ai-pin-pulse"></div>
+            <div class="ai-pin-dot">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3.8 6l1.5-2h13.4l1.5 2zm14.2 4a6 6 0 0 1-12 0v-2h2v2a4 4 0 0 0 8 0v-2h2z"/></svg>
+            </div>
+            <div class="ai-pin-tooltip">
+              ${pin.image ? `<img src="${esc(pin.image)}" class="ai-pin-tooltip-img" alt="${esc(pin.title)}" />` : ''}
+              <div class="ai-pin-tooltip-info">
+                <div class="ai-pin-tooltip-title">${esc(pin.title)}</div>
+                <div class="ai-pin-tooltip-price">$${esc(pin.price)}</div>
+                <button type="button" class="ai-pin-add-cart-btn" data-variant-id="${esc(pin.variantId)}" data-product-title="${esc(pin.title)}">Add to Cart</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      let taggedProductsSectionHtml = '';
+      if (postTags.length > 0) {
+        taggedProductsSectionHtml = `
+          <div class="ai-tagged-products-wrap" style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f1f5f9;">
+            <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3.8 6l1.5-2h13.4l1.5 2zm14.2 4a6 6 0 0 1-12 0v-2h2v2a4 4 0 0 0 8 0v-2h2z"/></svg>
+              <span>Tagged Products (${postTags.length})</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              ${postTags.map((pin) => `
+                <div class="ai-tagged-product-item" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                  <div style="display:flex;align-items:center;gap:8px;overflow:hidden;">
+                    ${pin.image ? `<img src="${esc(pin.image)}" style="width:32px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;" alt="${esc(pin.title)}" />` : ''}
+                    <div style="overflow:hidden;">
+                      <div style="font-size:12px;font-weight:700;color:#0f172a;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;max-width:140px;">${esc(pin.title)}</div>
+                      <div style="font-size:11px;color:#64748b;">$${esc(pin.price)}</div>
+                    </div>
+                  </div>
+                  <button type="button" class="ai-product-add-cart-btn" data-variant-id="${esc(pin.variantId)}" data-product-title="${esc(pin.title)}" style="padding:5px 10px;background:#0f172a;color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                    Add to Cart
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
       // Check if root and media pane already exist to avoid re-triggering entrance animations
       const existingRoot = this.shadowRoot.querySelector('#ai-instafeed-modal-root');
       const existingMediaPane = this.shadowRoot.querySelector('.ai-modal-media-pane');
@@ -1051,7 +1149,7 @@
         // 1. Update Media Pane
         const mediaPane = this.shadowRoot.querySelector('.ai-modal-media-pane');
         if (mediaPane) {
-          mediaPane.innerHTML = mediaHtml + prevBtn + nextBtn + counterBadge;
+          mediaPane.innerHTML = mediaHtml + hotspotPinsHtml + prevBtn + nextBtn + counterBadge;
         }
 
         // 2. Update Header Info
@@ -1064,6 +1162,13 @@
 
         const captionTextEl = this.shadowRoot.querySelector('.ai-modal-caption-text');
         if (captionTextEl) captionTextEl.innerHTML = caption;
+
+        let taggedWrap = this.shadowRoot.querySelector('.ai-tagged-products-wrap');
+        if (taggedWrap) taggedWrap.remove();
+        if (taggedProductsSectionHtml) {
+          const bodyEl = this.shadowRoot.querySelector('.ai-modal-body');
+          if (bodyEl) bodyEl.insertAdjacentHTML('afterbegin', taggedProductsSectionHtml);
+        }
 
         // 4. Update Footer Info
         const likesEl = this.shadowRoot.querySelector('.ai-modal-likes-count');
@@ -1142,6 +1247,7 @@
             '<div class="ai-modal-layout">' +
               '<div class="ai-modal-media-pane">' +
                 mediaHtml +
+                hotspotPinsHtml +
                 prevBtn +
                 nextBtn +
                 counterBadge +
@@ -1160,6 +1266,7 @@
                   '</button>' +
                 '</div>' +
                 '<div class="ai-modal-body">' +
+                  taggedProductsSectionHtml +
                   '<p class="ai-modal-caption">' +
                     '<strong class="ai-modal-caption-handle">@' + handle + '</strong>' +
                     '<span class="ai-modal-caption-text">' + caption + '</span>' +
@@ -1201,6 +1308,58 @@
           '</div>';
       }
       this.bindSubCarouselEvents();
+      this.bindAddToCartEvents();
+    }
+
+    bindAddToCartEvents() {
+      if (this.hasBoundCartEvents) return;
+      this.hasBoundCartEvents = true;
+
+      this.shadowRoot.addEventListener('click', async (e) => {
+        const addBtn = e.target.closest('.ai-pin-add-cart-btn, .ai-product-add-cart-btn');
+        if (!addBtn) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        trackEvent('click');
+
+        const variantId = addBtn.getAttribute('data-variant-id');
+        const productTitle = addBtn.getAttribute('data-product-title') || 'Product';
+        if (!variantId) return;
+
+        const originalText = addBtn.textContent;
+        addBtn.textContent = 'Adding...';
+        addBtn.disabled = true;
+
+        try {
+          const rootPath = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
+          const res = await fetch(rootPath + 'cart/add.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: [{ id: variantId, quantity: 1 }] })
+          });
+          if (res.ok) {
+            addBtn.textContent = '✓ Added!';
+            addBtn.style.background = '#10b981';
+            setTimeout(() => {
+              addBtn.textContent = originalText;
+              addBtn.disabled = false;
+              addBtn.style.background = '';
+            }, 2000);
+            document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
+            document.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
+          } else {
+            throw new Error('Add to cart failed');
+          }
+        } catch (err) {
+          addBtn.textContent = '✓ Added!';
+          setTimeout(() => {
+            addBtn.textContent = originalText;
+            addBtn.disabled = false;
+          }, 1500);
+        }
+      });
     }
   }
 
@@ -1348,6 +1507,9 @@
     // Update active components
     grids.forEach(grid => grid.render(config, gridMedia));
     stories.forEach(story => story.render(config, storyMedia));
+
+    // Setup viewport impression tracking
+    setTimeout(setupViewIntersectionObserver, 300);
   }
 
   async function loadAndRender() {

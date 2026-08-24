@@ -49,3 +49,21 @@ model WebhookEvent {
   @@index([shop])
   @@index([processedAt])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FeedMetric – Daily Storefront Analytics Aggregation
+// ─────────────────────────────────────────────────────────────────────────────
+model FeedMetric {
+  id        String   @id @default(cuid())
+  shop      String
+  date      String   // Format: YYYY-MM-DD
+  views     Int      @default(0)
+  clicks    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([shop, date])
+  @@index([shop])
+  @@index([date])
+}
+

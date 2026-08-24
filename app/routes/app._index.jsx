@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
 import { fetchShopConfig, fetchShopInstaData, fetchAllInstagramMedia } from "../instagramApi.server";
 import { withRateLimit, trackApiResponse } from "../rateLimiter.server";
 import { invalidateResource, cacheGetOrSet } from "../cache.server";
@@ -21,6 +22,7 @@ import {
   Tabs,
   BlockStack,
   InlineStack,
+  InlineGrid,
   Box,
   Divider,
   Collapsible,
@@ -34,6 +36,7 @@ import {
 import {
   RefreshIcon,
   XIcon,
+  CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronDownIcon,
@@ -75,6 +78,12 @@ const linkifyText = (text) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // CUSTOM ICONS
 // ─────────────────────────────────────────────────────────────────────────────
+const ShoppableTagIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+    <circle cx="7" cy="7" r="1" fill="currentColor" />
+  </svg>
+);
 const InstagramIcon = () => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
@@ -266,6 +275,40 @@ export const loader = async ({ request }) => {
     clientId
   );
 
+  // ── Storefront Analytics ──────────────────────────────────────────────────
+  let rawMetrics = [];
+  let totalViews = 0;
+  let totalClicks = 0;
+  try {
+    const metrics = await prisma.feedMetric.findMany({
+      where: { shop },
+      orderBy: { date: "desc" },
+      take: 365,
+    });
+    rawMetrics = metrics.map((m) => ({
+      date: m.date,
+      views: m.views || 0,
+      clicks: m.clicks || 0,
+    }));
+
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    for (const m of rawMetrics) {
+      if (m.date >= thirtyDaysAgo) {
+        totalViews += m.views;
+        totalClicks += m.clicks;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load storefront metrics:", e.message);
+  }
+
+  const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
+
+  let taggedCount = 0;
+  if (config?.postTags && typeof config.postTags === "object") {
+    taggedCount = Object.values(config.postTags).filter((pins) => Array.isArray(pins) && pins.length > 0).length;
+  }
+
   return {
     config: config ? JSON.stringify(config) : null,
     instaData: instaData ? JSON.stringify(instaData) : null,
@@ -277,6 +320,13 @@ export const loader = async ({ request }) => {
     clientId,
     dynamicAppEmbedEnabled,
     dynamicSections,
+    rawMetrics,
+    analytics: {
+      totalViews,
+      totalClicks,
+      ctr,
+      taggedCount,
+    },
   };
 };
 
@@ -415,7 +465,9 @@ const DEFAULT_CONFIG = {
     paddingBottom: 32,
     mediaTypeFilter: "all",
     sortBy: "latest",
+    shoppablePins: true,
   },
+  taggedProducts: {},
   stories: {
     enable: true,
     promoEnable: true,
@@ -566,7 +618,48 @@ export default function Index() {
 
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [lastSavedConfig, setLastSavedConfig] = useState(null);
+  const [analyticsRange, setAnalyticsRange] = useState("30");
   const [isHideMode, setIsHideMode] = useState(false);
+  const [isTagMode, setIsTagMode] = useState(false);
+  const [taggingPost, setTaggingPost] = useState(null);
+  const [taggingPins, setTaggingPins] = useState([]);
+
+  const rangeOptions = useMemo(
+    () => [
+      { label: "Last 7 days", value: "7" },
+      { label: "Last 30 days", value: "30" },
+      { label: "Last 60 days (2 months)", value: "60" },
+      { label: "Last 90 days (3 months)", value: "90" },
+      { label: "All time", value: "all" },
+    ],
+    []
+  );
+
+  const filteredAnalytics = useMemo(() => {
+    const raw = loaderData.rawMetrics || [];
+    let cutoffDate = "";
+    if (analyticsRange !== "all") {
+      const days = parseInt(analyticsRange, 10) || 30;
+      cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    }
+
+    let views = 0;
+    let clicks = 0;
+    for (const m of raw) {
+      if (!cutoffDate || m.date >= cutoffDate) {
+        views += m.views || 0;
+        clicks += m.clicks || 0;
+      }
+    }
+
+    const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : "0.0";
+    return {
+      totalViews: views,
+      totalClicks: clicks,
+      ctr,
+      taggedCount: loaderData.analytics?.taggedCount ?? 0,
+    };
+  }, [loaderData.rawMetrics, analyticsRange, loaderData.analytics?.taggedCount]);
 
   const [isPostModulesExpanded, setIsPostModulesExpanded] = useState(true);
   const [isPostLayoutExpanded, setIsPostLayoutExpanded] = useState(false);
@@ -844,6 +937,96 @@ export default function Index() {
     return text.replace(/@account/gi, `@${handle}`);
   };
 
+  const handleOpenTagging = (item) => {
+    if (!isPaid) {
+      shopify?.toast?.show("Shoppable Product Hotspot Pins is a PRO feature", { isError: true });
+      navigate("/app/plans");
+      return;
+    }
+    const postId = item.id || item.media_url;
+    setTaggingPost(item);
+    setTaggingPins(config.taggedProducts?.[postId] || []);
+  };
+
+  const handleCanvasClick = async (e) => {
+    if (!taggingPost) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const xPercent = parseFloat((((e.clientX - rect.left) / rect.width) * 100).toFixed(1));
+    const yPercent = parseFloat((((e.clientY - rect.top) / rect.height) * 100).toFixed(1));
+
+    try {
+      if (shopify?.resourcePicker) {
+        const selection = await shopify.resourcePicker({ type: "product", multiple: false });
+        if (selection && selection.length > 0) {
+          const p = selection[0];
+          const variant = p.variants?.[0];
+          const newPin = {
+            id: `pin_${Date.now()}`,
+            productId: p.id,
+            variantId: variant?.id ? String(variant.id).split("/").pop() : "default",
+            title: p.title,
+            handle: p.handle,
+            price: variant?.price || "0.00",
+            image: p.images?.[0]?.originalSrc || p.featuredImage?.url || "",
+            x: xPercent,
+            y: yPercent,
+          };
+          const updatedPins = [...taggingPins, newPin];
+          setTaggingPins(updatedPins);
+          const postId = taggingPost.id || taggingPost.media_url;
+          setConfig((prev) => ({
+            ...prev,
+            taggedProducts: {
+              ...(prev.taggedProducts || {}),
+              [postId]: updatedPins,
+            },
+          }));
+          shopify?.toast?.show(`Tagged "${p.title}" at (${xPercent}%, ${yPercent}%)`);
+        }
+      } else {
+        // Fallback for simulation outside live admin frame
+        const mockPin = {
+          id: `pin_${Date.now()}`,
+          productId: `prod_${Date.now()}`,
+          variantId: `var_${Date.now()}`,
+          title: "Shoppable Product",
+          handle: "shoppable-product",
+          price: "49.00",
+          image: taggingPost.media_url || taggingPost.thumbnail_url,
+          x: xPercent,
+          y: yPercent,
+        };
+        const updatedPins = [...taggingPins, mockPin];
+        setTaggingPins(updatedPins);
+        const postId = taggingPost.id || taggingPost.media_url;
+        setConfig((prev) => ({
+          ...prev,
+          taggedProducts: {
+            ...(prev.taggedProducts || {}),
+            [postId]: updatedPins,
+          },
+        }));
+        shopify?.toast?.show(`Tagged product at (${xPercent}%, ${yPercent}%)`);
+      }
+    } catch (err) {
+      console.warn("Resource picker cancelled or failed", err);
+    }
+  };
+
+  const handleRemovePin = (pinId) => {
+    const updatedPins = taggingPins.filter((p) => p.id !== pinId);
+    setTaggingPins(updatedPins);
+    const postId = taggingPost.id || taggingPost.media_url;
+    setConfig((prev) => ({
+      ...prev,
+      taggedProducts: {
+        ...(prev.taggedProducts || {}),
+        [postId]: updatedPins,
+      },
+    }));
+    shopify?.toast?.show("Tag removed");
+  };
+
   const isSyncing = fetcher.state !== "idle";
 
   if (!isHydrated || !isAppBridgeReady) {
@@ -893,6 +1076,8 @@ export default function Index() {
     const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
     const isAlbum = rawType === "CAROUSEL_ALBUM" || rawType === "ALBUM";
 
+    const itemTags = config.taggedProducts?.[itemIdentifier] || [];
+
     return (
       <div
         key={i}
@@ -900,6 +1085,8 @@ export default function Index() {
         onClick={() => {
           if (isHideMode) {
             handleToggleHidePost(itemIdentifier);
+          } else if (isTagMode) {
+            handleOpenTagging(item);
           } else {
             setSelectedPost(item);
           }
@@ -912,7 +1099,7 @@ export default function Index() {
           boxSizing: "border-box",
           overflow: "hidden",
           position: "relative",
-          cursor: isHideMode ? "pointer" : "default",
+          cursor: isHideMode || isTagMode ? "pointer" : "default",
           opacity: isHideMode && isHidden ? 0.4 : 1,
           transition: "opacity 0.2s",
         }}
@@ -923,6 +1110,27 @@ export default function Index() {
               <Icon source={ViewIcon} tone="inherit" /> HIDDEN
             </span>
             <span className="hidden-post-hint">tap to unhide</span>
+          </div>
+        )}
+        {itemTags.length > 0 && (
+          <div style={{ position: "absolute", top: "8px", left: "8px", zIndex: 12 }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "2px 7px",
+                borderRadius: "10px",
+                background: "rgba(15, 23, 42, 0.85)",
+                backdropFilter: "blur(6px)",
+                color: "#ffffff",
+                fontSize: "9.5px",
+                fontWeight: "700",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+              }}
+            >
+              🛍️ {itemTags.length}
+            </span>
           </div>
         )}
         {isVideo ? (
@@ -1254,167 +1462,341 @@ export default function Index() {
       ]}
     >
       <BlockStack gap="500">
-        {/* ── 1. Connect Instagram Account Card ── */}
-        <Card>
-          <BlockStack gap="400">
-            <InlineStack align="space-between" blockAlign="center">
-              <InlineStack gap="300" blockAlign="center">
-                <Text variant="headingMd" as="h2">
-                  1. Connect Your Instagram Account
-                </Text>
-                {isConnected ? (
-                  <Badge tone="success" progress="complete">
-                    Linked to @{instaData?.username || config.instagramHandle}
+        {/* ── Top Overview & Simplified Monitoring Card (Only when Connected) ── */}
+        {isConnected && (
+          <Card padding="400">
+            <BlockStack gap="300">
+              <InlineStack align="space-between" blockAlign="center" wrap>
+                <InlineStack gap="200" blockAlign="center">
+                  <Text variant="headingSm" as="h3" fontWeight="bold">
+                    Feed Performance & Overview
+                  </Text>
+                  <Badge tone="info">
+                    {rangeOptions.find((o) => o.value === analyticsRange)?.label || "Last 30 days"}
                   </Badge>
-                ) : (
-                  <Badge tone="critical">Account Unlinked</Badge>
-                )}
-              </InlineStack>
-              <Button
-                variant="plain"
-                icon={isConnectExpanded ? ChevronUpIcon : ChevronDownIcon}
-                onClick={() => setIsConnectExpanded(!isConnectExpanded)}
-                accessibilityLabel="Toggle Connect Section"
-              />
-            </InlineStack>
-
-            <Collapsible open={isConnectExpanded} id="connect-account-collapsible">
-              <BlockStack gap="300">
-                <Text variant="bodyMd" tone="subdued">
-                  Seamlessly sync your Instagram feed to your Shopify storefront. Enter your public Business or Creator username or profile URL to begin.
-                </Text>
-
-                <InlineStack gap="300" blockAlign="start">
-                  <div style={{ flex: 1 }}>
-                    <TextField
-                      label="Instagram Username or Profile URL"
-                      labelHidden
-                      value={config.instagramHandle}
-                      onChange={(val) => {
-                        let parsed = val;
-                        if (parsed.includes("instagram.com/")) {
-                          try {
-                            const url = new URL(parsed.startsWith("http") ? parsed : `https://${parsed}`);
-                            const parts = url.pathname.split("/").filter(Boolean);
-                            if (parts.length > 0) parsed = parts[0];
-                          } catch {
-                            const parts = parsed.replace(/\/$/, "").split("/");
-                            parsed = parts[parts.length - 1].split("?")[0];
-                          }
-                        }
-                        parsed = parsed.replace("@", "").split("?")[0].trim();
-                        setConfig((prev) => ({ ...prev, instagramHandle: parsed }));
-                        setConnectError(null);
-                      }}
-                      placeholder="e.g. yourbrand or instagram.com/yourbrand"
-                      autoComplete="off"
-                      prefix={<Icon source={InstagramIcon} />}
-                      error={errors.instagramHandle}
-                    />
-                  </div>
-
-                  <ButtonGroup>
-                    {isConnected && (
-                      <Button
-                        icon={RefreshIcon}
-                        loading={isSyncing}
-                        onClick={() => {
-                          const fd = new FormData();
-                          fd.append("handle", config.instagramHandle);
-                          fetcher.submit(fd, { method: "post" });
-                        }}
-                      >
-                        Re-sync
-                      </Button>
-                    )}
-                    <Button
-                      variant={isConnected ? "secondary" : "primary"}
-                      tone={isConnected ? "critical" : undefined}
-                      icon={isConnected ? XIcon : LinkIcon}
-                      loading={isSyncing}
-                      onClick={() => {
-                        if (isConnected) {
-                          handleDisconnect();
-                        } else {
-                          if (!config.instagramHandle.trim()) {
-                            shopify?.toast?.show("Please enter an Instagram handle", { isError: true });
-                            return;
-                          }
-                          const fd = new FormData();
-                          fd.append("handle", config.instagramHandle);
-                          fetcher.submit(fd, { method: "post" });
-                        }
-                      }}
-                    >
-                      {isConnected ? "Disconnect" : "Connect & Sync All"}
-                    </Button>
-                  </ButtonGroup>
                 </InlineStack>
 
-                {connectError && !isSyncing && (
-                  <Banner tone="critical" onDismiss={() => setConnectError(null)}>
-                    {linkifyText(connectError)}
-                  </Banner>
-                )}
+                <div style={{ minWidth: "170px" }}>
+                  <Select
+                    label="Filter Timeframe"
+                    labelHidden
+                    options={rangeOptions}
+                    value={analyticsRange}
+                    onChange={setAnalyticsRange}
+                  />
+                </div>
+              </InlineStack>
 
-                {isConnected && instaData && (
-                  <Banner tone="success">
-                    <InlineStack gap="400" wrap>
-                      <span>
-                        <strong>{instaData.media?.data?.length || 0}</strong> posts stored
-                      </span>
-                      {instaData._totalPages && (
-                        <span>
-                          <strong>{instaData._totalPages}</strong> page
-                          {instaData._totalPages > 1 ? "s" : ""} crawled
-                        </span>
-                      )}
-                      {instaData._crawledAt && (
-                        <span>
-                          Last synced: <strong>{new Date(instaData._crawledAt).toLocaleString()}</strong>
-                        </span>
-                      )}
-                      <span>✓ 0 API calls per storefront visit</span>
+              <InlineGrid columns={{ xs: 1, sm: 2, md: 4 }} gap="300">
+                {/* Tile 1: Total Views */}
+                <Box
+                  padding="300"
+                  background="bg-surface-secondary"
+                  borderRadius="200"
+                  borderWidth="025"
+                  borderColor="border-subdued"
+                >
+                  <BlockStack gap="100">
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text variant="bodySm" tone="subdued" fontWeight="medium">
+                        Storefront Views
+                      </Text>
+                      <Icon source={ViewIcon} tone="subdued" />
                     </InlineStack>
-                  </Banner>
-                )}
+                    <Text variant="headingLg" as="p" fontWeight="bold">
+                      {(filteredAnalytics.totalViews ?? 0).toLocaleString()}
+                    </Text>
+                    <Text variant="bodyXs" tone="subdued">
+                      Feed impressions
+                    </Text>
+                  </BlockStack>
+                </Box>
 
-                {!connectError && !isConnected && (
-                  <Text variant="bodySm" tone="subdued">
-                    Must be a <strong>public Instagram Business or Creator account</strong>.{" "}
-                    <a
-                      href="https://help.instagram.com/502981923235522/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: "inherit", textDecoration: "underline" }}
-                    >
-                      How to switch account type
-                    </a>
+                {/* Tile 2: Product Clicks */}
+                <Box
+                  padding="300"
+                  background="bg-surface-secondary"
+                  borderRadius="200"
+                  borderWidth="025"
+                  borderColor="border-subdued"
+                >
+                  <BlockStack gap="100">
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text variant="bodySm" tone="subdued" fontWeight="medium">
+                        Product Clicks
+                      </Text>
+                      <Badge tone={Number(filteredAnalytics.ctr) > 0 ? "success" : "subdued"}>
+                        {filteredAnalytics.ctr ?? "0.0"}% CTR
+                      </Badge>
+                    </InlineStack>
+                    <Text variant="headingLg" as="p" fontWeight="bold">
+                      {(filteredAnalytics.totalClicks ?? 0).toLocaleString()}
+                    </Text>
+                    <Text variant="bodyXs" tone="subdued">
+                      Shoppable tag taps
+                    </Text>
+                  </BlockStack>
+                </Box>
+
+                {/* Tile 3: Shoppable Media */}
+                <Box
+                  padding="300"
+                  background="bg-surface-secondary"
+                  borderRadius="200"
+                  borderWidth="025"
+                  borderColor="border-subdued"
+                >
+                  <BlockStack gap="100">
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text variant="bodySm" tone="subdued" fontWeight="medium">
+                        Shoppable Media
+                      </Text>
+                      <Badge tone={(filteredAnalytics.taggedCount ?? 0) > 0 ? "success" : "attention"}>
+                        {filteredAnalytics.taggedCount ?? 0} Tagged
+                      </Badge>
+                    </InlineStack>
+                    <Text variant="headingLg" as="p" fontWeight="bold">
+                      {instaData?.media?.data?.length ?? (isConnected ? config.postFeed?.desktopLimit ?? 8 : 0)}
+                    </Text>
+                    <Text variant="bodyXs" tone="subdued">
+                      Total synced posts
+                    </Text>
+                  </BlockStack>
+                </Box>
+
+                {/* Tile 4: Feed Status */}
+                <Box
+                  padding="300"
+                  background="bg-surface-secondary"
+                  borderRadius="200"
+                  borderWidth="025"
+                  borderColor="border-subdued"
+                >
+                  <BlockStack gap="100">
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text variant="bodySm" tone="subdued" fontWeight="medium">
+                        Theme Integration
+                      </Text>
+                      <Icon source={StoreIcon} tone="subdued" />
+                    </InlineStack>
+                    <InlineStack gap="150" blockAlign="center">
+                      <Badge tone={loaderData.dynamicAppEmbedEnabled ? "success" : "attention"}>
+                        {loaderData.dynamicAppEmbedEnabled ? "✓ Active in Theme" : "Setup Needed"}
+                      </Badge>
+                    </InlineStack>
+                    <Text variant="bodyXs" tone="subdued">
+                      {isConnected ? `Synced @${instaData?.username || config.instagramHandle}` : "Account unlinked"}
+                    </Text>
+                  </BlockStack>
+                </Box>
+              </InlineGrid>
+            </BlockStack>
+          </Card>
+        )}
+
+        {/* ── 1. Instagram Connection Card ── */}
+        {isConnected ? (
+          <Card padding="300">
+            <InlineStack align="space-between" blockAlign="center" wrap>
+              <InlineStack gap="300" blockAlign="center">
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <InstagramIcon />
+                </div>
+                <div>
+                  <InlineStack gap="200" blockAlign="center">
+                    <Text variant="headingSm" as="h3" fontWeight="bold">
+                      @{instaData?.username || config.instagramHandle}
+                    </Text>
+                    <Badge tone="success" progress="complete">
+                      Connected
+                    </Badge>
+                  </InlineStack>
+                  <Text variant="bodyXs" tone="subdued">
+                    {instaData?.media?.data?.length || 0} posts synced • Last sync:{" "}
+                    {instaData?._crawledAt
+                      ? new Date(instaData._crawledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                      : "Recently"}
                   </Text>
-                )}
-              </BlockStack>
-            </Collapsible>
-          </BlockStack>
-        </Card>
+                </div>
+              </InlineStack>
+
+              <ButtonGroup>
+                <Button
+                  size="slim"
+                  icon={RefreshIcon}
+                  loading={isSyncing}
+                  onClick={() => {
+                    const fd = new FormData();
+                    fd.append("handle", config.instagramHandle);
+                    fetcher.submit(fd, { method: "post" });
+                  }}
+                >
+                  Re-sync
+                </Button>
+                <Button
+                  size="slim"
+                  variant="secondary"
+                  tone="critical"
+                  icon={XIcon}
+                  loading={isSyncing}
+                  onClick={handleDisconnect}
+                >
+                  Disconnect
+                </Button>
+              </ButtonGroup>
+            </InlineStack>
+          </Card>
+        ) : (
+          <Card>
+            <BlockStack gap="400">
+              <InlineStack align="space-between" blockAlign="center">
+                <InlineStack gap="300" blockAlign="center">
+                  <Text variant="headingMd" as="h2">
+                    1. Connect Your Instagram Account
+                  </Text>
+                  <Badge tone="critical">Account Unlinked</Badge>
+                </InlineStack>
+                <Button
+                  variant="plain"
+                  icon={isConnectExpanded ? ChevronUpIcon : ChevronDownIcon}
+                  onClick={() => setIsConnectExpanded(!isConnectExpanded)}
+                  accessibilityLabel="Toggle Connect Section"
+                />
+              </InlineStack>
+
+              <Collapsible open={isConnectExpanded} id="connect-account-collapsible">
+                <BlockStack gap="300">
+                  <Text variant="bodyMd" tone="subdued">
+                    Seamlessly sync your Instagram feed to your Shopify storefront. Enter your public Business or Creator username or profile URL to begin.
+                  </Text>
+
+                  <InlineStack gap="300" blockAlign="start">
+                    <div style={{ flex: 1 }}>
+                      <TextField
+                        label="Instagram Username or Profile URL"
+                        labelHidden
+                        value={config.instagramHandle}
+                        onChange={(val) => {
+                          let parsed = val;
+                          if (parsed.includes("instagram.com/")) {
+                            try {
+                              const url = new URL(parsed.startsWith("http") ? parsed : `https://${parsed}`);
+                              const parts = url.pathname.split("/").filter(Boolean);
+                              if (parts.length > 0) parsed = parts[0];
+                            } catch {
+                              const parts = parsed.replace(/\/$/, "").split("/");
+                              parsed = parts[parts.length - 1].split("?")[0];
+                            }
+                          }
+                          parsed = parsed.replace("@", "").split("?")[0].trim();
+                          setConfig((prev) => ({ ...prev, instagramHandle: parsed }));
+                          setConnectError(null);
+                        }}
+                        placeholder="e.g. yourbrand or instagram.com/yourbrand"
+                        autoComplete="off"
+                        prefix={<Icon source={InstagramIcon} />}
+                        error={errors.instagramHandle}
+                      />
+                    </div>
+
+                    <Button
+                      variant="primary"
+                      icon={LinkIcon}
+                      loading={isSyncing}
+                      onClick={() => {
+                        if (!config.instagramHandle.trim()) {
+                          shopify?.toast?.show("Please enter an Instagram handle", { isError: true });
+                          return;
+                        }
+                        const fd = new FormData();
+                        fd.append("handle", config.instagramHandle);
+                        fetcher.submit(fd, { method: "post" });
+                      }}
+                    >
+                      Connect & Sync All
+                    </Button>
+                  </InlineStack>
+
+                  {connectError && !isSyncing && (
+                    <Banner tone="critical" onDismiss={() => setConnectError(null)}>
+                      {linkifyText(connectError)}
+                    </Banner>
+                  )}
+
+                  {!connectError && (
+                    <Text variant="bodySm" tone="subdued">
+                      Must be a <strong>public Instagram Business or Creator account</strong>.{" "}
+                      <a
+                        href="https://help.instagram.com/502981923235522/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "inherit", textDecoration: "underline" }}
+                      >
+                        How to switch account type
+                      </a>
+                    </Text>
+                  )}
+                </BlockStack>
+              </Collapsible>
+            </BlockStack>
+          </Card>
+        )}
 
         {/* ── 2. Store Setup Status Card ── */}
         {isConnected && (
           <div id="store-setup-status-card">
-            <Card>
-              <BlockStack gap="400">
+            {isSetupComplete ? (
+              <Card padding="300">
                 <InlineStack align="space-between" blockAlign="center" wrap>
                   <InlineStack gap="300" blockAlign="center">
-                    <Text variant="headingMd" as="h2">
-                      2. Store Setup Status
-                    </Text>
-                    <Badge tone={isSetupComplete ? "success" : "attention"}>
-                      {setupProgress} / 2 Steps Completed
-                    </Badge>
+                    <div
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "50%",
+                        background: "#f0fdf4",
+                        border: "1px solid #bbf7d0",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#16a34a",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <StoreIcon />
+                    </div>
+                    <div>
+                      <InlineStack gap="200" blockAlign="center">
+                        <Text variant="headingSm" as="h3" fontWeight="bold">
+                          Store Theme Integration
+                        </Text>
+                        <Badge tone="success" progress="complete">
+                          ✓ 2/2 Steps Completed
+                        </Badge>
+                      </InlineStack>
+                      <Text variant="bodyXs" tone="subdued">
+                        App Embed & Sections are active on{" "}
+                        <strong>
+                          {loaderData.allThemes?.find((t) => t.id === (loaderData.selectedThemeId || loaderData.themeId))?.name || "Live Theme"}
+                        </strong>
+                      </Text>
+                    </div>
                   </InlineStack>
 
                   <InlineStack gap="200" blockAlign="center">
-                    {loaderData.allThemes?.length > 0 && (
-                      <div style={{ minWidth: "180px" }}>
+                    {loaderData.allThemes?.length > 1 && (
+                      <div style={{ minWidth: "160px" }}>
                         <Select
                           label="Target Theme"
                           labelHidden
@@ -1432,106 +1814,233 @@ export default function Index() {
                       </div>
                     )}
                     <Button
+                      size="slim"
+                      icon={ExternalIcon}
+                      onClick={() => {
+                        const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor`;
+                        window.open(url, "_blank");
+                      }}
+                    >
+                      Open Theme Editor
+                    </Button>
+                    <Button
                       variant="plain"
                       icon={isSetupExpanded ? ChevronUpIcon : ChevronDownIcon}
                       onClick={() => setIsSetupExpanded(!isSetupExpanded)}
-                      accessibilityLabel="Toggle Setup Status"
+                      accessibilityLabel="Toggle Setup Details"
                     />
                   </InlineStack>
                 </InlineStack>
 
-                <ProgressBar progress={setupProgress === 2 ? 100 : setupProgress === 1 ? 50 : 0} size="small" tone={isSetupComplete ? "success" : "highlight"} />
-
-                <Collapsible open={isSetupExpanded} id="store-setup-collapsible">
-                  <BlockStack gap="300">
-                    {/* Step 1: Main Ext */}
-                    <Box padding="300" background="bg-surface-secondary" borderRadius="200">
-                      <InlineStack align="space-between" blockAlign="center" wrap>
-                        <InlineStack gap="300" blockAlign="center">
-                          <Badge tone={loaderData.dynamicAppEmbedEnabled ? "success" : "subdued"}>
-                            {loaderData.dynamicAppEmbedEnabled ? "✓ Active" : "Step 1"}
-                          </Badge>
-                          <div>
-                            <Text variant="bodyMd" fontWeight="semibold">
-                              Enable App Embed Extension
-                            </Text>
-                            <Text variant="bodySm" tone="subdued">
-                              Required to load widget scripts in your theme without slowing down pages.
-                            </Text>
-                          </div>
-                        </InlineStack>
-                        <Button
-                          variant={loaderData.dynamicAppEmbedEnabled ? "secondary" : "primary"}
-                          icon={ExternalIcon}
-                          onClick={() => {
-                            const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
-                            window.open(url, "_blank");
-                            const newConfig = { ...config, appSetup: { ...config.appSetup, mainExt: true } };
-                            setConfig(newConfig);
-                            const fd = new FormData();
-                            fd.append("config", JSON.stringify(newConfig));
-                            saveFetcher.submit(fd, { method: "post" });
-                          }}
-                        >
-                          {loaderData.dynamicAppEmbedEnabled ? "App Embed Enabled" : "Enable in Theme"}
-                        </Button>
-                      </InlineStack>
-                    </Box>
-
-                    {/* Step 2: Sections */}
-                    <Box padding="300" background="bg-surface-secondary" borderRadius="200">
-                      <InlineStack align="space-between" blockAlign="center" wrap>
-                        <InlineStack gap="300" blockAlign="center">
-                          <Badge tone={loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? "success" : "subdued"}>
-                            {loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? "✓ Active" : "Step 2"}
-                          </Badge>
-                          <div>
-                            <Text variant="bodyMd" fontWeight="semibold">
-                              Add Feed Grid or Story Section
-                            </Text>
-                            <Text variant="bodySm" tone="subdued">
-                              Insert the Instagram gallery block into your storefront pages.
-                            </Text>
-                          </div>
-                        </InlineStack>
-                        <ButtonGroup>
+                <Collapsible open={isSetupExpanded} id="store-setup-collapsible-complete">
+                  <Box paddingBlockStart="300">
+                    <BlockStack gap="300">
+                      {/* Step 1: Main Ext */}
+                      <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                        <InlineStack align="space-between" blockAlign="center" wrap>
+                          <InlineStack gap="300" blockAlign="center">
+                            <Badge tone="success">✓ Active</Badge>
+                            <div>
+                              <Text variant="bodyMd" fontWeight="semibold">
+                                App Embed Extension
+                              </Text>
+                              <Text variant="bodySm" tone="subdued">
+                                Loads widget scripts in your theme asynchronously.
+                              </Text>
+                            </div>
+                          </InlineStack>
                           <Button
-                            variant={loaderData.dynamicSections?.grid ? "secondary" : "primary"}
+                            variant="secondary"
+                            size="slim"
                             icon={ExternalIcon}
                             onClick={() => {
-                              const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/feed-grid&target=newAppsSection`;
+                              const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
                               window.open(url, "_blank");
-                              const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
-                              setConfig(newConfig);
-                              const fd = new FormData();
-                              fd.append("config", JSON.stringify(newConfig));
-                              saveFetcher.submit(fd, { method: "post" });
                             }}
                           >
-                            {loaderData.dynamicSections?.grid ? "Grid Added" : "Add Feed Grid"}
+                            App Embed Enabled
                           </Button>
-                          <Button
-                            variant={loaderData.dynamicSections?.story ? "secondary" : "primary"}
-                            icon={ExternalIcon}
-                            onClick={() => {
-                              const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/story-layout&target=newAppsSection`;
-                              window.open(url, "_blank");
-                              const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
-                              setConfig(newConfig);
-                              const fd = new FormData();
-                              fd.append("config", JSON.stringify(newConfig));
-                              saveFetcher.submit(fd, { method: "post" });
-                            }}
-                          >
-                            {loaderData.dynamicSections?.story ? "Story Added" : "Add Story Layout"}
-                          </Button>
-                        </ButtonGroup>
-                      </InlineStack>
-                    </Box>
-                  </BlockStack>
+                        </InlineStack>
+                      </Box>
+
+                      {/* Step 2: Sections */}
+                      <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                        <InlineStack align="space-between" blockAlign="center" wrap>
+                          <InlineStack gap="300" blockAlign="center">
+                            <Badge tone="success">✓ Active</Badge>
+                            <div>
+                              <Text variant="bodyMd" fontWeight="semibold">
+                                Feed Sections
+                              </Text>
+                              <Text variant="bodySm" tone="subdued">
+                                Feed Grid and Story sections in your storefront pages.
+                              </Text>
+                            </div>
+                          </InlineStack>
+                          <ButtonGroup>
+                            <Button
+                              variant="secondary"
+                              size="slim"
+                              icon={ExternalIcon}
+                              onClick={() => {
+                                const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/feed-grid&target=newAppsSection`;
+                                window.open(url, "_blank");
+                              }}
+                            >
+                              Add Grid
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="slim"
+                              icon={ExternalIcon}
+                              onClick={() => {
+                                const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/story-layout&target=newAppsSection`;
+                                window.open(url, "_blank");
+                              }}
+                            >
+                              Add Stories
+                            </Button>
+                          </ButtonGroup>
+                        </InlineStack>
+                      </Box>
+                    </BlockStack>
+                  </Box>
                 </Collapsible>
-              </BlockStack>
-            </Card>
+              </Card>
+            ) : (
+              <Card>
+                <BlockStack gap="400">
+                  <InlineStack align="space-between" blockAlign="center" wrap>
+                    <InlineStack gap="300" blockAlign="center">
+                      <Text variant="headingMd" as="h2">
+                        2. Store Setup Status
+                      </Text>
+                      <Badge tone="attention">
+                        {setupProgress} / 2 Steps Completed
+                      </Badge>
+                    </InlineStack>
+
+                    <InlineStack gap="200" blockAlign="center">
+                      {loaderData.allThemes?.length > 0 && (
+                        <div style={{ minWidth: "180px" }}>
+                          <Select
+                            label="Target Theme"
+                            labelHidden
+                            options={loaderData.allThemes.map((t) => ({
+                              label: `${t.isLive ? "🟢 " : ""}${t.name}${t.isLive ? " (Live)" : ""}`,
+                              value: t.id,
+                            }))}
+                            value={loaderData.selectedThemeId || loaderData.themeId}
+                            onChange={(newThemeId) => {
+                              const searchParams = new URLSearchParams(window.location.search);
+                              searchParams.set("selectedThemeId", newThemeId);
+                              navigate(`?${searchParams.toString()}`, { replace: true });
+                            }}
+                          />
+                        </div>
+                      )}
+                      <Button
+                        variant="plain"
+                        icon={isSetupExpanded ? ChevronUpIcon : ChevronDownIcon}
+                        onClick={() => setIsSetupExpanded(!isSetupExpanded)}
+                        accessibilityLabel="Toggle Setup Status"
+                      />
+                    </InlineStack>
+                  </InlineStack>
+
+                  <ProgressBar progress={setupProgress === 1 ? 50 : 0} size="small" tone="highlight" />
+
+                  <Collapsible open={isSetupExpanded} id="store-setup-collapsible">
+                    <BlockStack gap="300">
+                      {/* Step 1: Main Ext */}
+                      <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                        <InlineStack align="space-between" blockAlign="center" wrap>
+                          <InlineStack gap="300" blockAlign="center">
+                            <Badge tone={loaderData.dynamicAppEmbedEnabled ? "success" : "subdued"}>
+                              {loaderData.dynamicAppEmbedEnabled ? "✓ Active" : "Step 1"}
+                            </Badge>
+                            <div>
+                              <Text variant="bodyMd" fontWeight="semibold">
+                                Enable App Embed Extension
+                              </Text>
+                              <Text variant="bodySm" tone="subdued">
+                                Required to load widget scripts in your theme without slowing down pages.
+                              </Text>
+                            </div>
+                          </InlineStack>
+                          <Button
+                            variant={loaderData.dynamicAppEmbedEnabled ? "secondary" : "primary"}
+                            icon={ExternalIcon}
+                            onClick={() => {
+                              const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
+                              window.open(url, "_blank");
+                              const newConfig = { ...config, appSetup: { ...config.appSetup, mainExt: true } };
+                              setConfig(newConfig);
+                              const fd = new FormData();
+                              fd.append("config", JSON.stringify(newConfig));
+                              saveFetcher.submit(fd, { method: "post" });
+                            }}
+                          >
+                            {loaderData.dynamicAppEmbedEnabled ? "App Embed Enabled" : "Enable in Theme"}
+                          </Button>
+                        </InlineStack>
+                      </Box>
+
+                      {/* Step 2: Sections */}
+                      <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                        <InlineStack align="space-between" blockAlign="center" wrap>
+                          <InlineStack gap="300" blockAlign="center">
+                            <Badge tone={loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? "success" : "subdued"}>
+                              {loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? "✓ Active" : "Step 2"}
+                            </Badge>
+                            <div>
+                              <Text variant="bodyMd" fontWeight="semibold">
+                                Add Feed Grid or Story Section
+                              </Text>
+                              <Text variant="bodySm" tone="subdued">
+                                Insert the Instagram gallery block into your storefront pages.
+                              </Text>
+                            </div>
+                          </InlineStack>
+                          <ButtonGroup>
+                            <Button
+                              variant={loaderData.dynamicSections?.grid ? "secondary" : "primary"}
+                              icon={ExternalIcon}
+                              onClick={() => {
+                                const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/feed-grid&target=newAppsSection`;
+                                window.open(url, "_blank");
+                                const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
+                                setConfig(newConfig);
+                                const fd = new FormData();
+                                fd.append("config", JSON.stringify(newConfig));
+                                saveFetcher.submit(fd, { method: "post" });
+                              }}
+                            >
+                              {loaderData.dynamicSections?.grid ? "Grid Added" : "Add Feed Grid"}
+                            </Button>
+                            <Button
+                              variant={loaderData.dynamicSections?.story ? "secondary" : "primary"}
+                              icon={ExternalIcon}
+                              onClick={() => {
+                                const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/story-layout&target=newAppsSection`;
+                                window.open(url, "_blank");
+                                const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
+                                setConfig(newConfig);
+                                const fd = new FormData();
+                                fd.append("config", JSON.stringify(newConfig));
+                                saveFetcher.submit(fd, { method: "post" });
+                              }}
+                            >
+                              {loaderData.dynamicSections?.story ? "Story Added" : "Add Story Layout"}
+                            </Button>
+                          </ButtonGroup>
+                        </InlineStack>
+                      </Box>
+                    </BlockStack>
+                  </Collapsible>
+                </BlockStack>
+              </Card>
+            )}
           </div>
         )}
 
@@ -1747,9 +2256,44 @@ export default function Index() {
                                     }
                                     setIsHideMode(val);
                                     if (val) {
+                                      setIsTagMode(false);
                                       shopify?.toast?.show("👆 Hide Mode ON — Click any post in the preview to hide it");
                                     } else {
                                       shopify?.toast?.show("Hide Mode turned off");
+                                    }
+                                  }}
+                                />
+                                <Checkbox
+                                  label="Shoppable Hotspot Pins"
+                                  helpText="Tag Shopify products on photo coordinates for 1-click cart checkout"
+                                  checked={isPaid && config.postFeed.shoppablePins !== false}
+                                  disabled={!isPaid}
+                                  onChange={(val) => {
+                                    if (!isPaid) {
+                                      shopify?.toast?.show("Shoppable Pins is a PRO feature", { isError: true });
+                                      navigate("/app/plans");
+                                      return;
+                                    }
+                                    updateConfig("postFeed", "shoppablePins", val);
+                                  }}
+                                />
+                                <Checkbox
+                                  label="Tag Products Mode"
+                                  helpText="Click any post in preview to drop product pins"
+                                  checked={isPaid && isTagMode}
+                                  disabled={!isPaid}
+                                  onChange={(val) => {
+                                    if (!isPaid) {
+                                      shopify?.toast?.show("Product tagging is a PRO feature", { isError: true });
+                                      navigate("/app/plans");
+                                      return;
+                                    }
+                                    setIsTagMode(val);
+                                    if (val) {
+                                      setIsHideMode(false);
+                                      shopify?.toast?.show("🏷️ Tag Mode ON — Click any post in the preview to tag products");
+                                    } else {
+                                      shopify?.toast?.show("Tag Mode turned off");
                                     }
                                   }}
                                 />
@@ -2384,212 +2928,509 @@ export default function Index() {
           </Layout>
         )}
 
-        {/* ── High-Fidelity Instagram Modal Dialog ── */}
-        {selectedPost && (
+        {/* ── High-Fidelity Instagram Modal Dialog with Shoppable Pins ── */}
+        {selectedPost && (() => {
+          const postTags = config.taggedProducts?.[selectedPost.id || selectedPost.media_url] || [];
+          return (
+            <Modal
+              open={Boolean(selectedPost)}
+              onClose={() => setSelectedPost(null)}
+              title={selectedPost.isPromo ? "Special Offer" : `@${instaData?.username || config.instagramHandle || "instagram"}`}
+              size="large"
+              primaryAction={{
+                content: "Close",
+                onAction: () => setSelectedPost(null),
+              }}
+            >
+              <Modal.Section flush>
+                {selectedPost.isPromo ? (
+                  /* Promo Modal */
+                  <div style={{ display: "flex", flexDirection: "row", minHeight: "260px", background: "white", borderRadius: "8px", overflow: "hidden" }}>
+                    <div
+                      style={{
+                        flex: 1,
+                        background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)",
+                        color: "white",
+                        padding: "32px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: "50%", padding: "14px", marginBottom: "12px" }}>
+                        <Icon source={StarIcon} tone="inherit" />
+                      </div>
+                      <Text variant="headingLg" as="h3" tone="inherit">
+                        SPECIAL OFFER
+                      </Text>
+                      <Text variant="bodySm" tone="inherit">
+                        Exclusive Store Reward
+                      </Text>
+                    </div>
+                    <div style={{ flex: 1.2, padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                      <Text variant="headingMd" as="h3">
+                        {config.stories.promoLabel || "Get 10% Off"}
+                      </Text>
+                      <Box paddingBlockStart="200" paddingBlockEnd="400">
+                        <Text variant="bodyMd" tone="subdued">
+                          {formatDynamicAccountText(
+                            config.stories.promoDesc ||
+                              "Take a screenshot of a product you wish to buy and tag us on Instagram for a 10% discount coupon code!"
+                          )}
+                        </Text>
+                      </Box>
+                      <Button
+                        variant="primary"
+                        fullWidth
+                        url={`https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`}
+                        target="_blank"
+                      >
+                        Open Instagram
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Authentic Instagram Lightbox Modal with Shoppable Hotspots */
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      minHeight: "420px",
+                      maxHeight: "80vh",
+                      background: "white",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* Left Column: Media Viewport with Pulse Pins */}
+                    <div
+                      style={{
+                        flex: 1.3,
+                        background: "#000",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                        minHeight: "360px",
+                        position: "relative",
+                      }}
+                    >
+                      {(selectedPost.media_type || "").toUpperCase() === "VIDEO" ||
+                      (selectedPost.media_type || "").toUpperCase() === "REEL" ||
+                      (selectedPost.media_url &&
+                        (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov"))) ? (
+                        <video
+                          src={selectedPost.media_url}
+                          poster={selectedPost.thumbnail_url || undefined}
+                          autoPlay
+                          loop
+                          controls
+                          playsInline
+                          style={{ width: "100%", height: "100%", maxHeight: "500px", objectFit: "contain" }}
+                        />
+                      ) : (
+                        <img
+                          src={selectedPost.media_url}
+                          alt="Instagram post"
+                          style={{ width: "100%", height: "100%", maxHeight: "500px", objectFit: "contain" }}
+                        />
+                      )}
+
+                      {/* Hotspot Pulse Pins Overlay */}
+                      {postTags.map((pin, idx) => (
+                        <div
+                          key={pin.id || idx}
+                          style={{
+                            position: "absolute",
+                            left: `${pin.x}%`,
+                            top: `${pin.y}%`,
+                            transform: "translate(-50%, -50%)",
+                            zIndex: 20,
+                            pointerEvents: "auto",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "24px",
+                              height: "24px",
+                              borderRadius: "50%",
+                              background: "#6366f1",
+                              border: "2px solid white",
+                              color: "white",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "11px",
+                              fontWeight: "bold",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                              cursor: "pointer",
+                            }}
+                            title={`${pin.title} - $${pin.price}`}
+                          >
+                            🛍️
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Right Column: Instagram Profile, Caption & Tagged Products */}
+                    <div
+                      style={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        background: "#fff",
+                        borderLeft: "1px solid #e2e8f0",
+                        maxHeight: "500px",
+                      }}
+                    >
+                      {/* Header */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          padding: "14px 16px",
+                          borderBottom: "1px solid #f1f5f9",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "50%",
+                            background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <InstagramIcon />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <Text variant="bodyMd" fontWeight="bold">
+                            @{instaData?.username || config.instagramHandle || "account"}
+                          </Text>
+                          <Text variant="bodyXs" tone="subdued">
+                            Instagram Post
+                          </Text>
+                        </div>
+                      </div>
+
+                      {/* Scrollable Content (Tagged Products + Caption) */}
+                      <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+                        {/* Tagged Products in this photo */}
+                        {postTags.length > 0 && (
+                          <div style={{ marginBottom: "16px", paddingBottom: "16px", borderBottom: "1px solid #f1f5f9" }}>
+                            <Text variant="headingSm" as="h4">
+                              🛍️ Tagged Products ({postTags.length})
+                            </Text>
+                            <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                              {postTags.map((pin, idx) => (
+                                <div
+                                  key={pin.id || idx}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    padding: "8px 10px",
+                                    background: "#f8fafc",
+                                    borderRadius: "8px",
+                                    border: "1px solid #e2e8f0",
+                                  }}
+                                >
+                                  <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
+                                    {pin.image && (
+                                      <img
+                                        src={pin.image}
+                                        alt={pin.title}
+                                        style={{ width: "32px", height: "32px", borderRadius: "4px", objectFit: "cover", flexShrink: 0 }}
+                                      />
+                                    )}
+                                    <div style={{ overflow: "hidden" }}>
+                                      <div style={{ fontSize: "12px", fontWeight: "700", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                                        {pin.title}
+                                      </div>
+                                      <div style={{ fontSize: "11px", color: "#64748b" }}>${pin.price}</div>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="micro"
+                                    variant="primary"
+                                    onClick={() => {
+                                      shopify?.toast?.show(`✓ Added "${pin.title}" to cart!`);
+                                    }}
+                                  >
+                                    Add to Cart
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <Text variant="bodyMd">{selectedPost.caption || "Shop our featured Instagram style!"}</Text>
+
+                        <div style={{ marginTop: "12px" }}>
+                          <Text variant="bodyXs" tone="subdued">
+                            POSTED ON INSTAGRAM
+                          </Text>
+                        </div>
+                      </div>
+
+                      {/* Action Bar & Footer */}
+                      <div style={{ padding: "12px 16px", borderTop: "1px solid #f1f5f9" }}>
+                        <InlineStack align="space-between" blockAlign="center">
+                          <InlineStack gap="300">
+                            <Text variant="bodySm" fontWeight="bold">
+                              ❤️ {selectedPost.like_count || 0} Likes
+                            </Text>
+                            <Text variant="bodySm" fontWeight="bold">
+                              💬 {selectedPost.comments_count || 0} Comments
+                            </Text>
+                          </InlineStack>
+                          <InlineStack gap="200">
+                            <Button
+                              size="slim"
+                              icon={ShoppableTagIcon}
+                              onClick={() => {
+                                const current = selectedPost;
+                                setSelectedPost(null);
+                                handleOpenTagging(current);
+                              }}
+                            >
+                              Tag Products
+                            </Button>
+                            <Button
+                              size="slim"
+                              icon={ShareIcon}
+                              onClick={() => {
+                                const url =
+                                  selectedPost.permalink ||
+                                  `https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`;
+                                if (navigator.clipboard?.writeText) {
+                                  navigator.clipboard.writeText(url);
+                                  shopify?.toast?.show("Post link copied to clipboard!");
+                                }
+                              }}
+                            >
+                              Share
+                            </Button>
+                          </InlineStack>
+                        </InlineStack>
+
+                        <Box paddingBlockStart="200">
+                          <Button
+                            variant="primary"
+                            fullWidth
+                            url={
+                              selectedPost.permalink ||
+                              `https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`
+                            }
+                            target="_blank"
+                          >
+                            View on Instagram
+                          </Button>
+                        </Box>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Modal.Section>
+            </Modal>
+          );
+        })()}
+
+        {/* ── Shopify Polaris Tagging Studio Modal ── */}
+        {taggingPost && (
           <Modal
-            open={Boolean(selectedPost)}
-            onClose={() => setSelectedPost(null)}
-            title={selectedPost.isPromo ? "Special Offer" : `@${instaData?.username || config.instagramHandle || "instagram"}`}
+            open={Boolean(taggingPost)}
+            onClose={() => setTaggingPost(null)}
+            title="Tag Shopify Products on Image"
             size="large"
             primaryAction={{
-              content: "Close",
-              onAction: () => setSelectedPost(null),
+              content: "Done Tagging",
+              onAction: () => {
+                setTaggingPost(null);
+                shopify?.toast?.show("Product tags saved! Remember to click Save in the top bar to publish.");
+              },
             }}
           >
             <Modal.Section flush>
-              {selectedPost.isPromo ? (
-                /* Promo Modal */
-                <div style={{ display: "flex", flexDirection: "row", minHeight: "260px", background: "white", borderRadius: "8px", overflow: "hidden" }}>
-                  <div
-                    style={{
-                      flex: 1,
-                      background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)",
-                      color: "white",
-                      padding: "32px",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                    }}
-                  >
-                    <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: "50%", padding: "14px", marginBottom: "12px" }}>
-                      <Icon source={StarIcon} tone="inherit" />
-                    </div>
-                    <Text variant="headingLg" as="h3" tone="inherit">
-                      SPECIAL OFFER
-                    </Text>
-                    <Text variant="bodySm" tone="inherit">
-                      Exclusive Store Reward
-                    </Text>
-                  </div>
-                  <div style={{ flex: 1.2, padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <Text variant="headingMd" as="h3">
-                      {config.stories.promoLabel || "Get 10% Off"}
-                    </Text>
-                    <Box paddingBlockStart="200" paddingBlockEnd="400">
-                      <Text variant="bodyMd" tone="subdued">
-                        {formatDynamicAccountText(
-                          config.stories.promoDesc ||
-                            "Take a screenshot of a product you wish to buy and tag us on Instagram for a 10% discount coupon code!"
-                        )}
-                      </Text>
-                    </Box>
-                    <Button
-                      variant="primary"
-                      fullWidth
-                      url={`https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`}
-                      target="_blank"
-                    >
-                      Open Instagram
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                /* Authentic Instagram Lightbox Modal */
+              <div style={{ display: "flex", flexDirection: "row", minHeight: "460px", background: "#f8fafc" }}>
+                {/* Interactive Tagging Canvas */}
                 <div
                   style={{
+                    flex: 1.4,
+                    background: "#0f172a",
                     display: "flex",
-                    flexDirection: "row",
-                    minHeight: "420px",
-                    maxHeight: "80vh",
-                    background: "white",
-                    overflow: "hidden",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                    userSelect: "none",
+                    padding: "16px",
                   }}
                 >
-                  {/* Left Column: Media Viewport */}
                   <div
                     style={{
-                      flex: 1.3,
-                      background: "#000",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
-                      minHeight: "360px",
                       position: "relative",
+                      display: "inline-block",
+                      cursor: "crosshair",
+                      maxWidth: "100%",
+                      maxHeight: "440px",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                      boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
                     }}
+                    onClick={handleCanvasClick}
                   >
-                    {(selectedPost.media_type || "").toUpperCase() === "VIDEO" ||
-                    (selectedPost.media_type || "").toUpperCase() === "REEL" ||
-                    (selectedPost.media_url &&
-                      (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov"))) ? (
-                      <video
-                        src={selectedPost.media_url}
-                        poster={selectedPost.thumbnail_url || undefined}
-                        autoPlay
-                        loop
-                        controls
-                        playsInline
-                        style={{ width: "100%", height: "100%", maxHeight: "500px", objectFit: "contain" }}
-                      />
-                    ) : (
-                      <img
-                        src={selectedPost.media_url}
-                        alt="Instagram post"
-                        style={{ width: "100%", height: "100%", maxHeight: "500px", objectFit: "contain" }}
-                      />
-                    )}
+                    <img
+                      src={taggingPost.media_url || taggingPost.thumbnail_url}
+                      alt="Tagging Canvas"
+                      style={{ display: "block", maxWidth: "100%", maxHeight: "440px", objectFit: "contain", pointerEvents: "none" }}
+                    />
+
+                    {/* Active Hotspot Pins on Canvas */}
+                    {taggingPins.map((pin, idx) => (
+                      <div
+                        key={pin.id || idx}
+                        style={{
+                          position: "absolute",
+                          left: `${pin.x}%`,
+                          top: `${pin.y}%`,
+                          transform: "translate(-50%, -50%)",
+                          zIndex: 10,
+                          pointerEvents: "auto",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div
+                          style={{
+                            width: "28px",
+                            height: "28px",
+                            borderRadius: "50%",
+                            background: "#6366f1",
+                            border: "2px solid white",
+                            color: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
+                            cursor: "pointer",
+                          }}
+                          title={`${pin.title} ($${pin.price})`}
+                        >
+                          {idx + 1}
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Right Column: Instagram Profile & Details */}
                   <div
                     style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      background: "#fff",
-                      borderLeft: "1px solid #e2e8f0",
+                      position: "absolute",
+                      bottom: "12px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      background: "rgba(0,0,0,0.75)",
+                      backdropFilter: "blur(6px)",
+                      padding: "6px 14px",
+                      borderRadius: "20px",
+                      color: "white",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      pointerEvents: "none",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {/* Header */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        padding: "14px 16px",
-                        borderBottom: "1px solid #f1f5f9",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "36px",
-                          height: "36px",
-                          borderRadius: "50%",
-                          background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <InstagramIcon />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <Text variant="bodyMd" fontWeight="bold">
-                          @{instaData?.username || config.instagramHandle || "account"}
-                        </Text>
-                        <Text variant="bodyXs" tone="subdued">
-                          Instagram Post
-                        </Text>
-                      </div>
-                    </div>
-
-                    {/* Caption */}
-                    <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
-                      <Text variant="bodyMd">{selectedPost.caption || "Shop our featured Instagram style!"}</Text>
-                      <div style={{ marginTop: "12px" }}>
-                        <Text variant="bodyXs" tone="subdued">
-                          POSTED ON INSTAGRAM
-                        </Text>
-                      </div>
-                    </div>
-
-                    {/* Action Bar & Footer */}
-                    <div style={{ padding: "14px 16px", borderTop: "1px solid #f1f5f9" }}>
-                      <InlineStack align="space-between" blockAlign="center">
-                        <InlineStack gap="300">
-                          <Text variant="bodySm" fontWeight="bold">
-                            ❤️ {selectedPost.like_count || 0} Likes
-                          </Text>
-                          <Text variant="bodySm" fontWeight="bold">
-                            💬 {selectedPost.comments_count || 0} Comments
-                          </Text>
-                        </InlineStack>
-                        <Button
-                          size="slim"
-                          icon={ShareIcon}
-                          onClick={() => {
-                            const url =
-                              selectedPost.permalink ||
-                              `https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`;
-                            if (navigator.clipboard?.writeText) {
-                              navigator.clipboard.writeText(url);
-                              shopify?.toast?.show("Post link copied to clipboard!");
-                            }
-                          }}
-                        >
-                          Share
-                        </Button>
-                      </InlineStack>
-
-                      <Box paddingBlockStart="300">
-                        <Button
-                          variant="primary"
-                          fullWidth
-                          url={
-                            selectedPost.permalink ||
-                            `https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`
-                          }
-                          target="_blank"
-                        >
-                          View on Instagram
-                        </Button>
-                      </Box>
-                    </div>
+                    👆 Click anywhere on the photo to drop a product hotspot pin
                   </div>
                 </div>
-              )}
+
+                {/* Side Panel: Tagged Products List */}
+                <div
+                  style={{
+                    flex: 1,
+                    background: "white",
+                    borderLeft: "1px solid #e2e8f0",
+                    display: "flex",
+                    flexDirection: "column",
+                    maxHeight: "500px",
+                  }}
+                >
+                  <div style={{ padding: "16px", borderBottom: "1px solid #f1f5f9" }}>
+                    <Text variant="headingSm" as="h3">
+                      Tagged Products ({taggingPins.length})
+                    </Text>
+                    <Text variant="bodyXs" tone="subdued">
+                      Pins drop at exact image coordinates for 1-click cart checkout.
+                    </Text>
+                  </div>
+
+                  <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+                    {taggingPins.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: "32px 16px" }}>
+                        <div style={{ fontSize: "32px", marginBottom: "8px" }}>🏷️</div>
+                        <Text variant="bodyMd" fontWeight="semibold">No products tagged yet</Text>
+                        <Text variant="bodySm" tone="subdued">Click anywhere on the photo to attach a Shopify product.</Text>
+                      </div>
+                    ) : (
+                      <BlockStack gap="300">
+                        {taggingPins.map((pin, idx) => (
+                          <Box key={pin.id || idx} padding="300" background="bg-surface-secondary" borderRadius="200">
+                            <InlineStack align="space-between" blockAlign="center">
+                              <InlineStack gap="300" blockAlign="center">
+                                <div
+                                  style={{
+                                    width: "24px",
+                                    height: "24px",
+                                    borderRadius: "50%",
+                                    background: "#6366f1",
+                                    color: "white",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: "11px",
+                                    fontWeight: "bold",
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {idx + 1}
+                                </div>
+                                {pin.image && (
+                                  <img
+                                    src={pin.image}
+                                    alt={pin.title}
+                                    style={{ width: "36px", height: "36px", borderRadius: "6px", objectFit: "cover", flexShrink: 0 }}
+                                  />
+                                )}
+                                <div style={{ overflow: "hidden" }}>
+                                  <Text variant="bodySm" fontWeight="bold" truncate>
+                                    {pin.title}
+                                  </Text>
+                                  <Text variant="bodyXs" tone="subdued">
+                                    ${pin.price} • ({pin.x}%, {pin.y}%)
+                                  </Text>
+                                </div>
+                              </InlineStack>
+                              <Button
+                                icon={XIcon}
+                                variant="plain"
+                                tone="critical"
+                                onClick={() => handleRemovePin(pin.id)}
+                                accessibilityLabel="Remove pin"
+                              />
+                            </InlineStack>
+                          </Box>
+                        ))}
+                      </BlockStack>
+                    )}
+                  </div>
+                </div>
+              </div>
             </Modal.Section>
           </Modal>
         )}

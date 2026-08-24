@@ -1059,3 +1059,124 @@
   transform: scale(1.2) !important;
 }
 
+/* ── Shoppable Hotspot Pins ─────────────────────────────────────────────────── */
+@keyframes aiPinPulse {
+  0% { transform: scale(1); opacity: 0.9; box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+  70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+  100% { transform: scale(1); opacity: 0.9; box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.ai-hotspot-pin {
+  position: absolute !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+.ai-pin-pulse {
+  position: absolute !important;
+  top: -4px !important;
+  left: -4px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: rgba(99, 102, 241, 0.4) !important;
+  animation: aiPinPulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1) !important;
+  pointer-events: none !important;
+}
+
+.ai-pin-dot {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  background: #6366f1 !important;
+  border: 2px solid #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  position: relative !important;
+  z-index: 2 !important;
+  transition: transform 0.2s ease !important;
+}
+
+.ai-hotspot-pin:hover .ai-pin-dot {
+  transform: scale(1.15) !important;
+}
+
+.ai-pin-tooltip {
+  position: absolute !important;
+  bottom: calc(100% + 10px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) translateY(6px) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.25) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 180px !important;
+  max-width: 240px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+  z-index: 50 !important;
+}
+
+.ai-hotspot-pin:hover .ai-pin-tooltip,
+.ai-hotspot-pin:focus-within .ai-pin-tooltip {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateX(-50%) translateY(0) !important;
+}
+
+.ai-pin-tooltip-img {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 6px !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-pin-tooltip-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.ai-pin-tooltip-title {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.ai-pin-tooltip-price {
+  font-size: 11px !important;
+  color: #64748b !important;
+  margin-top: 1px !important;
+  margin-bottom: 4px !important;
+}
+
+.ai-pin-add-cart-btn {
+  background: #0f172a !important;
+  color: white !important;
+  border: none !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: background 0.15s !important;
+  width: 100% !important;
+}
+
+.ai-pin-add-cart-btn:hover {
+  background: #334155 !important;
+}
+
