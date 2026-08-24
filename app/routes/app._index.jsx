@@ -1,59 +1,69 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { useFetcher, useLoaderData, useNavigate, useBlocker } from "react-router";
+import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
 import { fetchShopConfig, fetchShopInstaData, fetchAllInstagramMedia } from "../instagramApi.server";
 import { withRateLimit, trackApiResponse } from "../rateLimiter.server";
 import { invalidateResource, cacheGetOrSet } from "../cache.server";
 import {
-  SkeletonPage,
+  Page,
   Layout,
   Card,
-  SkeletonBodyText,
-  SkeletonDisplayText,
+  Text,
+  Badge,
+  Banner,
+  Button,
+  ButtonGroup,
+  TextField,
+  Select,
+  RangeSlider,
+  Checkbox,
+  Tabs,
   BlockStack,
   InlineStack,
-  Text,
-  Icon,
-  Button,
-  Collapsible,
+  Box,
   Divider,
+  Collapsible,
+  ProgressBar,
+  Modal,
+  Icon,
+  SkeletonPage,
+  SkeletonBodyText,
+  SkeletonDisplayText,
 } from "@shopify/polaris";
 import {
   RefreshIcon,
   XIcon,
-  PlayIcon,
-  HeartIcon,
-  ChatIcon,
-  LinkIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  ProfileIcon,
-  ChartVerticalIcon,
-  MobileIcon,
+  HeartIcon,
+  ChatIcon,
+  LinkIcon,
   StarIcon,
-  MagicIcon,
-  MegaphoneIcon,
-  ColorIcon,
-  ViewIcon,
   StoreIcon,
   DesktopIcon,
-  CollectionIcon,
-  CheckIcon,
-  ShareIcon
+  MobileIcon,
+  ViewIcon,
+  ShareIcon,
+  ExternalIcon,
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Renders plain text with any bare URLs turned into clickable links.
-// Used for connect-error messages that end with "Help: <url>".
 // ─────────────────────────────────────────────────────────────────────────────
 const linkifyText = (text) => {
   const parts = String(text).split(/(https?:\/\/[^\s]+)/g);
   return parts.map((part, i) =>
     /^https?:\/\//.test(part) ? (
-      <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", fontWeight: 700, textDecoration: "underline" }}>
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: "var(--p-color-text-brand)", fontWeight: 600, textDecoration: "underline" }}
+      >
         {part}
       </a>
     ) : (
@@ -72,28 +82,20 @@ const InstagramIcon = () => (
 );
 
 const VideoMediaIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill="#FFFFFF" fillRule="evenodd" clipRule="evenodd" d="M2 7.25h3.614L9.364 2H6a4 4 0 0 0-4 4v1.25Zm20 0h-6.543l3.641-5.097A4.002 4.002 0 0 1 22 6v1.25ZM2 8.75h20V18a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8.75Zm5.457-1.5L11.207 2h6.157l-3.75 5.25H7.457Zm7.404 7.953a.483.483 0 0 0 0-.837l-3.985-2.3a.483.483 0 0 0-.725.418v4.601c0 .372.403.605.725.419l3.985-2.301Z" />
   </svg>
 );
 
 const CarouselMediaIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill="#FFFFFF" d="M20.453 8.5c.005.392.005.818.005 1.279v3.2c0 1.035 0 1.892-.057 2.591-.06.728-.187 1.403-.511 2.038a5.214 5.214 0 0 1-2.278 2.279c-.636.323-1.31.451-2.038.51-.699.058-1.556.058-2.59.058h-3.2c-.32 0-.624 0-.911-.002H5.395A3.856 3.856 0 0 0 8.485 22h7.724A5.793 5.793 0 0 0 22 16.207V8.483a3.856 3.856 0 0 0-1.548-3.093V8.5Z"/>
     <path fill="#FFFFFF" fillRule="evenodd" clipRule="evenodd" d="M2 5.4A3.4 3.4 0 0 1 5.4 2h10.2A3.4 3.4 0 0 1 19 5.4v5.482l-1.91-1.25a4.037 4.037 0 0 0-4.767.253L7.87 13.528a2.763 2.763 0 0 1-3.262.173L2 11.994V5.4Zm14.392 5.299L19 12.406V15.6a3.4 3.4 0 0 1-3.4 3.4H5.4A3.4 3.4 0 0 1 2 15.6v-2.082l1.91 1.25a4.038 4.038 0 0 0 4.767-.253l4.453-3.643a2.763 2.763 0 0 1 3.262-.173ZM7.525 9.65a2.125 2.125 0 1 0 0-4.25 2.125 2.125 0 0 0 0 4.25Z"/>
   </svg>
 );
 
-const ImageMediaIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#FFFFFF" d="M19 3H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2zM5 19V5h14l.002 14H5z"/>
-    <path fill="#FFFFFF" d="m10 14-1-1-3 4h12l-5-7z"/>
-    <circle fill="#FFFFFF" cx="8.5" cy="8.5" r="1.5"/>
-  </svg>
-);
-
 // ─────────────────────────────────────────────────────────────────────────────
-// CACHED THEME EMBED & SECTION VERIFIER (saves 1.5s - 2.5s per page load)
+// CACHED THEME EMBED & SECTION VERIFIER
 // ─────────────────────────────────────────────────────────────────────────────
 async function getCachedThemeEmbedStatus(shop, themeId, accessToken, clientId) {
   if (!themeId || themeId === "current" || !accessToken) {
@@ -112,19 +114,19 @@ async function getCachedThemeEmbedStatus(shop, themeId, accessToken, clientId) {
           "templates/index.json",
           "templates/product.json",
           "templates/page.json",
-          "templates/collection.json"
+          "templates/collection.json",
         ];
-        
-        const assetPromises = assetKeys.map(key => {
+
+        const assetPromises = assetKeys.map((key) => {
           const url = `https://${shop}/admin/api/${apiVersion}/themes/${themeId}/assets.json?asset[key]=${encodeURIComponent(key)}`;
           return fetch(url, {
             headers: {
               "X-Shopify-Access-Token": accessToken,
-              "Content-Type": "application/json"
-            }
+              "Content-Type": "application/json",
+            },
           })
-          .then(res => res.json())
-          .catch(() => null);
+            .then((res) => res.json())
+            .catch(() => null);
         });
 
         const [settingsData, indexData, productData, pageData, collectionData] = await Promise.all(assetPromises);
@@ -135,11 +137,12 @@ async function getCachedThemeEmbedStatus(shop, themeId, accessToken, clientId) {
           try {
             const parsedSettings = JSON.parse(settingsData.asset.value);
             if (parsedSettings.current?.blocks) {
-              dynamicAppEmbedEnabled = Object.values(parsedSettings.current.blocks).some(b => 
-                b.type && 
-                (b.type.includes(clientId) || b.type.includes(extUuid) || b.type.includes(appHandle)) && 
-                b.type.includes('app-embed') && 
-                !b.disabled
+              dynamicAppEmbedEnabled = Object.values(parsedSettings.current.blocks).some(
+                (b) =>
+                  b.type &&
+                  (b.type.includes(clientId) || b.type.includes(extUuid) || b.type.includes(appHandle)) &&
+                  b.type.includes("app-embed") &&
+                  !b.disabled
               );
             }
           } catch (e) {}
@@ -154,7 +157,12 @@ async function getCachedThemeEmbedStatus(shop, themeId, accessToken, clientId) {
                 for (const sectionObj of Object.values(parsedTemplate.sections)) {
                   if (sectionObj.disabled) continue;
 
-                  if (sectionObj.type && (sectionObj.type.includes(extUuid) || sectionObj.type.includes(appHandle) || sectionObj.type.includes(clientId))) {
+                  if (
+                    sectionObj.type &&
+                    (sectionObj.type.includes(extUuid) ||
+                      sectionObj.type.includes(appHandle) ||
+                      sectionObj.type.includes(clientId))
+                  ) {
                     if (sectionObj.type.includes("feed-grid")) dynamicSections.grid = true;
                     if (sectionObj.type.includes("story-layout")) dynamicSections.story = true;
                   }
@@ -162,7 +170,12 @@ async function getCachedThemeEmbedStatus(shop, themeId, accessToken, clientId) {
                   if (sectionObj.blocks) {
                     for (const blockObj of Object.values(sectionObj.blocks)) {
                       if (blockObj.disabled) continue;
-                      if (blockObj.type && (blockObj.type.includes(extUuid) || blockObj.type.includes(appHandle) || blockObj.type.includes(clientId))) {
+                      if (
+                        blockObj.type &&
+                        (blockObj.type.includes(extUuid) ||
+                          blockObj.type.includes(appHandle) ||
+                          blockObj.type.includes(clientId))
+                      ) {
                         if (blockObj.type.includes("feed-grid")) dynamicSections.grid = true;
                         if (blockObj.type.includes("story-layout")) dynamicSections.story = true;
                       }
@@ -178,7 +191,7 @@ async function getCachedThemeEmbedStatus(shop, themeId, accessToken, clientId) {
       }
       return { dynamicAppEmbedEnabled, dynamicSections };
     },
-    300 // 5 minutes TTL
+    300
   );
 }
 
@@ -191,7 +204,6 @@ export const loader = async ({ request }) => {
 
   const isTest = process.env.BILLING_TEST_MODE !== "false";
 
-  // Run all independent fetches in parallel
   const [billingResult, configResult, instaResult, themeRes] = await Promise.allSettled([
     billing.check({ plans: ["Pro Monthly"], isTest }),
     withRateLimit(shop, () => fetchShopConfig(admin, shop)),
@@ -203,7 +215,7 @@ export const loader = async ({ request }) => {
   if (billingResult.status === "fulfilled") {
     const billingCheck = billingResult.value;
     if (billingCheck.hasActivePayment) {
-      const activeSub = billingCheck.appSubscriptions.find(s => s.status === "ACTIVE");
+      const activeSub = billingCheck.appSubscriptions.find((s) => s.status === "ACTIVE");
       if (activeSub) subscription = activeSub;
     }
   } else {
@@ -226,22 +238,21 @@ export const loader = async ({ request }) => {
     try {
       const themeJson = await themeRes.value.json();
       const nodes = themeJson.data?.themes?.nodes || [];
-      allThemes = nodes.map(t => {
+      allThemes = nodes.map((t) => {
         const numericId = t.id.split("/").pop();
         const isLive = t.role === "MAIN";
         return {
           id: numericId,
           name: t.name || `Theme #${numericId}`,
           role: t.role,
-          isLive
+          isLive,
         };
       });
-      // Sort live theme first, then by name
       allThemes.sort((a, b) => (b.isLive ? 1 : 0) - (a.isLive ? 1 : 0));
 
-      const mainTheme = allThemes.find(t => t.isLive);
-      const matchedSelected = selectedThemeParam ? allThemes.find(t => t.id === selectedThemeParam) : null;
-      themeId = matchedSelected ? matchedSelected.id : (mainTheme ? mainTheme.id : (allThemes[0]?.id || "current"));
+      const mainTheme = allThemes.find((t) => t.isLive);
+      const matchedSelected = selectedThemeParam ? allThemes.find((t) => t.id === selectedThemeParam) : null;
+      themeId = matchedSelected ? matchedSelected.id : mainTheme ? mainTheme.id : allThemes[0]?.id || "current";
     } catch (err) {
       console.warn("Failed to parse themes JSON", err);
     }
@@ -265,7 +276,7 @@ export const loader = async ({ request }) => {
     selectedThemeId: themeId,
     clientId,
     dynamicAppEmbedEnabled,
-    dynamicSections
+    dynamicSections,
   };
 };
 
@@ -278,7 +289,6 @@ export const action = async ({ request }) => {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  // ── Save Config ──
   if (intent === "saveConfig") {
     const configData = formData.get("config");
     try {
@@ -297,7 +307,6 @@ export const action = async ({ request }) => {
         },
       ];
 
-      // If handle is empty, also clear the insta_data metafield
       if (!parsedConfig.instagramHandle) {
         metafields.push({
           ownerId: shopId,
@@ -321,7 +330,6 @@ export const action = async ({ request }) => {
       if (saveJson.data?.metafieldsSet?.userErrors?.length > 0) {
         return { error: saveJson.data.metafieldsSet.userErrors[0].message };
       }
-      // ── Invalidate config cache so the next loader hit re-fetches fresh data ──
       await invalidateResource(shop, "config");
       await invalidateResource(shop, "insta_data");
       return { success: true, message: "Settings updated successfully" };
@@ -330,9 +338,6 @@ export const action = async ({ request }) => {
     }
   }
 
-  // ── intent: fetchInsta – Fully Automated All-Pages Crawl ──────────────────
-  // Uses fetchAllInstagramMedia to crawl every pagination cursor
-  // server-side in one shot. Returns complete dataset, saves to metafield.
   const handle = formData.get("handle");
 
   if (!handle) return { error: "Please enter an Instagram username." };
@@ -341,10 +346,7 @@ export const action = async ({ request }) => {
   }
 
   try {
-    // AUTO-CRAWL: Fetches ALL pages (up to 500 posts) automatically
     const allData = await fetchAllInstagramMedia(handle, shop);
-
-    // Persist the complete dataset to Shopify metafield
     const shopRes = await admin.graphql(`{ shop { id } }`);
     const shopJson = await shopRes.json();
     const shopId = shopJson.data.shop.id;
@@ -378,7 +380,7 @@ export const action = async ({ request }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DEFAULT CONFIG
+// DEFAULT CONFIG & PRESETS
 // ─────────────────────────────────────────────────────────────────────────────
 const DEFAULT_CONFIG = {
   instagramHandle: "",
@@ -395,8 +397,8 @@ const DEFAULT_CONFIG = {
     heading: "SHOP OUR INSTAGRAM",
     subheading: "Tag us @account to get featured in our gallery!",
     typography: {
-      heading:    { size: 18, weight: "800", color: "var(--premium-text-primary)" },
-      subheading: { size: 12, weight: "500", color: "var(--premium-text-secondary)" },
+      heading: { size: 18, weight: "800", color: "#111827" },
+      subheading: { size: 12, weight: "500", color: "#6b7280" },
     },
     alignment: "center",
     desktopColumns: 4,
@@ -418,7 +420,7 @@ const DEFAULT_CONFIG = {
     enable: true,
     promoEnable: true,
     promoLabel: "Get 10% Off",
-    promoDesc: "Take a screenshot of a product you wish to buy and tag @gpmbazaar and we will send you a 10% Off Discount Coupon Code!",
+    promoDesc: "Take a screenshot of a product you wish to buy and tag us on Instagram for a 10% discount code!",
     showLabels: false,
     carousel: true,
     autoplay: true,
@@ -427,7 +429,7 @@ const DEFAULT_CONFIG = {
     heading: "SHOP OUR INSTAGRAM",
     subheading: "Tag us @account to get featured in our gallery!",
     typography: {
-      heading:    { size: 28, weight: "800", color: "#000" },
+      heading: { size: 28, weight: "800", color: "#000" },
       subheading: { size: 14, weight: "400", color: "#666" },
     },
     animateImages: false,
@@ -452,7 +454,7 @@ const FEED_TYPOGRAPHY_PRESETS = [
     textHeading: "SHOP OUR INSTAGRAM",
     textSubheading: "Click on any post to shop the look instantly.",
     heading: { size: 24, weight: "800", color: "#1a1a1a" },
-    subheading: { size: 14, weight: "500", color: "#4b5563" }
+    subheading: { size: 14, weight: "500", color: "#4b5563" },
   },
   {
     name: "Social Proof",
@@ -460,7 +462,7 @@ const FEED_TYPOGRAPHY_PRESETS = [
     textHeading: "AS SEEN ON SOCIAL",
     textSubheading: "See how our community styles their favorite pieces.",
     heading: { size: 24, weight: "800", color: "#111827" },
-    subheading: { size: 13, weight: "400", color: "#6b7280" }
+    subheading: { size: 13, weight: "400", color: "#6b7280" },
   },
   {
     name: "Community Feed",
@@ -468,7 +470,7 @@ const FEED_TYPOGRAPHY_PRESETS = [
     textHeading: "JOIN THE COMMUNITY",
     textSubheading: "Tag us on Instagram to be featured on our page!",
     heading: { size: 22, weight: "800", color: "#0f172a" },
-    subheading: { size: 13, weight: "500", color: "#475569" }
+    subheading: { size: 13, weight: "500", color: "#475569" },
   },
   {
     name: "Minimalist Style",
@@ -476,7 +478,7 @@ const FEED_TYPOGRAPHY_PRESETS = [
     textHeading: "Insta Gallery",
     textSubheading: "Curated moments from our daily feed.",
     heading: { size: 18, weight: "600", color: "#374151" },
-    subheading: { size: 12, weight: "400", color: "#9ca3af" }
+    subheading: { size: 12, weight: "400", color: "#9ca3af" },
   },
   {
     name: "Luxury Lookbook",
@@ -484,7 +486,7 @@ const FEED_TYPOGRAPHY_PRESETS = [
     textHeading: "THE LOOKBOOK",
     textSubheading: "A visual journal of modern luxury and craftsmanship.",
     heading: { size: 28, weight: "800", color: "#000000" },
-    subheading: { size: 15, weight: "400", color: "#1f2937" }
+    subheading: { size: 15, weight: "400", color: "#1f2937" },
   },
   {
     name: "Vibrant Brand",
@@ -492,91 +494,8 @@ const FEED_TYPOGRAPHY_PRESETS = [
     textHeading: "FOLLOW US ON INSTAGRAM",
     textSubheading: "Get daily inspiration, updates, and behind-the-scenes access.",
     heading: { size: 24, weight: "800", color: "#e1306c" },
-    subheading: { size: 13, weight: "500", color: "#c13584" }
+    subheading: { size: 13, weight: "500", color: "#c13584" },
   },
-  {
-    name: "Bold Culture",
-    desc: "High energy streetwear look with red accent.",
-    textHeading: "CULTURE & STYLE",
-    textSubheading: "Real people. Real styles. Everyday inspiration.",
-    heading: { size: 26, weight: "800", color: "#111111" },
-    subheading: { size: 14, weight: "700", color: "#dc2626" }
-  },
-  {
-    name: "Inspiration Board",
-    desc: "Balanced layout for lifestyle and decor.",
-    textHeading: "LIFESTYLE INSPIRATION",
-    textSubheading: "Elevate your everyday with curated stories from our feed.",
-    heading: { size: 20, weight: "600", color: "#1e293b" },
-    subheading: { size: 13, weight: "400", color: "#64748b" }
-  }
-];
-
-const STORY_TYPOGRAPHY_PRESETS = [
-  {
-    name: "Modern Shoppable",
-    desc: "Default bold look with shop instructions.",
-    textHeading: "SHOP OUR INSTAGRAM",
-    textSubheading: "Click on any post to shop the look instantly.",
-    heading: { size: 28, weight: "800", color: "#1a1a1a" },
-    subheading: { size: 14, weight: "500", color: "#4b5563" }
-  },
-  {
-    name: "Social Proof",
-    desc: "Clean customer showcase and lifestyle focus.",
-    textHeading: "AS SEEN ON SOCIAL",
-    textSubheading: "See how our community styles their favorite pieces.",
-    heading: { size: 28, weight: "800", color: "#111827" },
-    subheading: { size: 13, weight: "400", color: "#6b7280" }
-  },
-  {
-    name: "Community Feed",
-    desc: "Encouraging tagging and sharing.",
-    textHeading: "JOIN THE COMMUNITY",
-    textSubheading: "Tag us on Instagram to be featured on our page!",
-    heading: { size: 26, weight: "800", color: "#0f172a" },
-    subheading: { size: 13, weight: "500", color: "#475569" }
-  },
-  {
-    name: "Minimalist Style",
-    desc: "Subtle headings for clean design aesthetics.",
-    textHeading: "Insta Gallery",
-    textSubheading: "Curated moments from our daily feed.",
-    heading: { size: 22, weight: "600", color: "#374151" },
-    subheading: { size: 12, weight: "400", color: "#9ca3af" }
-  },
-  {
-    name: "Luxury Lookbook",
-    desc: "Sophisticated editorial serif vibe.",
-    textHeading: "THE LOOKBOOK",
-    textSubheading: "A visual journal of modern luxury and craftsmanship.",
-    heading: { size: 32, weight: "800", color: "#000000" },
-    subheading: { size: 16, weight: "400", color: "#1f2937" }
-  },
-  {
-    name: "Vibrant Brand",
-    desc: "Vivid Instagram-themed pink highlights.",
-    textHeading: "FOLLOW US ON INSTAGRAM",
-    textSubheading: "Get daily inspiration, updates, and behind-the-scenes access.",
-    heading: { size: 28, weight: "800", color: "#e1306c" },
-    subheading: { size: 14, weight: "500", color: "#c13584" }
-  },
-  {
-    name: "Bold Culture",
-    desc: "High energy streetwear look with red accent.",
-    textHeading: "CULTURE & STYLE",
-    textSubheading: "Real people. Real styles. Everyday inspiration.",
-    heading: { size: 30, weight: "800", color: "#111111" },
-    subheading: { size: 14, weight: "700", color: "#dc2626" }
-  },
-  {
-    name: "Inspiration Board",
-    desc: "Balanced layout for lifestyle and decor.",
-    textHeading: "LIFESTYLE INSPIRATION",
-    textSubheading: "Elevate your everyday with curated stories from our feed.",
-    heading: { size: 24, weight: "600", color: "#1e293b" },
-    subheading: { size: 13, weight: "400", color: "#64748b" }
-  }
 ];
 
 const isPresetMatch = (currentConfigSection, preset) => {
@@ -607,13 +526,13 @@ export default function Index() {
 
   const [isHydrated, setIsHydrated] = useState(false);
   const [isAppBridgeReady, setIsAppBridgeReady] = useState(false);
-  const [modalSource, setModalSource] = useState("grid");
 
-  const [activeTab, setActiveTab] = useState("post");
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const activeTab = selectedTabIndex === 0 ? "post" : "story";
   const [previewDevice, setPreviewDevice] = useState("mobile");
 
   const isPaid = !!loaderData.subscription;
-  const planName = loaderData.subscription?.name || "Starter";
+  const planName = loaderData.subscription?.name || "Free Plan";
 
   const [instaData, setInstaData] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -640,8 +559,8 @@ export default function Index() {
       id: `placeholder_${i}`,
       media_url: baseUrls[i % baseUrls.length],
       media_type: "IMAGE",
-      like_count: 120 + (i * 5) % 80,
-      comments_count: 8 + (i * 2) % 15
+      like_count: 120 + ((i * 5) % 80),
+      comments_count: 8 + ((i * 2) % 15),
     }));
   }, []);
 
@@ -649,569 +568,266 @@ export default function Index() {
   const [lastSavedConfig, setLastSavedConfig] = useState(null);
   const [isHideMode, setIsHideMode] = useState(false);
 
-  const baseMedia = useMemo(() => {
-    let media = instaData?.media?.data || PLACEHOLDER_MEDIA;
-    if (!isHideMode && config?.postFeed?.hiddenPostIds?.length > 0) {
-      media = media.filter(item => !config.postFeed.hiddenPostIds.includes(item.id || item.media_url));
-    }
-    return media;
-  }, [instaData?.media?.data, PLACEHOLDER_MEDIA, config?.postFeed?.hiddenPostIds, isHideMode]);
+  const [isPostModulesExpanded, setIsPostModulesExpanded] = useState(true);
+  const [isPostLayoutExpanded, setIsPostLayoutExpanded] = useState(false);
+  const [isPostBrandingExpanded, setIsPostBrandingExpanded] = useState(false);
+  const [isStoryModulesExpanded, setIsStoryModulesExpanded] = useState(true);
+  const [isStoryBrandingExpanded, setIsStoryBrandingExpanded] = useState(false);
 
-  const filteredGridMedia = useMemo(() => {
-    let media = baseMedia;
-    const filter = config?.postFeed?.mediaTypeFilter || "all";
-    if (filter === "images") {
-      media = media.filter(item => {
-        const rawType = (item.media_type || "").toUpperCase();
-        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-        return !isVideo;
-      });
-    } else if (filter === "videos") {
-      media = media.filter(item => {
-        const rawType = (item.media_type || "").toUpperCase();
-        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-        return isVideo;
-      });
-    }
-    if (config?.postFeed?.sortBy === "engaging") {
-      const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
-      media = [...media].sort((a, b) => getEngagement(b) - getEngagement(a));
-    }
-    return media;
-  }, [baseMedia, config?.postFeed?.mediaTypeFilter, config?.postFeed?.sortBy]);
+  const [errors, setErrors] = useState({});
+  const mobileCarouselRef = useRef(null);
 
-  const filteredStoriesMedia = useMemo(() => {
-    let media = baseMedia;
-    const filter = config?.stories?.mediaTypeFilter || "all";
-    if (filter === "images") {
-      media = media.filter(item => {
-        const rawType = (item.media_type || "").toUpperCase();
-        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-        return !isVideo;
-      });
-    } else if (filter === "videos") {
-      media = media.filter(item => {
-        const rawType = (item.media_type || "").toUpperCase();
-        const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-        return isVideo;
-      });
-    }
-    if (config?.stories?.sortBy === "engaging") {
-      const getEngagement = (item) => (item.like_count || 0) + (item.comments_count || 0);
-      media = [...media].sort((a, b) => getEngagement(b) - getEngagement(a));
-    }
-    // Limit to maximum 10 story items
-    return media.slice(0, 10);
-  }, [baseMedia, config?.stories?.mediaTypeFilter, config?.stories?.sortBy]);
-
-  const formatDynamicAccountText = (str) => {
-    if (!str) return "";
-    const cleanHandle = (config.instagramHandle || "").replace("@", "").trim();
-    const replacement = cleanHandle ? `@${cleanHandle}` : "@gpmbazaar";
-    return String(str).replace(/@account/gi, replacement);
-  };
-
-  const handleToggleHidePost = (itemIdentifier) => {
-    setConfig(prev => {
-      const isHidden = prev.postFeed.hiddenPostIds.includes(itemIdentifier);
-      return {
-        ...prev,
-        postFeed: {
-          ...prev.postFeed,
-          hiddenPostIds: isHidden 
-            ? prev.postFeed.hiddenPostIds.filter(id => id !== itemIdentifier)
-            : [...prev.postFeed.hiddenPostIds, itemIdentifier]
-        }
-      };
-    });
-  };
-
-  const baseDeviceLimit = previewDevice === "mobile" 
-    ? (config.postFeed.mobileLimit ?? 4) 
-    : (config.postFeed.desktopLimit ?? 8);
-
-  // If infinite scroll was toggled off, reset extra loads immediately
-  useEffect(() => {
-    if (!config.postFeed.load) {
-      setExtraLoadCount(0);
-    }
-  }, [config.postFeed.load]);
-
-  const totalVisibleCount = config.postFeed.load 
-    ? baseDeviceLimit + extraLoadCount 
-    : baseDeviceLimit;
-
-  const hasMoreToShow = totalVisibleCount < filteredGridMedia.length;
-
-  const simulatedInfiniteMedia = useMemo(
-    () => filteredGridMedia.slice(0, totalVisibleCount),
-    [filteredGridMedia, totalVisibleCount]
-  );
-
-
-
-  // Whether the user has unsaved local edits
-  const hasChanges = lastSavedConfig
-    ? JSON.stringify(config) !== JSON.stringify(lastSavedConfig)
-    : false;
-
-  // Blocker to prevent navigating away with unsaved changes
-  const blocker = useBlocker(
-    ({ currentValue, nextLocation }) =>
-      hasChanges && currentValue.pathname !== nextLocation.pathname
-  );
-
-  useEffect(() => {
-    if (blocker.state === "blocked") {
-      const confirmLeave = window.confirm(
-        "You have unsaved changes. Are you sure you want to leave without saving?"
-      );
-      if (confirmLeave) {
-        blocker.proceed();
-      } else {
-        blocker.reset();
-      }
-    }
-  }, [blocker]);
-
-  // Modal keyboard controls (ArrowLeft, ArrowRight, Escape)
-  useEffect(() => {
-    if (!selectedPost) return;
-    const handleKeyDown = (e) => {
-      const list = modalSource === "story" ? filteredStoriesMedia : simulatedInfiniteMedia;
-      const currentIndex = list.findIndex(p => p.id === selectedPost.id);
-      if (e.key === "ArrowLeft") {
-        if (currentIndex > 0) setSelectedPost(list[currentIndex - 1]);
-      } else if (e.key === "ArrowRight") {
-        if (currentIndex !== -1 && currentIndex < list.length - 1) setSelectedPost(list[currentIndex + 1]);
-      } else if (e.key === "Escape") {
-        setSelectedPost(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedPost, modalSource, filteredStoriesMedia, simulatedInfiniteMedia]);
-
-  // Track last-fetched handle to debounce refetches
-  const [lastFetchedHandle, setLastFetchedHandle] = useState("");
-
-  // Carousel refs
-  const desktopCarouselRef = useRef(null);
-  const mobileCarouselRef  = useRef(null);
-  const mobileStoryRef     = useRef(null);
-  const desktopStoryRef    = useRef(null);
-
-  // ── Hydration guard ──
+  // ── Sync with Loader Data ──
   useEffect(() => {
     setIsHydrated(true);
-    const t = setTimeout(() => setIsAppBridgeReady(true), 50);
-    return () => clearTimeout(t);
-  }, []);
+    if (shopify) setIsAppBridgeReady(true);
 
-  // ── Restore from localStorage / metafield on mount ──
-  useEffect(() => {
-    // Restore cached feed data
-    const savedData = localStorage.getItem("insta_feed_data");
-    if (savedData) {
-      try { setInstaData(JSON.parse(savedData)); } catch {}
-    }
-
-    // Restore config (metafield wins over localStorage)
-    const configStr = loaderData?.config || localStorage.getItem("insta_config");
-    const instaDataStr = loaderData?.instaData || localStorage.getItem("insta_feed_data");
-
-    if (instaDataStr) {
-      try { setInstaData(JSON.parse(instaDataStr)); } catch {}
-    }
-
-    if (configStr) {
+    let loadedConfig = null;
+    if (loaderData.config) {
       try {
-        const parsed = JSON.parse(configStr);
-        const merged = { ...DEFAULT_CONFIG };
-        if (parsed.postFeed) {
-          merged.postFeed = { ...DEFAULT_CONFIG.postFeed, ...parsed.postFeed };
-          if (parsed.postFeed.typography) {
-            merged.postFeed.typography = {
-              ...DEFAULT_CONFIG.postFeed.typography,
-              ...parsed.postFeed.typography,
-            };
-            if (parsed.postFeed.typography.heading)
-              merged.postFeed.typography.heading = {
-                ...DEFAULT_CONFIG.postFeed.typography.heading,
-                ...parsed.postFeed.typography.heading,
-              };
-            if (parsed.postFeed.typography.subheading)
-              merged.postFeed.typography.subheading = {
-                ...DEFAULT_CONFIG.postFeed.typography.subheading,
-                ...parsed.postFeed.typography.subheading,
-              };
-          }
-        }
-        if (parsed.stories) {
-          merged.stories = { ...DEFAULT_CONFIG.stories, ...parsed.stories };
-          if (parsed.stories.typography) {
-            merged.stories.typography = {
-              ...DEFAULT_CONFIG.stories.typography,
-              ...parsed.stories.typography,
-            };
-            if (parsed.stories.typography.heading)
-              merged.stories.typography.heading = {
-                ...DEFAULT_CONFIG.stories.typography.heading,
-                ...parsed.stories.typography.heading,
-              };
-            if (parsed.stories.typography.subheading)
-              merged.stories.typography.subheading = {
-                ...DEFAULT_CONFIG.stories.typography.subheading,
-                ...parsed.stories.typography.subheading,
-              };
-          }
-        }
-        if (parsed.instagramHandle !== undefined)
-          merged.instagramHandle = parsed.instagramHandle;
-
-        setConfig(merged);
-        setLastSavedConfig(merged);
-      } catch (e) {
-        console.error("Failed to parse saved config", e);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ── Auto-fetch on handle change (debounced 1.5 s) ──
-  useEffect(() => {
-    const handle = config.instagramHandle?.trim();
-    if (!handle || handle === lastFetchedHandle) return;
-
-    // ── PERFORMANCE: Stop unwanted API calls if data already exists in Metafield ──
-    if (instaData && handle.toLowerCase() === instaData.username.toLowerCase()) {
-      setLastFetchedHandle(handle);
-      return;
+        loadedConfig = typeof loaderData.config === "string" ? JSON.parse(loaderData.config) : loaderData.config;
+      } catch (e) {}
     }
 
-    const timeout = setTimeout(() => {
-      setLastFetchedHandle(handle);
-
-      // Auto save the typed URL immediately to Shopify database,
-      // so if they refresh the page before connection completes, it doesn't vanish.
-      const currentConfig = { ...configRef.current, instagramHandle: handle };
-      setLastSavedConfig(currentConfig);
-      localStorage.setItem("insta_config", JSON.stringify(currentConfig));
-      const fdSave = new FormData();
-      fdSave.append("intent", "saveConfig");
-      fdSave.append("config", JSON.stringify(currentConfig));
-      saveFetcher.submit(fdSave, { method: "post" });
-
-      const fd = new FormData();
-      fd.append("handle", handle);
-      fetcher.submit(fd, { method: "post" });
-    }, 1500);
-
-    return () => clearTimeout(timeout);
-  // fetcher is intentionally omitted – it's stable enough and adding it
-  // caused infinite re-fetch loops because useFetcher returns a new ref each render.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.instagramHandle, lastFetchedHandle]);
-
-  // ── Handle fetcher responses ──
-  useEffect(() => {
-    if (!fetcher.data) return;
-    if (fetcher.data.success) return;
-
-    if (fetcher.data.data) {
-      const { username, media, _totalPages } = fetcher.data.data;
-      setInstaData(fetcher.data.data);
-      setConnectError(null);
-      // Reset extra loads
-      setExtraLoadCount(0);
-
-      const newConfig = {
-        ...configRef.current,
-        instagramHandle: username,
-        postFeed: {
-          ...configRef.current.postFeed,
-          subheading: configRef.current.postFeed.subheading.replace(/@[\w.]+/g, `@${username}`),
+    const merged = {
+      ...DEFAULT_CONFIG,
+      ...loadedConfig,
+      postFeed: {
+        ...DEFAULT_CONFIG.postFeed,
+        ...(loadedConfig?.postFeed || {}),
+        typography: {
+          ...DEFAULT_CONFIG.postFeed.typography,
+          ...(loadedConfig?.postFeed?.typography || {}),
+          heading: {
+            ...DEFAULT_CONFIG.postFeed.typography.heading,
+            ...(loadedConfig?.postFeed?.typography?.heading || {}),
+          },
+          subheading: {
+            ...DEFAULT_CONFIG.postFeed.typography.subheading,
+            ...(loadedConfig?.postFeed?.typography?.subheading || {}),
+          },
         },
-        stories: {
-          ...configRef.current.stories,
-          subheading: configRef.current.stories.subheading.replace(/@[\w.]+/g, `@${username}`),
+      },
+      stories: {
+        ...DEFAULT_CONFIG.stories,
+        ...(loadedConfig?.stories || {}),
+        typography: {
+          ...DEFAULT_CONFIG.stories.typography,
+          ...(loadedConfig?.stories?.typography || {}),
+          heading: {
+            ...DEFAULT_CONFIG.stories.typography.heading,
+            ...(loadedConfig?.stories?.typography?.heading || {}),
+          },
+          subheading: {
+            ...DEFAULT_CONFIG.stories.typography.subheading,
+            ...(loadedConfig?.stories?.typography?.subheading || {}),
+          },
         },
-      };
+      },
+    };
 
-      setConfig(newConfig);
-      setLastSavedConfig(newConfig);
-      localStorage.setItem("insta_config", JSON.stringify(newConfig));
+    setConfig(merged);
+    setLastSavedConfig(merged);
 
-      // Auto-save to metafield so it persists across page reloads
-      const fd = new FormData();
-      fd.append("intent", "saveConfig");
-      fd.append("config", JSON.stringify(newConfig));
-      saveFetcher.submit(fd, { method: "post" });
-
-      localStorage.setItem("insta_feed_data", JSON.stringify(fetcher.data.data));
-      const totalPosts = media?.data?.length || 0;
-      const pages = _totalPages || 1;
-      shopify.toast.show(
-        `✓ Connected @${username} · ${totalPosts} posts synced (${pages} page${pages > 1 ? "s" : ""} crawled)`
-      );
-    } else if (fetcher.data.error) {
-      setConnectError(fetcher.data.error);
-      shopify.toast.show(fetcher.data.error, { isError: true });
+    if (loaderData.instaData) {
+      try {
+        const parsedInsta =
+          typeof loaderData.instaData === "string" ? JSON.parse(loaderData.instaData) : loaderData.instaData;
+        setInstaData(parsedInsta);
+      } catch (e) {}
     }
-  }, [fetcher.data, shopify]);
- 
-  // ── Connection smart logic ──
+  }, [loaderData, shopify]);
+
   const isConnected = useMemo(() => {
     if (!instaData || !config.instagramHandle) return false;
-    return config.instagramHandle.trim().toLowerCase() === instaData.username.toLowerCase();
+    return config.instagramHandle.trim().toLowerCase() === instaData.username?.toLowerCase();
   }, [instaData, config.instagramHandle]);
 
-  const setupProgress = [(loaderData.dynamicAppEmbedEnabled ? 1 : 0), ((loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story) ? 1 : 0)].reduce((a,b)=>a+b, 0);
+  const setupProgress = [
+    loaderData.dynamicAppEmbedEnabled ? 1 : 0,
+    loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
   const isSetupComplete = setupProgress === 2;
 
   const [isConnectExpanded, setIsConnectExpanded] = useState(!isConnected);
   const [isSetupExpanded, setIsSetupExpanded] = useState(isConnected && !isSetupComplete);
-
-  // Collapsible section toggles for Feed Grid tab
-  const [isPostModulesExpanded, setIsPostModulesExpanded] = useState(true);
-  const [isPostLayoutExpanded, setIsPostLayoutExpanded] = useState(false);
-  const [isPostBrandingExpanded, setIsPostBrandingExpanded] = useState(false);
-
-  // Collapsible section toggles for Story tab
-  const [isStoryModulesExpanded, setIsStoryModulesExpanded] = useState(true);
-  const [isStoryBrandingExpanded, setIsStoryBrandingExpanded] = useState(false);
 
   useEffect(() => {
     setIsConnectExpanded(!isConnected);
     setIsSetupExpanded(isConnected && !isSetupComplete);
   }, [isConnected, isSetupComplete]);
 
+  // ── Handle Fetcher Responses ──
+  useEffect(() => {
+    if (!fetcher.data) return;
+    if (fetcher.data.data) {
+      const { username, media, _totalPages } = fetcher.data.data;
+      setInstaData(fetcher.data.data);
+      setConnectError(null);
+      setExtraLoadCount(0);
+
+      const newConfig = {
+        ...config,
+        instagramHandle: username,
+        postFeed: {
+          ...config.postFeed,
+          subheading: config.postFeed.subheading.replace(/@[\w.]+/g, `@${username}`),
+        },
+        stories: {
+          ...config.stories,
+          subheading: config.stories.subheading.replace(/@[\w.]+/g, `@${username}`),
+        },
+      };
+
+      setConfig(newConfig);
+      setLastSavedConfig(newConfig);
+
+      const fd = new FormData();
+      fd.append("intent", "saveConfig");
+      fd.append("config", JSON.stringify(newConfig));
+      saveFetcher.submit(fd, { method: "post" });
+
+      const totalPosts = media?.data?.length || 0;
+      const pages = _totalPages || 1;
+      shopify?.toast?.show(
+        `✓ Connected @${username} · ${totalPosts} posts synced (${pages} page${pages > 1 ? "s" : ""} crawled)`
+      );
+    } else if (fetcher.data.error) {
+      setConnectError(fetcher.data.error);
+      shopify?.toast?.show(fetcher.data.error, { isError: true });
+    }
+  }, [fetcher.data, shopify]);
+
   const handleDisconnect = useCallback(() => {
     setInstaData(null);
-    localStorage.removeItem("insta_feed_data");
     const newConfig = { ...config, instagramHandle: "" };
     setConfig(newConfig);
     setLastSavedConfig(newConfig);
-    localStorage.setItem("insta_config", JSON.stringify(newConfig));
-    setLastFetchedHandle("");
 
-    // Auto-save the cleared state to Shopify metafield
     const fd = new FormData();
     fd.append("intent", "saveConfig");
     fd.append("config", JSON.stringify(newConfig));
     saveFetcher.submit(fd, { method: "post" });
 
-    shopify.toast.show("Instagram account disconnected successfully.");
-  }, [config, fetcher, shopify]);
+    shopify?.toast?.show("Instagram account disconnected successfully.");
+  }, [config, saveFetcher, shopify]);
 
-  // ── Config helpers ──
   const updateConfig = useCallback((section, key, value) => {
     setConfig((prev) => ({
       ...prev,
       [section]: { ...prev[section], [key]: value },
     }));
-    if (key === "mobileColumns" || key === "mobileLimit")  setPreviewDevice("mobile");
+    if (key === "mobileColumns" || key === "mobileLimit") setPreviewDevice("mobile");
     if (key === "desktopColumns" || key === "desktopLimit") setPreviewDevice("desktop");
-    if (section === "stories")   setActiveTab("story");
-    if (section === "postFeed")  setActiveTab("post");
+    if (section === "stories") setSelectedTabIndex(1);
+    if (section === "postFeed") setSelectedTabIndex(0);
   }, []);
 
-  const updateNestedConfig = useCallback((section, subSection, key, value) => {
-    setConfig((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [subSection]: { ...prev[section][subSection], [key]: value },
-      },
-    }));
-    if (section === "stories")  setActiveTab("story");
-    if (section === "postFeed") setActiveTab("post");
-  }, []);
-
-  // ── Validation and Save Bar Effects ──
-  const [errors, setErrors] = useState({});
+  // ── Dirty State & Save Bar ──
+  const hasChanges = useMemo(() => {
+    if (!lastSavedConfig) return false;
+    return JSON.stringify(config) !== JSON.stringify(lastSavedConfig);
+  }, [config, lastSavedConfig]);
 
   useEffect(() => {
-    // Clear specific errors if input value becomes valid
-    if (config.instagramHandle.trim() && errors.instagramHandle) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy.instagramHandle;
-        return copy;
-      });
-    }
-    if (!isNaN(config.postFeed.gap) && config.postFeed.gap >= 0 && config.postFeed.gap <= 40 && errors.postFeedGap) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy.postFeedGap;
-        return copy;
-      });
-    }
-    if (!isNaN(config.postFeed.paddingTop) && config.postFeed.paddingTop >= 0 && config.postFeed.paddingTop <= 100 && errors.postFeedPaddingTop) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy.postFeedPaddingTop;
-        return copy;
-      });
-    }
-    if (!isNaN(config.postFeed.paddingBottom) && config.postFeed.paddingBottom >= 0 && config.postFeed.paddingBottom <= 100 && errors.postFeedPaddingBottom) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy.postFeedPaddingBottom;
-        return copy;
-      });
-    }
-    if (!isNaN(config.stories.paddingTop) && config.stories.paddingTop >= 0 && config.stories.paddingTop <= 100 && errors.storiesPaddingTop) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy.storiesPaddingTop;
-        return copy;
-      });
-    }
-    if (!isNaN(config.stories.paddingBottom) && config.stories.paddingBottom >= 0 && config.stories.paddingBottom <= 100 && errors.storiesPaddingBottom) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy.storiesPaddingBottom;
-        return copy;
-      });
-    }
-  }, [
-    config.instagramHandle,
-    config.postFeed.gap,
-    config.postFeed.paddingTop,
-    config.postFeed.paddingBottom,
-    config.stories.paddingTop,
-    config.stories.paddingBottom,
-    errors
-  ]);
-
-  useEffect(() => {
-    if (shopify && shopify.saveBar) {
-      if (hasChanges) {
-        shopify.saveBar.show("app-config-save-bar");
-      } else {
-        shopify.saveBar.hide("app-config-save-bar");
-      }
-    }
-  }, [hasChanges, shopify]);
-
-  // ── Apply / Discard ──
-  const applyChanges = useCallback(() => {
-    const newErrors = {};
-    if (!config.instagramHandle.trim()) {
-      newErrors.instagramHandle = "Instagram handle or profile URL is required.";
-    }
-    if (isNaN(config.postFeed.gap) || config.postFeed.gap < 0 || config.postFeed.gap > 40) {
-      newErrors.postFeedGap = "Visual gap must be a number between 0 and 40.";
-    }
-    if (isNaN(config.postFeed.paddingTop) || config.postFeed.paddingTop < 0 || config.postFeed.paddingTop > 100) {
-      newErrors.postFeedPaddingTop = "Top padding must be a number between 0 and 100.";
-    }
-    if (isNaN(config.postFeed.paddingBottom) || config.postFeed.paddingBottom < 0 || config.postFeed.paddingBottom > 100) {
-      newErrors.postFeedPaddingBottom = "Bottom padding must be a number between 0 and 100.";
-    }
-    if (isNaN(config.stories.paddingTop) || config.stories.paddingTop < 0 || config.stories.paddingTop > 100) {
-      newErrors.storiesPaddingTop = "Stories top padding must be a number between 0 and 100.";
-    }
-    if (isNaN(config.stories.paddingBottom) || config.stories.paddingBottom < 0 || config.stories.paddingBottom > 100) {
-      newErrors.storiesPaddingBottom = "Stories bottom padding must be a number between 0 and 100.";
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      shopify.toast.show("Please fix the validation errors before saving.", { isError: true });
-      return;
-    }
-
-    setErrors({});
-    const isHandleChanged = lastSavedConfig 
-      ? config.instagramHandle.trim().toLowerCase() !== lastSavedConfig.instagramHandle.trim().toLowerCase()
-      : true;
-
-    if (isHandleChanged) {
-      // Trigger media crawl + auto-save
-      const fd = new FormData();
-      fd.append("handle", config.instagramHandle);
-      fetcher.submit(fd, { method: "post" });
-      shopify.toast.show("Syncing and saving profile...");
+    const saveBar = document.getElementById("app-config-save-bar");
+    if (!saveBar) return;
+    if (hasChanges) {
+      saveBar.show();
     } else {
-      // Just save visual configuration
-      setLastSavedConfig(config);
-      localStorage.setItem("insta_config", JSON.stringify(config));
-      const fd = new FormData();
-      fd.append("intent", "saveConfig");
-      fd.append("config", JSON.stringify(config));
-      saveFetcher.submit(fd, { method: "post" });
-      shopify.toast.show("Configuration saved successfully!");
+      saveBar.hide();
     }
-  }, [config, lastSavedConfig, fetcher, saveFetcher, shopify]);
+  }, [hasChanges]);
+
+  const applyChanges = useCallback(() => {
+    const fd = new FormData();
+    fd.append("intent", "saveConfig");
+    fd.append("config", JSON.stringify(config));
+    saveFetcher.submit(fd, { method: "post" });
+    setLastSavedConfig(config);
+    shopify?.toast?.show("Changes saved successfully!");
+  }, [config, saveFetcher, shopify]);
 
   const discardChanges = useCallback(() => {
     if (lastSavedConfig) {
       setConfig(lastSavedConfig);
-      setErrors({});
-      shopify.toast.show("Changes discarded.");
+      shopify?.toast?.show("Unsaved changes discarded.");
     }
   }, [lastSavedConfig, shopify]);
 
-  const configRef = useRef(config);
-  useEffect(() => { configRef.current = config; }, [config]);
+  const handleToggleHidePost = useCallback((postId) => {
+    setConfig((prev) => {
+      const currentHidden = prev.postFeed.hiddenPostIds || [];
+      const isCurrentlyHidden = currentHidden.includes(postId);
+      const nextHidden = isCurrentlyHidden
+        ? currentHidden.filter((id) => id !== postId)
+        : [...currentHidden, postId];
 
-  // Dynamically hide/show navigation buttons based on track overflow
-  useEffect(() => {
-    const containers = document.querySelectorAll(".carousel-container");
-    const observers = [];
-
-    const checkOverflow = (container) => {
-      const wrapper = container.closest(".carousel-wrapper");
-      if (!wrapper) return;
-      const hasOverflow = container.scrollWidth > container.clientWidth;
-      const navButtons = wrapper.querySelectorAll(".carousel-nav");
-      navButtons.forEach(btn => {
-        btn.style.setProperty("display", hasOverflow ? "flex" : "none", "important");
-      });
-    };
-
-    containers.forEach((container) => {
-      // Check immediately and with small delays for rendering/image load adjustments
-      checkOverflow(container);
-      setTimeout(() => checkOverflow(container), 50);
-      setTimeout(() => checkOverflow(container), 300);
-
-      if (window.ResizeObserver) {
-        const observer = new ResizeObserver(() => {
-          checkOverflow(container);
-        });
-        observer.observe(container);
-        observers.push(observer);
-      }
+      return {
+        ...prev,
+        postFeed: {
+          ...prev.postFeed,
+          hiddenPostIds: nextHidden,
+        },
+      };
     });
+  }, []);
 
-    return () => {
-      observers.forEach(obs => obs.disconnect());
-    };
-  }, [config, activeTab, simulatedInfiniteMedia]);
+  // ── Formatted Data for Preview ──
+  const baseMedia = useMemo(() => {
+    if (instaData?.media?.data?.length > 0) return instaData.media.data;
+    return PLACEHOLDER_MEDIA;
+  }, [instaData, PLACEHOLDER_MEDIA]);
 
-  const handleScroll = useCallback((e, orientation = "vertical") => {
-    if (!configRef.current.postFeed.load || isInfiniteLoading) return;
-    const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } = e.currentTarget;
-    const threshold = 300;
-    const nearEnd =
-      orientation === "vertical"
-        ? scrollHeight - scrollTop - clientHeight < threshold
-        : scrollWidth - scrollLeft - clientWidth < threshold;
-
-    if (nearEnd && hasMoreToShow) {
-      setIsInfiniteLoading(true);
-      // Reveal more already-stored posts – zero API calls
-      setTimeout(() => {
-        setExtraLoadCount((prev) => prev + (previewDevice === "mobile" ? 4 : 8));
-        setIsInfiniteLoading(false);
-      }, 100);
+  const filteredGridMedia = useMemo(() => {
+    let list = [...baseMedia];
+    const filter = config.postFeed.mediaTypeFilter;
+    if (filter === "images") {
+      list = list.filter((m) => {
+        const t = (m.media_type || "").toUpperCase();
+        return t === "IMAGE" || t === "CAROUSEL_ALBUM" || t === "ALBUM";
+      });
+    } else if (filter === "videos") {
+      list = list.filter((m) => {
+        const t = (m.media_type || "").toUpperCase();
+        return t === "VIDEO" || t === "REEL";
+      });
     }
-  }, [isInfiniteLoading, previewDevice, hasMoreToShow, filteredGridMedia.length]);
+    if (isPaid && config.postFeed.sortBy === "engaging") {
+      list.sort((a, b) => ((b.like_count || 0) + (b.comments_count || 0)) - ((a.like_count || 0) + (a.comments_count || 0)));
+    }
+    return list;
+  }, [baseMedia, config.postFeed.mediaTypeFilter, config.postFeed.sortBy, isPaid]);
 
-  // ── Carousel scroll helper ──
+  const simulatedInfiniteMedia = useMemo(() => {
+    if (config.postFeed.carousel) return filteredGridMedia;
+    const limit = previewDevice === "mobile" ? config.postFeed.mobileLimit || 4 : config.postFeed.desktopLimit || 8;
+    const effectiveLimit = limit + extraLoadCount;
+    return filteredGridMedia.slice(0, effectiveLimit);
+  }, [filteredGridMedia, config.postFeed.carousel, previewDevice, config.postFeed.mobileLimit, config.postFeed.desktopLimit, extraLoadCount]);
+
+  const hasMoreToShow = simulatedInfiniteMedia.length < filteredGridMedia.length;
+
+  const handleScroll = useCallback(
+    (e, orientation = "vertical") => {
+      const { scrollTop, scrollHeight, clientHeight, scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
+      const threshold = 150;
+      const nearEnd =
+        orientation === "vertical"
+          ? scrollHeight - scrollTop - clientHeight < threshold
+          : scrollWidth - scrollLeft - clientWidth < threshold;
+
+      if (nearEnd && hasMoreToShow && !isInfiniteLoading) {
+        setIsInfiniteLoading(true);
+        setTimeout(() => {
+          setExtraLoadCount((prev) => prev + (previewDevice === "mobile" ? 4 : 8));
+          setIsInfiniteLoading(false);
+        }, 100);
+      }
+    },
+    [isInfiniteLoading, previewDevice, hasMoreToShow]
+  );
+
   const scrollCarousel = useCallback((ref, direction) => {
     if (!ref.current) return;
     const amount = ref.current.clientWidth * 0.8;
@@ -1221,61 +837,60 @@ export default function Index() {
     });
   }, []);
 
+  const formatDynamicAccountText = (text) => {
+    if (!text) return "";
+    const handle = instaData?.username || config.instagramHandle || "account";
+    return text.replace(/@account/gi, `@${handle}`);
+  };
 
   const isSyncing = fetcher.state !== "idle";
 
-  // ── Skeleton loader ──
   if (!isHydrated || !isAppBridgeReady) {
     return (
-      <div style={{ padding: "32px", maxWidth: "1300px", margin: "0 auto" }}>
-        <SkeletonPage primaryAction>
-          <Layout>
-            <Layout.Section>
+      <SkeletonPage primaryAction>
+        <Layout>
+          <Layout.Section>
+            <Card>
+              <SkeletonDisplayText size="small" />
+              <Box paddingBlockStart="400">
+                <SkeletonBodyText lines={3} />
+              </Box>
+            </Card>
+            <Box paddingBlockStart="400">
               <Card>
-                <div style={{ padding: "24px" }}>
-                  <SkeletonDisplayText size="small" />
-                  <div style={{ marginTop: "16px" }}><SkeletonBodyText lines={3} /></div>
-                </div>
+                <SkeletonDisplayText size="small" />
+                <Box paddingBlockStart="400">
+                  <SkeletonBodyText lines={6} />
+                </Box>
               </Card>
-              <div style={{ marginTop: "24px" }}>
-                <Card>
-                  <div style={{ padding: "24px" }}>
-                    <SkeletonDisplayText size="small" />
-                    <div style={{ marginTop: "16px" }}><SkeletonBodyText lines={6} /></div>
-                  </div>
-                </Card>
-              </div>
-            </Layout.Section>
-            <Layout.Section variant="oneThird">
-              <Card>
-                <div style={{ padding: "24px" }}>
-                  <BlockStack gap="400">
-                    <SkeletonDisplayText size="small" />
-                    <SkeletonBodyText lines={2} />
-                    <div style={{ margin: "16px 0" }} />
-                    <SkeletonDisplayText size="small" />
-                    <SkeletonBodyText lines={8} />
-                  </BlockStack>
-                </div>
-              </Card>
-            </Layout.Section>
-          </Layout>
-        </SkeletonPage>
-      </div>
+            </Box>
+          </Layout.Section>
+          <Layout.Section variant="oneThird">
+            <Card>
+              <BlockStack gap="400">
+                <SkeletonDisplayText size="small" />
+                <SkeletonBodyText lines={2} />
+                <SkeletonDisplayText size="small" />
+                <SkeletonBodyText lines={6} />
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+        </Layout>
+      </SkeletonPage>
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // RENDER HELPERS (media cards – keeps JSX DRY)
+  // MEDIA CARD RENDERER
   // ─────────────────────────────────────────────────────────────────────────
-  const renderMediaCard = (item, i, isDesktop = false) => {
+  const renderMediaCard = (item, i) => {
     const itemIdentifier = item.id || item.media_url;
     const isHidden = config.postFeed.hiddenPostIds?.includes(itemIdentifier);
-    const aspect = config.postFeed.aspectRatio === "auto" ? "auto" : (config.postFeed.aspectRatio || "1/1");
-    
-    const rawType   = (item.media_type || "").toUpperCase();
-    const isVideo   = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-    const isAlbum   = rawType === "CAROUSEL_ALBUM" || rawType === "ALBUM";
+    const aspect = config.postFeed.aspectRatio === "auto" ? "auto" : config.postFeed.aspectRatio || "1/1";
+
+    const rawType = (item.media_type || "").toUpperCase();
+    const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+    const isAlbum = rawType === "CAROUSEL_ALBUM" || rawType === "ALBUM";
 
     return (
       <div
@@ -1285,21 +900,20 @@ export default function Index() {
           if (isHideMode) {
             handleToggleHidePost(itemIdentifier);
           } else {
-            setModalSource("grid");
             setSelectedPost(item);
           }
         }}
-        style={{ 
-          aspectRatio: aspect, 
-          background: "#f1f5f9", 
-          borderRadius: 0, 
+        style={{
+          aspectRatio: aspect,
+          background: "#f1f5f9",
+          borderRadius: 0,
           border: "1px solid #e2e8f0",
           boxSizing: "border-box",
-          overflow: "hidden", 
+          overflow: "hidden",
           position: "relative",
           cursor: isHideMode ? "pointer" : "default",
           opacity: isHideMode && isHidden ? 0.4 : 1,
-          transition: "opacity 0.2s"
+          transition: "opacity 0.2s",
         }}
       >
         {isHideMode && isHidden && (
@@ -1312,7 +926,16 @@ export default function Index() {
         )}
         {isVideo ? (
           config.postFeed.autoplay ? (
-            <video src={item.media_url} poster={item.thumbnail_url || undefined} autoPlay muted loop playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <video
+              src={item.media_url}
+              poster={item.thumbnail_url || undefined}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
           ) : item.thumbnail_url ? (
             <img
               loading="lazy"
@@ -1321,7 +944,13 @@ export default function Index() {
               alt="Instagram post"
             />
           ) : item.media_url ? (
-            <video src={item.media_url} muted playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <video
+              src={item.media_url}
+              muted
+              playsInline
+              preload="metadata"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
           ) : null
         ) : item.media_url ? (
           <img
@@ -1359,2220 +988,1293 @@ export default function Index() {
             </div>
           </div>
         )}
-        {(config.postFeed.showInstagramIcon !== false) && (
+        {config.postFeed.showInstagramIcon !== false && (
           <div className="ai-ig-icon" style={{ color: "white" }}>
             <InstagramIcon />
           </div>
         )}
-        {/* Hover Overlay */}
         <div className="hover-card-overlay" />
       </div>
     );
   };
 
-  const renderCarouselCard = (item, i, isDesktop = false) => (
+  const renderCarouselCard = (item, i) => (
     <div key={i} className="carousel-item">
-      {renderMediaCard(item, i, isDesktop)}
+      {renderMediaCard(item, i)}
     </div>
   );
 
-  const renderSettingItem = (item) => {
-    const isItemPaid = !item.isPremium || isPaid;
-    const opacity = isItemPaid ? 1 : 0.7;
-
-    // Resolve checked state
-    let checked = false;
-    if (item.isSpecialAI) {
-      if (item.id === "aiSmartSorting") {
-        checked = isPaid && config.postFeed.sortBy === "engaging";
-      } else {
-        checked = isPaid && !!config.aiCommentModeration;
-      }
-    } else if (item.isLocal) {
-      checked = isPaid && isHideMode;
-    } else {
-      checked = isItemPaid && !!config.postFeed[item.id];
-    }
-
-    // Resolve onChange handler
-    const handleChange = (e) => {
-      const targetChecked = e.target.checked;
-      if (item.isPremium && !isPaid) {
-        shopify.toast.show(`${item.label} is a PRO feature`, { isError: true });
-        navigate("/app/plans");
-        return;
-      }
-
-      if (item.isSpecialAI) {
-        if (item.id === "aiSmartSorting") {
-          updateConfig("postFeed", "sortBy", targetChecked ? "engaging" : "latest");
-        } else {
-          setConfig((prev) => ({ ...prev, aiCommentModeration: targetChecked }));
-        }
-      } else if (item.isLocal) {
-        setIsHideMode(targetChecked);
-        setActiveTab("post");
-        if (targetChecked) {
-          shopify.toast.show("👆 Hide Mode ON — Click any post in the preview to hide it");
-        } else {
-          shopify.toast.show("Hide Mode turned off");
-        }
-      } else {
-        updateConfig("postFeed", item.id, targetChecked);
-      }
-    };
-
-    return (
-      <div key={item.id} className="compact-setting-item" style={{ opacity }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
-          <span style={{ display: "inline-flex", flexShrink: 0, color: item.isSpecialAI ? "#e1306c" : "#64748b" }}>
-            <Icon source={item.icon} size="small" color="inherit" />
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", minWidth: 0 }}>
-            <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--premium-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {item.label}
-            </span>
-
-            <span className="info-tooltip-wrapper" style={{ flexShrink: 0 }}>
-              <span className="info-tooltip-icon">i</span>
-              <span className="info-tooltip-content">{item.sub}</span>
-            </span>
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-          <label className="premium-switch" title={item.isPremium && !isPaid ? "Upgrade to PRO to enable this feature" : ""}>
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={handleChange}
-            />
-            <span className="slider" />
-          </label>
-        </div>
-      </div>
-    );
-  };
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // MAIN RENDER
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="premium-dashboard">
-      <style>{`
-        /* Tooltip styles */
-        .info-tooltip-wrapper {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          cursor: pointer;
-        }
+    <Page
+      title="AI Instafeed Expert"
+      subtitle="Showcase your shoppable Instagram feed & stories directly on your Shopify storefront"
+      badge={<Badge tone={isPaid ? "success" : "info"}>{isPaid ? planName : "Free Plan"}</Badge>}
+      primaryAction={{
+        content: "Customize in Store",
+        icon: StoreIcon,
+        disabled: !isConnected,
+        onAction: () => {
+          setIsSetupExpanded(true);
+          setTimeout(() => {
+            const card = document.getElementById("store-setup-status-card");
+            if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 100);
+        },
+      }}
+      secondaryActions={[
+        {
+          content: isPaid ? "Manage Plan" : "Upgrade to Pro",
+          icon: StarIcon,
+          onAction: () => navigate("/app/plans"),
+        },
+        {
+          content: "Setup Guide",
+          onAction: () => navigate("/app/guide"),
+        },
+      ]}
+    >
+      <BlockStack gap="500">
+        {/* ── 1. Connect Instagram Account Card ── */}
+        <Card>
+          <BlockStack gap="400">
+            <InlineStack align="space-between" blockAlign="center">
+              <InlineStack gap="300" blockAlign="center">
+                <Text variant="headingMd" as="h2">
+                  1. Connect Your Instagram Account
+                </Text>
+                {isConnected ? (
+                  <Badge tone="success" progress="complete">
+                    Linked to @{instaData?.username || config.instagramHandle}
+                  </Badge>
+                ) : (
+                  <Badge tone="critical">Account Unlinked</Badge>
+                )}
+              </InlineStack>
+              <Button
+                variant="plain"
+                icon={isConnectExpanded ? ChevronUpIcon : ChevronDownIcon}
+                onClick={() => setIsConnectExpanded(!isConnectExpanded)}
+                accessibilityLabel="Toggle Connect Section"
+              />
+            </InlineStack>
 
-        .info-tooltip-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
-          background: #e2e8f0;
-          color: #64748b;
-          font-size: 10px;
-          font-weight: 700;
-          margin-left: 4px;
-          transition: all 0.2s ease;
-        }
+            <Collapsible open={isConnectExpanded} id="connect-account-collapsible">
+              <BlockStack gap="300">
+                <Text variant="bodyMd" tone="subdued">
+                  Seamlessly sync your Instagram feed to your Shopify storefront. Enter your public Business or Creator username or profile URL to begin.
+                </Text>
 
-        .info-tooltip-icon:hover {
-          background: #cbd5e1;
-          color: #334155;
-        }
-
-        .info-tooltip-content {
-          position: absolute;
-          bottom: 125%;
-          left: 50%;
-          transform: translateX(-50%) scale(0.9);
-          background: #1e293b;
-          color: white;
-          padding: 8px 12px;
-          border-radius: 8px;
-          font-size: 11px;
-          line-height: 1.4;
-          width: 180px;
-          text-align: center;
-          visibility: hidden;
-          opacity: 0;
-          pointer-events: none;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-          z-index: 999;
-          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .info-tooltip-wrapper:hover .info-tooltip-content {
-          visibility: visible;
-          opacity: 1;
-          transform: translateX(-50%) scale(1);
-        }
-
-        /* Grid layout for compact settings */
-        .compact-settings-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 10px;
-        }
-
-        .compact-setting-item {
-          background: white;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 10px 12px;
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          min-height: 52px;
-          transition: all 0.2s ease;
-        }
-
-        .compact-setting-item:hover {
-          border-color: #cbd5e1;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-        }
-
-        .compact-setting-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 6px;
-        }
-
-        .compact-setting-label-section {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .compact-setting-title-row {
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 4px;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--premium-text-primary);
-        }
-      `}</style>
-
-      {/* ── Header Bar ── */}
-      <div className="premium-header">
-        <div className="brand-section">
-          <div className="brand-logo">
-            <InstagramIcon />
-          </div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "800", color: "white" }}>AI Instafeed Expert</h1>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.8)" }}>V2.0 Core</span>
-            </div>
-          </div>
-        </div> {/* brand-section */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          {isConnected && (
-            <button
-              className="premium-button"
-              style={{ 
-                background: "rgba(255, 255, 255, 0.15)", 
-                color: "white", 
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                backdropFilter: "blur(4px)",
-                padding: "8px 16px",
-                fontSize: "13px"
-              }}
-              onClick={() => {
-                setIsSetupExpanded(true);
-                setTimeout(() => {
-                  const card = document.getElementById("store-setup-status-card");
-                  if (card) {
-                    card.scrollIntoView({ behavior: "smooth", block: "center" });
-                  }
-                }, 100);
-              }}
-            >
-              <Icon source={StoreIcon} tone="inherit" />
-              Customize in Store
-            </button>
-          )}
-
-          <div 
-            onClick={() => navigate("/app/plans")}
-            style={{ 
-              fontSize: "11px", 
-              fontWeight: "900", 
-              padding: "8px 16px", 
-              borderRadius: "14px", 
-              background: "white",
-              color: "#e1306c",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              transition: "all 0.2s ease"
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px) scale(1.02)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(0, 0, 0, 0.15)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"; }}
-          >
-            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#e1306c" }} />
-            FREE PLAN
-          </div>
-        </div>
-      </div>
-
-
-      <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
-
-        {/* ── Connect Account Card ── */}
-        <div className="premium-card" style={{ padding: "32px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "120px", height: "120px", background: "var(--premium-accent)", opacity: 0.05, borderRadius: "50%", filter: "blur(50px)", pointerEvents: "none" }} />
-
-          <div 
-            style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: isConnectExpanded ? "24px" : "0", gap: "20px", flexWrap: "wrap", cursor: "pointer" }}
-            onClick={() => setIsConnectExpanded(!isConnectExpanded)}
-          >
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                <span style={{ background: "var(--premium-accent)", color: "white", width: "22px", height: "22px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800", flexShrink: 0 }}>1</span>
-                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "var(--premium-text-primary)" }}>Connect Your Account</h2>
-                <div style={{ color: "var(--premium-text-secondary)", marginLeft: "4px" }}>
-                  <Icon source={isConnectExpanded ? ChevronUpIcon : ChevronDownIcon} />
-                </div>
-              </div>
-              {isConnectExpanded && (
-                <p style={{ margin: 0, fontSize: "14px", color: "var(--premium-text-secondary)", lineHeight: "1.6" }}>
-                  Seamlessly sync your Instagram feed to your Shopify storefront.<br />
-                  Enter your <span style={{ color: "var(--premium-accent)", fontWeight: "600" }}>@username</span> or profile URL to begin.
-                </p>
-              )}
-            </div>
-
-            {isConnected ? (
-              <div className="status-badge" style={{ animation: "fadeInBlur 0.5s ease" }}>
-                <div className="status-dot" />
-                Linked to @{instaData?.username || config.instagramHandle}
-              </div>
-            ) : (
-              <div className="status-badge" style={{ animation: "fadeInBlur 0.5s ease", background: "#fef2f2", color: "#b91c1c", border: "1px solid #fee2e2" }}>
-                <div className="status-dot" style={{ background: "#ef4444" }} />
-                Account Unlinked
-              </div>
-            )}
-          </div>
-
-          {isConnectExpanded && (
-            <>
-              <div className="input-group-nested">
-                <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
-                  <div style={{ paddingLeft: "16px", color: "var(--premium-accent)", display: "flex", alignItems: "center", flexShrink: 0 }}>
-                    <InstagramIcon />
-                  </div>
-                  <input
-                    type="text"
-                    className="premium-input"
-                    style={{ paddingLeft: "12px" }}
-                    value={config.instagramHandle}
-                    onChange={(e) => {
-                      let val = e.target.value;
-                      if (val.includes("instagram.com/")) {
-                        try {
-                          const url = new URL(val.startsWith("http") ? val : `https://${val}`);
-                          const parts = url.pathname.split("/").filter(Boolean);
-                          if (parts.length > 0) val = parts[0];
-                        } catch {
-                          const parts = val.replace(/\/$/, "").split("/");
-                          val = parts[parts.length - 1].split("?")[0];
-                        }
-                      }
-                      val = val.replace("@", "").split("?")[0].trim();
-                      setConfig((prev) => ({ ...prev, instagramHandle: val }));
-                      setConnectError(null);
-                    }}
-                    placeholder="instagram_handle or profile URL"
-                  />
-                </div>
-                <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                  {hasChanges ? (
-                    <div style={{ display: "flex", alignItems: "center", padding: "0 12px", color: "var(--premium-accent)", fontSize: "12px", fontWeight: "600", border: "1px dashed var(--premium-accent)", borderRadius: "10px", background: "#fdf2f8" }}>
-                      👉 Use Save Bar at top to connect
-                    </div>
-                  ) : (
-                    <>
-                      {isConnected && (
-                        <button
-                          className="premium-button"
-                          style={{ background: "#f1f5f9", color: "#e1306c", border: "1px solid #e2e8f0", minHeight: "46px", fontSize: "13px" }}
-                          disabled={isSyncing}
-                          title="Re-sync: Crawl all pages from Instagram again and update stored data"
-                          onClick={() => {
-                            const fd = new FormData();
-                            fd.append("handle", config.instagramHandle);
-                            fetcher.submit(fd, { method: "post" });
-                          }}
-                        >
-                          {isSyncing ? (
-                            <div style={{ width: "14px", height: "14px", border: "2px solid #e1306c", borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                          ) : (
-                            <Icon source={RefreshIcon} />
-                          )}
-                          <span>Re-sync</span>
-                        </button>
-                      )}
-                      <button
-                        className={`premium-button ${isSyncing ? "button-accent loading" : isConnected ? "button-danger" : "button-accent"}`}
-                        disabled={isSyncing}
-                        onClick={() => {
-                          if (isConnected) {
-                            handleDisconnect();
-                          } else {
-                            if (!config.instagramHandle.trim()) {
-                              shopify.toast.show("Please enter an Instagram handle", { isError: true });
-                              return;
-                            }
-                            const fd = new FormData();
-                            fd.append("handle", config.instagramHandle);
-                            fetcher.submit(fd, { method: "post" });
+                <InlineStack gap="300" blockAlign="start">
+                  <div style={{ flex: 1 }}>
+                    <TextField
+                      label="Instagram Username or Profile URL"
+                      labelHidden
+                      value={config.instagramHandle}
+                      onChange={(val) => {
+                        let parsed = val;
+                        if (parsed.includes("instagram.com/")) {
+                          try {
+                            const url = new URL(parsed.startsWith("http") ? parsed : `https://${parsed}`);
+                            const parts = url.pathname.split("/").filter(Boolean);
+                            if (parts.length > 0) parsed = parts[0];
+                          } catch {
+                            const parts = parsed.replace(/\/$/, "").split("/");
+                            parsed = parts[parts.length - 1].split("?")[0];
                           }
+                        }
+                        parsed = parsed.replace("@", "").split("?")[0].trim();
+                        setConfig((prev) => ({ ...prev, instagramHandle: parsed }));
+                        setConnectError(null);
+                      }}
+                      placeholder="e.g. yourbrand or instagram.com/yourbrand"
+                      autoComplete="off"
+                      prefix={<Icon source={InstagramIcon} />}
+                      error={errors.instagramHandle}
+                    />
+                  </div>
+
+                  <ButtonGroup>
+                    {isConnected && (
+                      <Button
+                        icon={RefreshIcon}
+                        loading={isSyncing}
+                        onClick={() => {
+                          const fd = new FormData();
+                          fd.append("handle", config.instagramHandle);
+                          fetcher.submit(fd, { method: "post" });
                         }}
                       >
-                        {isSyncing ? (
-                          <>
-                            <div style={{ width: "16px", height: "16px", border: "2px solid rgba(255,255,255,0.35)", borderTop: "2px solid white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                            <span>Crawling all pages…</span>
-                          </>
-                        ) : isConnected ? (
-                          <>
-                            <Icon source={XIcon} />
-                            <span>Disconnect</span>
-                          </>
-                        ) : (
-                          <>
-                            <Icon source={LinkIcon} />
-                            <span>Connect & Sync All</span>
-                          </>
-                        )}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-              {errors.instagramHandle && (
-                <div style={{ color: "#c70a24", fontSize: "12px", marginTop: "6px", fontWeight: "600", paddingLeft: "4px" }}>
-                  ⚠️ {errors.instagramHandle}
-                </div>
-              )}
-              {connectError && !isSyncing && (
-                <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", marginTop: "10px", padding: "10px 14px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", color: "#b91c1c", fontSize: "12.5px", lineHeight: "1.5" }}>
-                  <span style={{ flexShrink: 0 }}>⚠️</span>
-                  <span style={{ flex: 1 }}>{linkifyText(connectError)}</span>
-                  <button
-                    type="button"
-                    onClick={() => setConnectError(null)}
-                    style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "#b91c1c", fontWeight: 700, fontSize: "13px", lineHeight: 1, padding: "0 2px" }}
-                    aria-label="Dismiss"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-              {!connectError && !isConnected && (
-                <div style={{ fontSize: "11.5px", color: "var(--premium-text-secondary)", marginTop: "6px", paddingLeft: "4px" }}>
-                  Must be a <strong>public Instagram Business or Creator account</strong> — personal or private accounts can&apos;t be connected.{" "}
-                  <a href="https://help.instagram.com/502981923235522/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--premium-accent)", fontWeight: 600 }}>
-                    How to switch account type
-                  </a>
-                </div>
-              )}
-          {isConnected && instaData && (
-            <div style={{ marginTop: "12px", padding: "8px 16px", background: "#f0fdf4", borderRadius: "10px", border: "1px solid #dcfce7", display: "flex", gap: "16px", flexWrap: "wrap", fontSize: "12px", color: "#166534", alignItems: "center" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Icon source={StoreIcon} tone="inherit" /> <strong>{instaData.media?.data?.length || 0}</strong> posts stored</span>
-              {instaData._totalPages && <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Icon source={CollectionIcon} tone="inherit" /> <strong>{instaData._totalPages}</strong> page{instaData._totalPages > 1 ? "s" : ""} crawled</span>}
-              {instaData._crawledAt && <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Icon source={PlayIcon} tone="inherit" /> Last synced: <strong>{new Date(instaData._crawledAt).toLocaleString()}</strong></span>}
-              <span style={{ marginLeft: "auto", color: "#15803d", fontWeight: 600 }}>✓ API calls: 0 per storefront visit</span>
-            </div>
-          )}
-          {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
-            <div style={{ marginTop: "12px", padding: "12px 16px", background: "#fffbeb", borderRadius: "10px", border: "1px solid #fef3c7", display: "flex", gap: "8px", fontSize: "13px", color: "#b45309", alignItems: "center" }}>
-              <span style={{ fontSize: "16px" }}>⚠️</span>
-              <span>Please upload more posts on Instagram to display the feed properly (at least 4 posts are recommended).</span>
-            </div>
-          )}
-          </>
-        )}
-        </div>
+                        Re-sync
+                      </Button>
+                    )}
+                    <Button
+                      variant={isConnected ? "secondary" : "primary"}
+                      tone={isConnected ? "critical" : undefined}
+                      icon={isConnected ? XIcon : LinkIcon}
+                      loading={isSyncing}
+                      onClick={() => {
+                        if (isConnected) {
+                          handleDisconnect();
+                        } else {
+                          if (!config.instagramHandle.trim()) {
+                            shopify?.toast?.show("Please enter an Instagram handle", { isError: true });
+                            return;
+                          }
+                          const fd = new FormData();
+                          fd.append("handle", config.instagramHandle);
+                          fetcher.submit(fd, { method: "post" });
+                        }
+                      }}
+                    >
+                      {isConnected ? "Disconnect" : "Connect & Sync All"}
+                    </Button>
+                  </ButtonGroup>
+                </InlineStack>
 
-        {/* ── Main Two-Column Grid ── */}
+                {connectError && !isSyncing && (
+                  <Banner tone="critical" onDismiss={() => setConnectError(null)}>
+                    {linkifyText(connectError)}
+                  </Banner>
+                )}
+
+                {isConnected && instaData && (
+                  <Banner tone="success">
+                    <InlineStack gap="400" wrap>
+                      <span>
+                        <strong>{instaData.media?.data?.length || 0}</strong> posts stored
+                      </span>
+                      {instaData._totalPages && (
+                        <span>
+                          <strong>{instaData._totalPages}</strong> page
+                          {instaData._totalPages > 1 ? "s" : ""} crawled
+                        </span>
+                      )}
+                      {instaData._crawledAt && (
+                        <span>
+                          Last synced: <strong>{new Date(instaData._crawledAt).toLocaleString()}</strong>
+                        </span>
+                      )}
+                      <span>✓ 0 API calls per storefront visit</span>
+                    </InlineStack>
+                  </Banner>
+                )}
+
+                {!connectError && !isConnected && (
+                  <Text variant="bodySm" tone="subdued">
+                    Must be a <strong>public Instagram Business or Creator account</strong>.{" "}
+                    <a
+                      href="https://help.instagram.com/502981923235522/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "inherit", textDecoration: "underline" }}
+                    >
+                      How to switch account type
+                    </a>
+                  </Text>
+                )}
+              </BlockStack>
+            </Collapsible>
+          </BlockStack>
+        </Card>
+
+        {/* ── 2. Store Setup Status Card ── */}
+        {isConnected && (
+          <div id="store-setup-status-card">
+            <Card>
+              <BlockStack gap="400">
+                <InlineStack align="space-between" blockAlign="center" wrap>
+                  <InlineStack gap="300" blockAlign="center">
+                    <Text variant="headingMd" as="h2">
+                      2. Store Setup Status
+                    </Text>
+                    <Badge tone={isSetupComplete ? "success" : "attention"}>
+                      {setupProgress} / 2 Steps Completed
+                    </Badge>
+                  </InlineStack>
+
+                  <InlineStack gap="200" blockAlign="center">
+                    {loaderData.allThemes?.length > 0 && (
+                      <div style={{ minWidth: "180px" }}>
+                        <Select
+                          label="Target Theme"
+                          labelHidden
+                          options={loaderData.allThemes.map((t) => ({
+                            label: `${t.isLive ? "🟢 " : ""}${t.name}${t.isLive ? " (Live)" : ""}`,
+                            value: t.id,
+                          }))}
+                          value={loaderData.selectedThemeId || loaderData.themeId}
+                          onChange={(newThemeId) => {
+                            const searchParams = new URLSearchParams(window.location.search);
+                            searchParams.set("selectedThemeId", newThemeId);
+                            navigate(`?${searchParams.toString()}`, { replace: true });
+                          }}
+                        />
+                      </div>
+                    )}
+                    <Button
+                      variant="plain"
+                      icon={isSetupExpanded ? ChevronUpIcon : ChevronDownIcon}
+                      onClick={() => setIsSetupExpanded(!isSetupExpanded)}
+                      accessibilityLabel="Toggle Setup Status"
+                    />
+                  </InlineStack>
+                </InlineStack>
+
+                <ProgressBar progress={setupProgress === 2 ? 100 : setupProgress === 1 ? 50 : 0} size="small" tone={isSetupComplete ? "success" : "highlight"} />
+
+                <Collapsible open={isSetupExpanded} id="store-setup-collapsible">
+                  <BlockStack gap="300">
+                    {/* Step 1: Main Ext */}
+                    <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                      <InlineStack align="space-between" blockAlign="center" wrap>
+                        <InlineStack gap="300" blockAlign="center">
+                          <Badge tone={loaderData.dynamicAppEmbedEnabled ? "success" : "subdued"}>
+                            {loaderData.dynamicAppEmbedEnabled ? "✓ Active" : "Step 1"}
+                          </Badge>
+                          <div>
+                            <Text variant="bodyMd" fontWeight="semibold">
+                              Enable App Embed Extension
+                            </Text>
+                            <Text variant="bodySm" tone="subdued">
+                              Required to load widget scripts in your theme without slowing down pages.
+                            </Text>
+                          </div>
+                        </InlineStack>
+                        <Button
+                          variant={loaderData.dynamicAppEmbedEnabled ? "secondary" : "primary"}
+                          icon={ExternalIcon}
+                          onClick={() => {
+                            const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
+                            window.open(url, "_blank");
+                            const newConfig = { ...config, appSetup: { ...config.appSetup, mainExt: true } };
+                            setConfig(newConfig);
+                            const fd = new FormData();
+                            fd.append("config", JSON.stringify(newConfig));
+                            saveFetcher.submit(fd, { method: "post" });
+                          }}
+                        >
+                          {loaderData.dynamicAppEmbedEnabled ? "App Embed Enabled" : "Enable in Theme"}
+                        </Button>
+                      </InlineStack>
+                    </Box>
+
+                    {/* Step 2: Sections */}
+                    <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                      <InlineStack align="space-between" blockAlign="center" wrap>
+                        <InlineStack gap="300" blockAlign="center">
+                          <Badge tone={loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? "success" : "subdued"}>
+                            {loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? "✓ Active" : "Step 2"}
+                          </Badge>
+                          <div>
+                            <Text variant="bodyMd" fontWeight="semibold">
+                              Add Feed Grid or Story Section
+                            </Text>
+                            <Text variant="bodySm" tone="subdued">
+                              Insert the Instagram gallery block into your storefront pages.
+                            </Text>
+                          </div>
+                        </InlineStack>
+                        <ButtonGroup>
+                          <Button
+                            variant={loaderData.dynamicSections?.grid ? "secondary" : "primary"}
+                            icon={ExternalIcon}
+                            onClick={() => {
+                              const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/feed-grid&target=newAppsSection`;
+                              window.open(url, "_blank");
+                              const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
+                              setConfig(newConfig);
+                              const fd = new FormData();
+                              fd.append("config", JSON.stringify(newConfig));
+                              saveFetcher.submit(fd, { method: "post" });
+                            }}
+                          >
+                            {loaderData.dynamicSections?.grid ? "Grid Added" : "Add Feed Grid"}
+                          </Button>
+                          <Button
+                            variant={loaderData.dynamicSections?.story ? "secondary" : "primary"}
+                            icon={ExternalIcon}
+                            onClick={() => {
+                              const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/story-layout&target=newAppsSection`;
+                              window.open(url, "_blank");
+                              const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
+                              setConfig(newConfig);
+                              const fd = new FormData();
+                              fd.append("config", JSON.stringify(newConfig));
+                              saveFetcher.submit(fd, { method: "post" });
+                            }}
+                          >
+                            {loaderData.dynamicSections?.story ? "Story Added" : "Add Story Layout"}
+                          </Button>
+                        </ButtonGroup>
+                      </InlineStack>
+                    </Box>
+                  </BlockStack>
+                </Collapsible>
+              </BlockStack>
+            </Card>
+          </div>
+        )}
+
+        {/* ── 3. Main Dashboard Layout (Configurator & Live Preview) ── */}
         {!isConnected ? (
-          <div className="premium-card" style={{ padding: "48px 32px", textAlign: "center", marginTop: "24px", animation: "fadeInBlur 0.5s ease" }}>
-            <div style={{ maxWidth: "550px", margin: "0 auto" }}>
-              <div style={{ 
-                width: "80px", 
-                height: "80px", 
-                background: "rgba(225, 48, 108, 0.08)", 
-                color: "#e1306c", 
-                borderRadius: "50%", 
-                display: "inline-flex", 
-                alignItems: "center", 
-                justifyContent: "center", 
-                marginBottom: "24px" 
-              }}>
-                <InstagramIcon />
-              </div>
-              <h2 style={{ fontSize: "20px", fontWeight: "800", color: "var(--premium-text-primary)", marginBottom: "12px" }}>
-                Connect Instagram to Customize
-              </h2>
-              <p style={{ fontSize: "14px", color: "var(--premium-text-secondary)", lineHeight: "1.6", marginBottom: "24px" }}>
-                Link your Instagram account above to unlock custom typography presets, adjust layouts, select/hide posts, and preview your live feed instantly.
-              </p>
-              <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
-                <button 
-                  className="premium-button button-accent"
-                  style={{ padding: "12px 28px", fontSize: "14px" }}
+          <Card>
+            <Box padding="800">
+              <BlockStack gap="400" align="center" inlineAlign="center">
+                <Icon source={InstagramIcon} tone="subdued" />
+                <Text variant="headingLg" as="h3">
+                  Connect Instagram to Customize
+                </Text>
+                <Text variant="bodyMd" tone="subdued" alignment="center">
+                  Link your Instagram account above to unlock custom typography presets, adjust layouts, select/hide posts, and preview your live feed instantly.
+                </Text>
+                <Button
+                  variant="primary"
+                  icon={LinkIcon}
                   onClick={() => {
-                    const inputEl = document.querySelector(".premium-input");
+                    setIsConnectExpanded(true);
+                    const inputEl = document.querySelector("input");
                     if (inputEl) {
                       inputEl.focus();
                       inputEl.scrollIntoView({ behavior: "smooth", block: "center" });
                     }
                   }}
                 >
-                  <Icon source={LinkIcon} />
-                  <span>Connect Account Now</span>
-                </button>
-              </div>
-            </div>
-          </div>
+                  Connect Account Now
+                </Button>
+              </BlockStack>
+            </Box>
+          </Card>
         ) : (
-          <>
-            {/* ── Setup Progress Section ── */}
-            {isConnected && (
-              <div id="store-setup-status-card" className="premium-card" style={{ padding: "32px", position: "relative", overflow: "hidden", marginBottom: "20px", animation: "fadeInBlur 0.5s ease" }}>
-                <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "120px", height: "120px", background: "var(--premium-accent)", opacity: 0.05, borderRadius: "50%", filter: "blur(50px)", pointerEvents: "none" }} />
-                <div 
-                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isSetupExpanded ? "24px" : "0", flexWrap: "wrap", gap: "12px", cursor: "pointer" }}
-                  onClick={() => setIsSetupExpanded(!isSetupExpanded)}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                    <span style={{ background: "var(--premium-accent)", color: "white", width: "22px", height: "22px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800", flexShrink: 0 }}>2</span>
-                    <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "var(--premium-text-primary)" }}>Store Setup Status</h2>
-                    <div style={{ color: "var(--premium-text-secondary)" }}>
-                      <Icon source={isSetupExpanded ? ChevronUpIcon : ChevronDownIcon} />
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }} onClick={(e) => e.stopPropagation()}>
-                    {loaderData.allThemes?.length > 0 && (
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span style={{ fontSize: "11px", fontWeight: "600", color: "#64748b" }}>Theme:</span>
-                        <select
-                          className="premium-input"
-                          value={loaderData.selectedThemeId || loaderData.themeId}
-                          onChange={(e) => {
-                            const newThemeId = e.target.value;
-                            const searchParams = new URLSearchParams(window.location.search);
-                            searchParams.set("selectedThemeId", newThemeId);
-                            navigate(`?${searchParams.toString()}`, { replace: true });
-                          }}
-                          style={{
-                            padding: "4px 10px",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            background: "#f8fafc",
-                            border: "1px solid #cbd5e1",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            maxWidth: "220px"
-                          }}
-                          title="Select a theme to check app embed and section setup status"
-                        >
-                          {loaderData.allThemes.map((t) => (
-                            <option key={t.id} value={t.id}>
-                              {t.isLive ? "🟢 " : "⚪ "} {t.name} {t.isLive ? "(Live)" : ""}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    <div style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "10px", fontSize: "12px", fontWeight: "700", color: "#334155" }}>
-                      {[(loaderData.dynamicAppEmbedEnabled ? 1 : 0), ((loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story) ? 1 : 0)].reduce((a,b)=>a+b, 0)} / 2 Completed
-                    </div>
-                    {isSetupExpanded && (
-                      <button
-                        className="premium-button"
-                        style={{ padding: "4px 10px", fontSize: "11px", background: "white", color: "#64748b", border: "1px solid #e2e8f0" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const searchParams = new URLSearchParams(window.location.search);
-                          if (loaderData.selectedThemeId) searchParams.set("selectedThemeId", loaderData.selectedThemeId);
-                          navigate(`?${searchParams.toString()}`, { replace: true });
-                        }}
-                        title="Check if theme changes are applied"
-                      >
-                        <Icon source={RefreshIcon} tone="inherit" /> Refresh
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {isSetupExpanded && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {/* Step 1: Main Ext */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px", background: "#f8fafc", padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: loaderData.dynamicAppEmbedEnabled ? "#10b981" : "#cbd5e1", color: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: "800", fontSize: "11px" }}>
-                        {loaderData.dynamicAppEmbedEnabled ? <Icon source={CheckIcon} tone="inherit" /> : "1"}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: "600", fontSize: "13px", color: "var(--premium-text-primary)" }}>Enable Main Extension</div>
-                        <div style={{ fontSize: "11px", color: "var(--premium-text-secondary)" }}>Required to load the app script on your store.</div>
-                      </div>
-                    </div>
-                    <button
-                      className={`premium-button ${loaderData.dynamicAppEmbedEnabled ? "" : "button-accent"}`}
-                      style={loaderData.dynamicAppEmbedEnabled ? { background: "#e2e8f0", color: "#64748b", border: "none", padding: "6px 14px", fontSize: "12px" } : { padding: "6px 14px", fontSize: "12px" }}
-                      onClick={() => {
-                        const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
-                        window.open(url, "_blank");
-                        const newConfig = { ...config, appSetup: { ...config.appSetup, mainExt: true } };
-                        setConfig(newConfig);
-                        const fd = new FormData();
-                        fd.append("config", JSON.stringify(newConfig));
-                        saveFetcher.submit(fd, { method: "post" });
-                      }}
-                    >
-                      {loaderData.dynamicAppEmbedEnabled ? "Enabled" : "Enable Now"}
-                    </button>
-                  </div>
-
-                  {/* Step 2: Sections */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px", background: "#f8fafc", padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: (loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story) ? "#10b981" : "#cbd5e1", color: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: "800", fontSize: "11px" }}>
-                        {(loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story) ? <Icon source={CheckIcon} tone="inherit" /> : "2"}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: "600", fontSize: "13px", color: "var(--premium-text-primary)" }}>Add Feed Grid or Story Layout</div>
-                        <div style={{ fontSize: "11px", color: "var(--premium-text-secondary)" }}>Compulsory to add at least one section to your theme.</div>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                      <button
-                        className={`premium-button ${loaderData.dynamicSections?.grid ? "" : "button-accent"}`}
-                        style={loaderData.dynamicSections?.grid ? { background: "#e2e8f0", color: "#64748b", border: "none", padding: "6px 14px", fontSize: "12px" } : { padding: "6px 14px", fontSize: "12px" }}
-                        onClick={() => {
-                          const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/feed-grid&target=newAppsSection`;
-                          window.open(url, "_blank");
-                          const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
-                          setConfig(newConfig);
-                          const fd = new FormData();
-                          fd.append("config", JSON.stringify(newConfig));
-                          saveFetcher.submit(fd, { method: "post" });
-                        }}
-                      >
-                        {loaderData.dynamicSections?.grid ? "Grid Added" : "Add Grid"}
-                      </button>
-                      <button
-                        className={`premium-button ${loaderData.dynamicSections?.story ? "" : "button-accent"}`}
-                        style={loaderData.dynamicSections?.story ? { background: "#e2e8f0", color: "#64748b", border: "none", padding: "6px 14px", fontSize: "12px" } : { padding: "6px 14px", fontSize: "12px" }}
-                        onClick={() => {
-                          const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/story-layout&target=newAppsSection`;
-                          window.open(url, "_blank");
-                          const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
-                          setConfig(newConfig);
-                          const fd = new FormData();
-                          fd.append("config", JSON.stringify(newConfig));
-                          saveFetcher.submit(fd, { method: "post" });
-                        }}
-                      >
-                        {loaderData.dynamicSections?.story ? "Story Added" : "Add Story"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                )}
-              </div>
-            )}
-
-          <div className="dashboard-main-layout">
-            <Layout>
-            {/* ── LEFT: Settings Panel ── */}
+          <Layout>
+            {/* ── Left Column: Configurator Tabs & Settings ── */}
             <Layout.Section>
-            <div className="premium-card" style={{ padding: "24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "10px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "8px", height: "8px", background: "var(--premium-accent)", borderRadius: "50%" }} />
-                <h2 style={{ margin: 0, fontSize: "15px", fontWeight: "700" }}>DASHBOARD CONFIGURATOR</h2>
-              </div>
-              {hasChanges && (
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--premium-accent)", fontSize: "12px", fontWeight: "600", animation: "fadeInBlur 0.3s ease" }}>
-                  ✨ Unsaved changes (Use Save Bar at top)
-                </div>
-              )}
-            </div>
+              <Card padding="0">
+                <Tabs
+                  tabs={[
+                    { id: "feed-grid-tab", content: "Feed Grid Settings", accessibilityLabel: "Feed Grid Settings" },
+                    { id: "stories-tab", content: "Story & Layouts", accessibilityLabel: "Story & Layouts" },
+                  ]}
+                  selected={selectedTabIndex}
+                  onSelect={setSelectedTabIndex}
+                />
 
-            {/* Tabs */}
-            <div className="tab-container">
-              <div className={`tab-item ${activeTab === "post" ? "active" : ""}`} onClick={() => setActiveTab("post")}>Feed Grid Settings</div>
-              <div 
-                className={`tab-item ${activeTab === "story" ? "active" : ""}`} 
-                onClick={() => setActiveTab("story")}
-                style={{ display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                Story &amp; Layouts
-              </div>
-            </div>
+                <Box padding="400">
+                  {activeTab === "post" ? (
+                    <BlockStack gap="400">
+                      {/* Media Filter */}
+                      <Card>
+                        <BlockStack gap="200">
+                          <Text variant="headingSm" as="h3">
+                            Show Media Type
+                          </Text>
+                          <ButtonGroup variant="segmented">
+                            <Button
+                              pressed={config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter}
+                              onClick={() => updateConfig("postFeed", "mediaTypeFilter", "all")}
+                            >
+                              All Media
+                            </Button>
+                            <Button
+                              pressed={config.postFeed.mediaTypeFilter === "images"}
+                              onClick={() => updateConfig("postFeed", "mediaTypeFilter", "images")}
+                            >
+                              Images Only
+                            </Button>
+                            <Button
+                              pressed={config.postFeed.mediaTypeFilter === "videos"}
+                              onClick={() => updateConfig("postFeed", "mediaTypeFilter", "videos")}
+                            >
+                              Videos & Reels
+                            </Button>
+                          </ButtonGroup>
+                        </BlockStack>
+                      </Card>
 
-            {/* Tab Content */}
-            <div className="tab-content-container" key={activeTab} style={{ animation: "fadeInBlur 0.35s ease-out" }}>
+                      {/* Feature Modules */}
+                      <Card>
+                        <BlockStack gap="400">
+                          <InlineStack align="space-between" blockAlign="center">
+                            <Text variant="headingSm" as="h3">
+                              Feature Modules
+                            </Text>
+                            <Button
+                              variant="plain"
+                              icon={isPostModulesExpanded ? ChevronUpIcon : ChevronDownIcon}
+                              onClick={() => setIsPostModulesExpanded(!isPostModulesExpanded)}
+                            />
+                          </InlineStack>
 
-              {/* ── Feed Grid Settings ── */}
-              {activeTab === "post" ? (
-                <>
-                  <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <label className="input-label" style={{ fontSize: "11px", fontWeight: "700", marginBottom: "8px", display: "block" }}>Show Media Type</label>
-                    <div style={{ display: "flex", gap: "6px", background: "#f8fafc", padding: "4px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                      <button
-                        type="button"
-                        onClick={() => updateConfig("postFeed", "mediaTypeFilter", "all")}
-                        style={{
-                          flex: 1,
-                          padding: "8px 8px",
-                          borderRadius: "8px",
-                          fontSize: "11px",
-                          fontWeight: "600",
-                          border: "none",
-                          cursor: "pointer",
-                          transition: "all 0.15s ease",
-                          background: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "#303030" : "transparent",
-                          color: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "white" : "#64748b",
-                          boxShadow: config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
-                        }}
-                      >
-                        All
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateConfig("postFeed", "mediaTypeFilter", "images")}
-                        style={{
-                          flex: 1,
-                          padding: "8px 8px",
-                          borderRadius: "8px",
-                          fontSize: "11px",
-                          fontWeight: "600",
-                          border: "none",
-                          cursor: "pointer",
-                          transition: "all 0.15s ease",
-                          background: config.postFeed.mediaTypeFilter === "images" ? "#303030" : "transparent",
-                          color: config.postFeed.mediaTypeFilter === "images" ? "white" : "#64748b",
-                          boxShadow: config.postFeed.mediaTypeFilter === "images" ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
-                        }}
-                      >
-                        Images
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateConfig("postFeed", "mediaTypeFilter", "videos")}
-                        style={{
-                          flex: 1,
-                          padding: "8px 8px",
-                          borderRadius: "8px",
-                          fontSize: "11px",
-                          fontWeight: "600",
-                          border: "none",
-                          cursor: "pointer",
-                          transition: "all 0.15s ease",
-                          background: config.postFeed.mediaTypeFilter === "videos" ? "#303030" : "transparent",
-                          color: config.postFeed.mediaTypeFilter === "videos" ? "white" : "#64748b",
-                          boxShadow: config.postFeed.mediaTypeFilter === "videos" ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
-                        }}
-                      >
-                        Videos
-                      </button>
-                    </div>
-                  </div>
+                          <Collapsible open={isPostModulesExpanded} id="post-modules-collapsible">
+                            <BlockStack gap="300">
+                              <Text variant="bodySm" tone="subdued" fontWeight="bold">
+                                STANDARD MODULES
+                              </Text>
+                              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+                                <Checkbox
+                                  label="Profile Header"
+                                  helpText="Show store bio & icon on storefront feed"
+                                  checked={config.postFeed.header}
+                                  onChange={(val) => updateConfig("postFeed", "header", val)}
+                                />
+                                <Checkbox
+                                  label="Engagement Hub"
+                                  helpText="Visualize likes & comments on hover"
+                                  checked={config.postFeed.metrics}
+                                  onChange={(val) => updateConfig("postFeed", "metrics", val)}
+                                />
+                                <Checkbox
+                                  label="Smart Carousel"
+                                  helpText="Display posts in an auto-swipe slider"
+                                  checked={config.postFeed.carousel}
+                                  onChange={(val) => updateConfig("postFeed", "carousel", val)}
+                                />
+                                <Checkbox
+                                  label="Smart Autoplay"
+                                  helpText="Preload and autoplay video/reel content"
+                                  checked={config.postFeed.autoplay}
+                                  onChange={(val) => updateConfig("postFeed", "autoplay", val)}
+                                />
+                                <Checkbox
+                                  label="Modal Navigation"
+                                  helpText="Show Prev/Next arrows in popup modal"
+                                  checked={config.postFeed.modalNavigation}
+                                  onChange={(val) => updateConfig("postFeed", "modalNavigation", val)}
+                                />
+                                <Checkbox
+                                  label="Instagram Icon"
+                                  helpText="Display Instagram branding badge on posts"
+                                  checked={config.postFeed.showInstagramIcon !== false}
+                                  onChange={(val) => updateConfig("postFeed", "showInstagramIcon", val)}
+                                />
+                              </div>
 
-                  {/* ── Collapsible: Feature Modules ── */}
-                  <div
-                    onClick={() => setIsPostModulesExpanded(!isPostModulesExpanded)}
-                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
-                  >
-                    <h3 className="input-label" style={{ margin: 0 }}>Feature Modules</h3>
-                    <Icon source={isPostModulesExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
-                  </div>
-                  <Collapsible open={isPostModulesExpanded} id="post-modules-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
-                  <h3 className="input-label" style={{ marginBottom: "12px" }}>Standard Modules</h3>
-                  <div className="compact-settings-grid" style={{ marginBottom: "24px" }}>
-                    {[
-                      { id: "header",   label: "Profile Header",  sub: "Show store bio & icon on storefront feed.",       icon: ProfileIcon },
-                      { id: "metrics",  label: "Engagement Hub",  sub: "Visualize likes and comment metrics on post hover.",       icon: ChartVerticalIcon },
-                      { id: "carousel", label: "Smart Carousel",  sub: "Display posts in an auto-swipe carousel slider.",             icon: MobileIcon },
-                      { id: "autoplay", label: "Smart Autoplay",  sub: "Pre-load and autoplay video/reel content.",       icon: PlayIcon },
-                      { id: "modalNavigation", label: "Modal Navigation", sub: "Show Prev/Next navigation arrows in popup modal.", icon: ChevronRightIcon },
-                      { id: "showInstagramIcon", label: "Instagram Icon", sub: "Display Instagram branding badge on posts.", icon: InstagramIcon },
-                    ].map(renderSettingItem)}
-                  </div>
+                              <Divider />
 
-                  <h3 className="input-label" style={{ marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
-                    AI &amp; Premium Modules
-                    <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent-gradient)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>
-                  </h3>
-                  <div className="compact-settings-grid">
-                    {[
-                      { 
-                        id: "aiSmartSorting", 
-                        label: "AI Smart Sorting", 
-                        sub: "Sort feed dynamically by top engagement using AI-powered metrics.", 
-                        icon: MagicIcon, 
-                        isPremium: true,
-                        isSpecialAI: true 
-                      },
-                      { 
-                        id: "aiCommentModeration", 
-                        label: "AI Sentiment Moderation", 
-                        sub: "Automatically hide posts from your storefront feed if they receive negative or spam comments.", 
-                        icon: MagicIcon, 
-                        isPremium: true,
-                        isSpecialAI: true 
-                      },
-                      { id: "load",     label: "Infinite Paging", sub: "Zero-latency endless scrolling on page load.",       icon: RefreshIcon, isPremium: true },
-                      { id: "modalSound", label: "Video Modal Sound", sub: "Enable audio playback in video popup modal.", icon: PlayIcon, isPremium: true },
-                      { id: "showFollowButton", label: "Follow Instagram Button", sub: "Show a direct Follow @handle button below the feed.", icon: MegaphoneIcon },
-                      { id: "removeWatermark", label: "Remove Watermark", sub: "Hide the 'By BOOST STAR' brand watermark.", icon: StarIcon, isPremium: true },
-                      { id: "isHideMode", label: "Manual Hide Mode", sub: "Click posts directly in the preview frame to hide them.", icon: ViewIcon, isPremium: true, isLocal: true },
-                    ].map(renderSettingItem)}
-                  </div>
+                              <InlineStack gap="200" blockAlign="center">
+                                <Text variant="bodySm" tone="subdued" fontWeight="bold">
+                                  AI & PRO MODULES
+                                </Text>
+                                <Badge tone="info">PRO</Badge>
+                              </InlineStack>
 
-                  {/* ── Hide Mode Instructions (visible when mode is ON) ── */}
-                  {isHideMode && (
-                    <div className="hide-mode-instruction-card">
-                      <div className="hide-mode-header">
-                        <div className="hide-mode-title">
-                          <span className="finger-icon">👆</span>
-                          How to Hide Posts
-                        </div>
-                        <div className="hide-mode-live-badge">
-                          <span className="live-dot" />
-                          ACTIVE
-                        </div>
-                      </div>
-                      <div className="hide-mode-steps">
-                        <div className="hide-mode-step">
-                          <span className="step-number">1</span>
-                          <span className="step-icon">👀</span>
-                          <span className="step-text">Look at the <strong>Live Preview</strong> on the right side</span>
-                        </div>
-                        <div className="hide-mode-step">
-                          <span className="step-number">2</span>
-                          <span className="step-icon">👆</span>
-                          <span className="step-text"><strong>Click any post</strong> you want to hide from your store</span>
-                        </div>
-                        <div className="hide-mode-step">
-                          <span className="step-number">3</span>
-                          <span className="step-icon">🙈</span>
-                          <span className="step-text">Hidden posts get a <strong>badge</strong> — click again to <strong>unhide</strong></span>
-                        </div>
-                        <div className="hide-mode-step">
-                          <span className="step-number">4</span>
-                          <span className="step-icon">💾</span>
-                          <span className="step-text">Hit <strong>"Apply"</strong> to save — changes go live instantly</span>
-                        </div>
-                      </div>
-                      {config.postFeed.hiddenPostIds?.length > 0 ? (
-                        <div className="hide-mode-hidden-count">
-                          <Icon source={ViewIcon} tone="critical" />
-                          <span>Currently hidden:</span>
-                          <span className="count-badge">{config.postFeed.hiddenPostIds.length} post{config.postFeed.hiddenPostIds.length !== 1 ? 's' : ''}</span>
-                        </div>
-                      ) : (
-                        <div className="hide-mode-no-hidden">
-                          ✨ No posts hidden yet — click any post in the preview to start!
-                        </div>
-                      )}
-                    </div>
+                              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+                                <Checkbox
+                                  label="AI Smart Sorting"
+                                  helpText="Sort feed dynamically by top engagement"
+                                  checked={isPaid && config.postFeed.sortBy === "engaging"}
+                                  disabled={!isPaid}
+                                  onChange={(val) => {
+                                    if (!isPaid) {
+                                      shopify?.toast?.show("AI Smart Sorting is a PRO feature", { isError: true });
+                                      navigate("/app/plans");
+                                      return;
+                                    }
+                                    updateConfig("postFeed", "sortBy", val ? "engaging" : "latest");
+                                  }}
+                                />
+                                <Checkbox
+                                  label="AI Sentiment Moderation"
+                                  helpText="Automatically hide posts with spam/negative comments"
+                                  checked={isPaid && !!config.aiCommentModeration}
+                                  disabled={!isPaid}
+                                  onChange={(val) => {
+                                    if (!isPaid) {
+                                      shopify?.toast?.show("AI Moderation is a PRO feature", { isError: true });
+                                      navigate("/app/plans");
+                                      return;
+                                    }
+                                    setConfig((prev) => ({ ...prev, aiCommentModeration: val }));
+                                  }}
+                                />
+                                <Checkbox
+                                  label="Infinite Paging"
+                                  helpText="Endless scrolling on page load"
+                                  checked={isPaid && !!config.postFeed.load}
+                                  disabled={!isPaid}
+                                  onChange={(val) => {
+                                    if (!isPaid) {
+                                      shopify?.toast?.show("Infinite paging is a PRO feature", { isError: true });
+                                      navigate("/app/plans");
+                                      return;
+                                    }
+                                    updateConfig("postFeed", "load", val);
+                                  }}
+                                />
+                                <Checkbox
+                                  label="Remove Watermark"
+                                  helpText="Hide the 'By BOOST STAR' brand watermark"
+                                  checked={isPaid && !!config.postFeed.removeWatermark}
+                                  disabled={!isPaid}
+                                  onChange={(val) => {
+                                    if (!isPaid) {
+                                      shopify?.toast?.show("Remove watermark is a PRO feature", { isError: true });
+                                      navigate("/app/plans");
+                                      return;
+                                    }
+                                    updateConfig("postFeed", "removeWatermark", val);
+                                  }}
+                                />
+                                <Checkbox
+                                  label="Manual Hide Mode"
+                                  helpText="Click posts in the preview to hide/unhide"
+                                  checked={isPaid && isHideMode}
+                                  disabled={!isPaid}
+                                  onChange={(val) => {
+                                    if (!isPaid) {
+                                      shopify?.toast?.show("Hide mode is a PRO feature", { isError: true });
+                                      navigate("/app/plans");
+                                      return;
+                                    }
+                                    setIsHideMode(val);
+                                    if (val) {
+                                      shopify?.toast?.show("👆 Hide Mode ON — Click any post in the preview to hide it");
+                                    } else {
+                                      shopify?.toast?.show("Hide Mode turned off");
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </BlockStack>
+                          </Collapsible>
+                        </BlockStack>
+                      </Card>
+
+                      {/* Layout Architecture */}
+                      <Card>
+                        <BlockStack gap="400">
+                          <InlineStack align="space-between" blockAlign="center">
+                            <Text variant="headingSm" as="h3">
+                              Layout & Grid Architecture
+                            </Text>
+                            <Button
+                              variant="plain"
+                              icon={isPostLayoutExpanded ? ChevronUpIcon : ChevronDownIcon}
+                              onClick={() => setIsPostLayoutExpanded(!isPostLayoutExpanded)}
+                            />
+                          </InlineStack>
+
+                          <Collapsible open={isPostLayoutExpanded} id="post-layout-collapsible">
+                            <BlockStack gap="300">
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                                <Select
+                                  label="Desktop Columns"
+                                  options={[
+                                    { label: "3 Columns", value: "3" },
+                                    { label: "4 Columns", value: "4" },
+                                    { label: `5 Columns ${!isPaid ? "(PRO)" : ""}`, value: "5" },
+                                    { label: `6 Columns ${!isPaid ? "(PRO)" : ""}`, value: "6" },
+                                  ]}
+                                  value={String(config.postFeed.desktopColumns)}
+                                  onChange={(val) => {
+                                    const num = parseInt(val);
+                                    if (!isPaid && num > 4) {
+                                      shopify?.toast?.show("Unlock PRO for more than 4 columns", { isError: true });
+                                      navigate("/app/plans");
+                                      return;
+                                    }
+                                    updateConfig("postFeed", "desktopColumns", num);
+                                  }}
+                                />
+                                <Select
+                                  label="Mobile Columns"
+                                  options={[
+                                    { label: "1 Column", value: "1" },
+                                    { label: "2 Columns", value: "2" },
+                                    { label: "3 Columns", value: "3" },
+                                  ]}
+                                  value={String(config.postFeed.mobileColumns)}
+                                  onChange={(val) => updateConfig("postFeed", "mobileColumns", parseInt(val))}
+                                />
+                              </div>
+
+                              {!config.postFeed.load && (
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                                  <Select
+                                    label="Desktop Total Posts"
+                                    options={[4, 6, 8, 12, 16, 20, 24].map((n) => ({
+                                      label: `${n} Posts ${!isPaid && n > 12 ? "(PRO)" : ""}`,
+                                      value: String(n),
+                                    }))}
+                                    value={String(config.postFeed.desktopLimit || 8)}
+                                    onChange={(val) => {
+                                      const num = parseInt(val);
+                                      if (!isPaid && num > 12) {
+                                        shopify?.toast?.show("Unlock PRO for more than 12 posts", { isError: true });
+                                        navigate("/app/plans");
+                                        return;
+                                      }
+                                      updateConfig("postFeed", "desktopLimit", num);
+                                    }}
+                                  />
+                                  <Select
+                                    label="Mobile Total Posts"
+                                    options={[3, 4, 6, 8, 12].map((n) => ({
+                                      label: `${n} Posts`,
+                                      value: String(n),
+                                    }))}
+                                    value={String(config.postFeed.mobileLimit || 4)}
+                                    onChange={(val) => updateConfig("postFeed", "mobileLimit", parseInt(val))}
+                                  />
+                                </div>
+                              )}
+
+                              <RangeSlider
+                                label={`Visual Gap (${config.postFeed.gap}px)`}
+                                value={config.postFeed.gap}
+                                min={0}
+                                max={40}
+                                onChange={(val) => updateConfig("postFeed", "gap", val)}
+                              />
+
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                                <RangeSlider
+                                  label={`Top Padding (${config.postFeed.paddingTop}px)`}
+                                  value={config.postFeed.paddingTop}
+                                  min={0}
+                                  max={100}
+                                  onChange={(val) => updateConfig("postFeed", "paddingTop", val)}
+                                />
+                                <RangeSlider
+                                  label={`Bottom Padding (${config.postFeed.paddingBottom}px)`}
+                                  value={config.postFeed.paddingBottom}
+                                  min={0}
+                                  max={100}
+                                  onChange={(val) => updateConfig("postFeed", "paddingBottom", val)}
+                                />
+                              </div>
+
+                              <Select
+                                label="Image Aspect Ratio"
+                                options={[
+                                  { label: "Auto (Original)", value: "auto" },
+                                  { label: "1:1 (Square)", value: "1/1" },
+                                  { label: "3:4 (Portrait)", value: "3/4" },
+                                  { label: "3:2 (Landscape)", value: "3/2" },
+                                  { label: "9:16 (Story)", value: "9/16" },
+                                ]}
+                                value={config.postFeed.aspectRatio || "auto"}
+                                onChange={(val) => updateConfig("postFeed", "aspectRatio", val)}
+                              />
+                            </BlockStack>
+                          </Collapsible>
+                        </BlockStack>
+                      </Card>
+
+                      {/* Branding & Typography */}
+                      <Card>
+                        <BlockStack gap="400">
+                          <InlineStack align="space-between" blockAlign="center">
+                            <Text variant="headingSm" as="h3">
+                              Branding & Typography
+                            </Text>
+                            <Button
+                              variant="plain"
+                              icon={isPostBrandingExpanded ? ChevronUpIcon : ChevronDownIcon}
+                              onClick={() => setIsPostBrandingExpanded(!isPostBrandingExpanded)}
+                            />
+                          </InlineStack>
+
+                          <Collapsible open={isPostBrandingExpanded} id="post-branding-collapsible">
+                            <BlockStack gap="300">
+                              <Select
+                                label="Layout Alignment"
+                                options={[
+                                  { label: "Centered", value: "center" },
+                                  { label: "Left Aligned", value: "left" },
+                                  { label: "Right Aligned", value: "right" },
+                                ]}
+                                value={config.postFeed.alignment}
+                                onChange={(val) => updateConfig("postFeed", "alignment", val)}
+                              />
+
+                              <Text variant="bodyMd" fontWeight="semibold">
+                                Typography Presets
+                              </Text>
+                              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
+                                {FEED_TYPOGRAPHY_PRESETS.map((preset) => {
+                                  const isSelected = isPresetMatch(config.postFeed, preset);
+                                  return (
+                                    <Box
+                                      key={preset.name}
+                                      padding="200"
+                                      borderWidth="025"
+                                      borderColor={isSelected ? "border-brand" : "border"}
+                                      borderRadius="200"
+                                      background={isSelected ? "bg-surface-brand-active" : "bg-surface-secondary"}
+                                      onClick={() => {
+                                        setConfig((prev) => ({
+                                          ...prev,
+                                          postFeed: {
+                                            ...prev.postFeed,
+                                            heading: preset.textHeading,
+                                            subheading: preset.textSubheading,
+                                            typography: {
+                                              heading: { ...preset.heading },
+                                              subheading: { ...preset.subheading },
+                                            },
+                                          },
+                                        }));
+                                      }}
+                                      style={{ cursor: "pointer" }}
+                                    >
+                                      <Text variant="bodySm" fontWeight="bold">
+                                        {preset.name}
+                                      </Text>
+                                      <Text variant="bodyXs" tone="subdued">
+                                        {preset.desc}
+                                      </Text>
+                                    </Box>
+                                  );
+                                })}
+                              </div>
+
+                              <TextField
+                                label="Feed Heading"
+                                value={config.postFeed.heading}
+                                onChange={(val) => updateConfig("postFeed", "heading", val)}
+                                autoComplete="off"
+                              />
+
+                              <TextField
+                                label="Feed Subheading"
+                                value={config.postFeed.subheading}
+                                onChange={(val) => updateConfig("postFeed", "subheading", val)}
+                                autoComplete="off"
+                              />
+                            </BlockStack>
+                          </Collapsible>
+                        </BlockStack>
+                      </Card>
+                    </BlockStack>
+                  ) : (
+                    /* ── Stories & Layouts Settings ── */
+                    <BlockStack gap="400">
+                      <Card>
+                        <BlockStack gap="200">
+                          <Text variant="headingSm" as="h3">
+                            Show Media Type
+                          </Text>
+                          <ButtonGroup variant="segmented">
+                            <Button
+                              pressed={config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter}
+                              onClick={() => updateConfig("stories", "mediaTypeFilter", "all")}
+                            >
+                              All Media
+                            </Button>
+                            <Button
+                              pressed={config.stories.mediaTypeFilter === "images"}
+                              onClick={() => updateConfig("stories", "mediaTypeFilter", "images")}
+                            >
+                              Images Only
+                            </Button>
+                            <Button
+                              pressed={config.stories.mediaTypeFilter === "videos"}
+                              onClick={() => updateConfig("stories", "mediaTypeFilter", "videos")}
+                            >
+                              Videos & Reels
+                            </Button>
+                          </ButtonGroup>
+                        </BlockStack>
+                      </Card>
+
+                      <Card>
+                        <BlockStack gap="400">
+                          <InlineStack align="space-between" blockAlign="center">
+                            <Text variant="headingSm" as="h3">
+                              Story Highlight Modules
+                            </Text>
+                            <Button
+                              variant="plain"
+                              icon={isStoryModulesExpanded ? ChevronUpIcon : ChevronDownIcon}
+                              onClick={() => setIsStoryModulesExpanded(!isStoryModulesExpanded)}
+                            />
+                          </InlineStack>
+
+                          <Collapsible open={isStoryModulesExpanded} id="story-modules-collapsible">
+                            <BlockStack gap="300">
+                              <Checkbox
+                                label="Enable Stories Highlight Widget"
+                                helpText="Render circular story circles at the top of your page"
+                                checked={config.stories.enable}
+                                onChange={(val) => updateConfig("stories", "enable", val)}
+                              />
+                              <Checkbox
+                                label="Show Highlight Labels"
+                                helpText="Display post titles under story circles"
+                                checked={config.stories.showLabels}
+                                onChange={(val) => updateConfig("stories", "showLabels", val)}
+                              />
+                              <Checkbox
+                                label="Enable Discount Promo Offer"
+                                helpText="Promote a coupon popup when merchants open stories"
+                                checked={config.stories.promoEnable}
+                                onChange={(val) => updateConfig("stories", "promoEnable", val)}
+                              />
+                              {config.stories.promoEnable && (
+                                <TextField
+                                  label="Promo Offer Label"
+                                  value={config.stories.promoLabel}
+                                  onChange={(val) => updateConfig("stories", "promoLabel", val)}
+                                  autoComplete="off"
+                                />
+                              )}
+                              <Checkbox
+                                label="Smart Carousel Swiper"
+                                helpText="Auto-swipe highlight circles horizontally"
+                                checked={config.stories.carousel}
+                                onChange={(val) => updateConfig("stories", "carousel", val)}
+                              />
+                            </BlockStack>
+                          </Collapsible>
+                        </BlockStack>
+                      </Card>
+
+                      <Card>
+                        <BlockStack gap="400">
+                          <InlineStack align="space-between" blockAlign="center">
+                            <Text variant="headingSm" as="h3">
+                              Story Branding & Typography
+                            </Text>
+                            <Button
+                              variant="plain"
+                              icon={isStoryBrandingExpanded ? ChevronUpIcon : ChevronDownIcon}
+                              onClick={() => setIsStoryBrandingExpanded(!isStoryBrandingExpanded)}
+                            />
+                          </InlineStack>
+
+                          <Collapsible open={isStoryBrandingExpanded} id="story-branding-collapsible">
+                            <BlockStack gap="300">
+                              <Checkbox
+                                label="Show Story Header Title"
+                                checked={config.stories.showHeader}
+                                onChange={(val) => updateConfig("stories", "showHeader", val)}
+                              />
+                              {config.stories.showHeader && (
+                                <>
+                                  <TextField
+                                    label="Story Heading"
+                                    value={config.stories.heading}
+                                    onChange={(val) => updateConfig("stories", "heading", val)}
+                                    autoComplete="off"
+                                  />
+                                  <TextField
+                                    label="Story Subtext"
+                                    value={config.stories.subheading}
+                                    onChange={(val) => updateConfig("stories", "subheading", val)}
+                                    autoComplete="off"
+                                  />
+                                </>
+                              )}
+                              <RangeSlider
+                                label={`Top Padding (${config.stories.paddingTop}px)`}
+                                value={config.stories.paddingTop}
+                                min={0}
+                                max={100}
+                                onChange={(val) => updateConfig("stories", "paddingTop", val)}
+                              />
+                              <RangeSlider
+                                label={`Bottom Padding (${config.stories.paddingBottom}px)`}
+                                value={config.stories.paddingBottom}
+                                min={0}
+                                max={100}
+                                onChange={(val) => updateConfig("stories", "paddingBottom", val)}
+                              />
+                            </BlockStack>
+                          </Collapsible>
+                        </BlockStack>
+                      </Card>
+                    </BlockStack>
                   )}
-                  </Collapsible>
+                </Box>
+              </Card>
+            </Layout.Section>
 
-                  <Divider />
+            {/* ── Right Column: Live Storefront Preview ── */}
+            <Layout.Section variant="oneThird">
+              <div style={{ position: "sticky", top: "20px" }}>
+                <Card>
+                  <BlockStack gap="300">
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text variant="headingSm" as="h3">
+                        Live Preview
+                      </Text>
+                      <ButtonGroup variant="segmented">
+                        <Button
+                          pressed={previewDevice === "mobile"}
+                          icon={MobileIcon}
+                          onClick={() => setPreviewDevice("mobile")}
+                          accessibilityLabel="Mobile View"
+                        />
+                        <Button
+                          pressed={previewDevice === "desktop"}
+                          icon={DesktopIcon}
+                          onClick={() => setPreviewDevice("desktop")}
+                          accessibilityLabel="Desktop View"
+                        />
+                      </ButtonGroup>
+                    </InlineStack>
 
-                  {/* ── Collapsible: Layout & Grid Architecture ── */}
-                  <div
-                    onClick={() => setIsPostLayoutExpanded(!isPostLayoutExpanded)}
-                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
-                  >
-                    <h3 className="input-label" style={{ margin: 0 }}>Layout & Grid Architecture</h3>
-                    <Icon source={isPostLayoutExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
-                  </div>
-                  <Collapsible open={isPostLayoutExpanded} id="post-layout-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
-                  <div className="visual-architecture">
-                    <h3 className="input-label">Grid Architecture</h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
-                      <div className="input-group">
-                        <label className="input-label" style={{ fontSize: "10px" }}>Desktop Columns</label>
-                        <select
-                          className="premium-input"
-                          value={config.postFeed.desktopColumns}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value);
-                            if (!isPaid && val > 4) {
-                              shopify.toast.show("Unlock PRO to use more than 4 columns", { isError: true });
-                              navigate("/app/plans");
-                              return;
-                            }
-                            updateConfig("postFeed", "desktopColumns", val);
-                          }}
-                          style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
-                        >
-                          {[3, 4, 5, 6].map((n) => (
-                            <option key={n} value={n}>
-                              {n} Columns {!isPaid && n > 4 ? " (PRO)" : ""}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="input-group">
-                        <label className="input-label" style={{ fontSize: "10px" }}>Mobile Columns</label>
-                        <select
-                          className="premium-input"
-                          value={config.postFeed.mobileColumns}
-                          onChange={(e) => updateConfig("postFeed", "mobileColumns", parseInt(e.target.value))}
-                          style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
-                        >
-                          {[1, 2, 3].map((n) => <option key={n} value={n}>{n} Columns</option>)}
-                        </select>
-                      </div>
-                    </div>
-
-                    {!config.postFeed.load && (
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
-                        <div className="input-group">
-                          <label className="input-label" style={{ fontSize: "10px" }}>Total Posts (Desktop)</label>
-                          <select
-                            className="premium-input"
-                            value={config.postFeed.desktopLimit || 8}
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value);
-                              if (!isPaid && val > 12) {
-                                shopify.toast.show("Unlock PRO to show more than 12 posts", { isError: true });
-                                navigate("/app/plans");
-                                return;
-                              }
-                              updateConfig("postFeed", "desktopLimit", val);
-                            }}
-                            style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
-                          >
-                            {[4, 6, 8, 12, 16, 20, 24].map((n) => (
-                              <option key={n} value={n}>
-                                {n} Posts {!isPaid && n > 12 ? " (PRO)" : ""}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="input-group">
-                          <label className="input-label" style={{ fontSize: "10px" }}>Total Posts (Mobile)</label>
-                          <select
-                            className="premium-input"
-                            value={config.postFeed.mobileLimit || 4}
-                            onChange={(e) => updateConfig("postFeed", "mobileLimit", parseInt(e.target.value))}
-                            style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
-                          >
-                            {[3, 4, 6, 8, 12].map((n) => <option key={n} value={n}>{n} Posts</option>)}
-                          </select>
-                        </div>
-                      </div>
+                    {isHideMode && activeTab === "post" && (
+                      <Banner tone="info">
+                        <strong>Hide Mode Active:</strong> Click any post in the preview below to toggle hidden status.
+                      </Banner>
                     )}
-                    <div className="input-group">
-                      <label className="input-label" style={{ fontSize: "10px" }}>Visual Gap ({config.postFeed.gap}px)</label>
-                      <input
-                        type="range"
-                        min="0" max="40"
-                        value={config.postFeed.gap}
-                        onChange={(e) => updateConfig("postFeed", "gap", parseInt(e.target.value))}
-                        className="premium-input"
-                      />
-                      {errors.postFeedGap && (
-                        <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
-                          ⚠️ {errors.postFeedGap}
-                        </div>
-                      )}
-                    </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "16px" }}>
-                      <div className="input-group">
-                        <label className="input-label" style={{ fontSize: "10px" }}>Top Padding ({config.postFeed.paddingTop}px)</label>
-                        <input
-                          type="range"
-                          min="0" max="100"
-                          value={config.postFeed.paddingTop}
-                          onChange={(e) => updateConfig("postFeed", "paddingTop", parseInt(e.target.value))}
-                          className="premium-input"
-                        />
-                        {errors.postFeedPaddingTop && (
-                          <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
-                            ⚠️ {errors.postFeedPaddingTop}
+                    {/* Mobile Frame Simulator */}
+                    {previewDevice === "mobile" ? (
+                      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+                        <div
+                          style={{
+                            width: "280px",
+                            height: "560px",
+                            background: "white",
+                            borderRadius: "36px",
+                            border: "10px solid #1e293b",
+                            boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
+                            position: "relative",
+                            overflow: "hidden",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: "36px",
+                              padding: "10px 16px 0",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              fontSize: "10px",
+                              fontWeight: "700",
+                              background: "white",
+                            }}
+                          >
+                            <span>9:41</span>
+                            <div>📶 🔋</div>
                           </div>
-                        )}
-                      </div>
-                      <div className="input-group">
-                        <label className="input-label" style={{ fontSize: "10px" }}>Bottom Padding ({config.postFeed.paddingBottom}px)</label>
-                        <input
-                          type="range"
-                          min="0" max="100"
-                          value={config.postFeed.paddingBottom}
-                          onChange={(e) => updateConfig("postFeed", "paddingBottom", parseInt(e.target.value))}
-                          className="premium-input"
-                        />
-                        {errors.postFeedPaddingBottom && (
-                          <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
-                            ⚠️ {errors.postFeedPaddingBottom}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="input-group" style={{ marginTop: "16px" }}>
-                      <label className="input-label" style={{ fontSize: "10px" }}>Image Sizing (Aspect Ratio)</label>
-                      <select
-                        className="premium-input"
-                        value={config.postFeed.aspectRatio || "auto"}
-                        onChange={(e) => updateConfig("postFeed", "aspectRatio", e.target.value)}
-                        style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}
-                      >
-                        <option value="auto">Auto (Original)</option>
-                        <option value="1/1">1:1 (Square)</option>
-                        <option value="3/4">3:4 (Portrait)</option>
-                        <option value="3/2">3:2 (Landscape)</option>
-                        <option value="9/16">9:16 (Story)</option>
-                      </select>
-                    </div>
 
-
-                  </div>
-
-                  </Collapsible>
-
-                  <Divider />
-
-                  {/* ── Collapsible: Branding & Typography ── */}
-                  <div
-                    onClick={() => setIsPostBrandingExpanded(!isPostBrandingExpanded)}
-                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
-                  >
-                    <h3 className="input-label" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                      <Icon source={ColorIcon} tone="base" />
-                      Branding & Typography
-                    </h3>
-                    <Icon source={isPostBrandingExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
-                  </div>
-                  <Collapsible open={isPostBrandingExpanded} id="post-branding-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
-                    <div className="config-visual-card">
-                      <div className="input-group-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <Icon source={ColorIcon} tone="base" />
-                          <h4>Branding & Typography</h4>
-                        </div>
-                        {hasChanges && (
-                          <div style={{ color: "var(--premium-accent)", fontSize: "11px", fontWeight: "600", animation: "fadeInBlur 0.3s ease" }}>
-                            Unsaved changes
-                          </div>
-                        )}
-                      </div>
-
-                      <div style={{ marginBottom: "24px" }}>
-                        <label className="input-label">Layout Alignment</label>
-                        <select className="premium-input" value={config.postFeed.alignment} onChange={(e) => updateConfig("postFeed", "alignment", e.target.value)} style={{ background: "#f8fafc", border: "1px solid #cbd5e1" }}>
-                          <option value="left">Left Aligned</option>
-                          <option value="center">Centered</option>
-                          <option value="right">Right Aligned</option>
-                        </select>
-                      </div>
-
-                      <div style={{ marginBottom: "24px" }}>
-                        <label className="input-label">Typography & Content Presets</label>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px", marginTop: "4px" }}>
-                          {FEED_TYPOGRAPHY_PRESETS.map((preset) => {
-                            const isSelected = isPresetMatch(config.postFeed, preset);
-                            return (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => {
-                                  setConfig((prev) => ({
-                                    ...prev,
-                                    postFeed: {
-                                      ...prev.postFeed,
-                                      heading: preset.textHeading,
-                                      subheading: preset.textSubheading,
-                                      typography: {
-                                        heading: { ...preset.heading },
-                                        subheading: { ...preset.subheading }
-                                      }
-                                    }
-                                  }));
-                                  setActiveTab("post");
-                                }}
+                          <div
+                            style={{ height: "calc(100% - 36px)", overflowY: "auto", paddingBottom: "20px" }}
+                            onScroll={(e) => handleScroll(e, "vertical")}
+                          >
+                            {activeTab === "post" ? (
+                              <div
                                 style={{
-                                  padding: "10px 12px",
-                                  borderRadius: "10px",
-                                  border: isSelected ? "2px solid #e1306c" : "1px solid #e2e8f0",
-                                  background: isSelected ? "rgba(225, 48, 108, 0.05)" : "#f8fafc",
-                                  cursor: "pointer",
-                                  textAlign: "left",
-                                  transition: "all 0.2s ease"
+                                  paddingTop: `${config.postFeed.paddingTop}px`,
+                                  paddingBottom: `${config.postFeed.paddingBottom}px`,
                                 }}
                               >
-                                <div style={{ fontWeight: "700", fontSize: "12px", color: isSelected ? "#e1306c" : "#1e293b", marginBottom: "2px" }}>
-                                  {preset.name}
-                                </div>
-                                <div style={{ fontSize: "10px", color: "#64748b", lineHeight: "1.3" }}>
-                                  {preset.desc}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div style={{ marginBottom: "16px" }}>
-                        <label className="input-label">Feed Heading</label>
-                        <input className="premium-input" value={config.postFeed.heading} onChange={(e) => updateConfig("postFeed", "heading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. SHOP OUR INSTAGRAM" />
-                        {errors.postFeedHeading && (
-                          <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
-                            ⚠️ {errors.postFeedHeading}
-                          </div>
-                        )}
-                        
-                        <div className="typography-grid">
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Size (px)</label>
-                            <input type="number" className="premium-input" value={config.postFeed.typography.heading.size}
-                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, heading: { ...config.postFeed.typography.heading, size: parseInt(e.target.value) } })} />
-                          </div>
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Weight</label>
-                            <select className="premium-input" value={config.postFeed.typography.heading.weight}
-                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, heading: { ...config.postFeed.typography.heading, weight: e.target.value } })}>
-                              <option value="400">Normal</option>
-                              <option value="600">Semi-Bold</option>
-                              <option value="800">Extra-Bold</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Color</label>
-                            <input type="color" className="premium-input" value={config.postFeed.typography.heading.color}
-                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, heading: { ...config.postFeed.typography.heading, color: e.target.value } })} />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ marginTop: "24px" }}>
-                        <label className="input-label">Subheading Text</label>
-                        <input className="premium-input" value={config.postFeed.subheading} onChange={(e) => updateConfig("postFeed", "subheading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. Tag us to get featured!" />
-                        
-                        <div className="typography-grid">
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Size (px)</label>
-                            <input type="number" className="premium-input" value={config.postFeed.typography.subheading.size}
-                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, subheading: { ...config.postFeed.typography.subheading, size: parseInt(e.target.value) } })} />
-                          </div>
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Weight</label>
-                            <select className="premium-input" value={config.postFeed.typography.subheading.weight}
-                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, subheading: { ...config.postFeed.typography.subheading, weight: e.target.value } })}>
-                              <option value="400">Normal</option>
-                              <option value="500">Medium</option>
-                              <option value="700">Bold</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Color</label>
-                            <input type="color" className="premium-input" value={config.postFeed.typography.subheading.color}
-                              onChange={(e) => updateConfig("postFeed", "typography", { ...config.postFeed.typography, subheading: { ...config.postFeed.typography.subheading, color: e.target.value } })} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Collapsible>
-                </>
-              ) : (
-                /* ── Story & Layouts Settings ── */
-                <>
-                  <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <label className="input-label" style={{ fontSize: "11px", fontWeight: "700", marginBottom: "8px", display: "block" }}>Show Media Type</label>
-                    <div style={{ display: "flex", gap: "6px", background: "#f8fafc", padding: "4px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                      <button
-                        type="button"
-                        onClick={() => updateConfig("stories", "mediaTypeFilter", "all")}
-                        style={{
-                          flex: 1,
-                          padding: "8px 8px",
-                          borderRadius: "8px",
-                          fontSize: "11px",
-                          fontWeight: "600",
-                          border: "none",
-                          cursor: "pointer",
-                          transition: "all 0.15s ease",
-                          background: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "#303030" : "transparent",
-                          color: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "white" : "#64748b",
-                          boxShadow: config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
-                        }}
-                      >
-                        All
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateConfig("stories", "mediaTypeFilter", "images")}
-                        style={{
-                          flex: 1,
-                          padding: "8px 8px",
-                          borderRadius: "8px",
-                          fontSize: "11px",
-                          fontWeight: "600",
-                          border: "none",
-                          cursor: "pointer",
-                          transition: "all 0.15s ease",
-                          background: config.stories.mediaTypeFilter === "images" ? "#303030" : "transparent",
-                          color: config.stories.mediaTypeFilter === "images" ? "white" : "#64748b",
-                          boxShadow: config.stories.mediaTypeFilter === "images" ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
-                        }}
-                      >
-                        Images
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateConfig("stories", "mediaTypeFilter", "videos")}
-                        style={{
-                          flex: 1,
-                          padding: "8px 8px",
-                          borderRadius: "8px",
-                          fontSize: "11px",
-                          fontWeight: "600",
-                          border: "none",
-                          cursor: "pointer",
-                          transition: "all 0.15s ease",
-                          background: config.stories.mediaTypeFilter === "videos" ? "#303030" : "transparent",
-                          color: config.stories.mediaTypeFilter === "videos" ? "white" : "#64748b",
-                          boxShadow: config.stories.mediaTypeFilter === "videos" ? "0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
-                        }}
-                      >
-                        Videos
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="setting-card" style={{ marginBottom: "20px", padding: "16px", background: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <div className="setting-row" style={{ opacity: !isPaid ? 0.7 : 1 }}>
-                      <div className="setting-info">
-                        <div className="setting-icon" style={{ color: "#e1306c" }}><Icon source={MagicIcon} color="inherit" /></div>
-                        <div>
-                          <div style={{ fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
-                            AI Smart Sorting
-                            {!isPaid && <span style={{ fontSize: "9px", padding: "2px 6px", background: "var(--premium-accent)", color: "white", borderRadius: "4px", fontWeight: "800" }}>PRO</span>}
-                          </div>
-                          <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "2px" }}>Sort feed dynamically by top engagement using AI-powered metrics.</div>
-                        </div>
-                      </div>
-                      <label className="premium-switch" title={!isPaid ? "Upgrade to PRO to enable this feature" : ""}>
-                        <input
-                          type="checkbox"
-                          checked={!isPaid ? false : config.stories.sortBy === "engaging"}
-                          onChange={(e) => {
-                            if (!isPaid) {
-                              shopify.toast.show("AI Smart Sorting is a PRO feature", { isError: true });
-                              navigate("/app/plans");
-                              return;
-                            }
-                            updateConfig("stories", "sortBy", e.target.checked ? "engaging" : "latest");
-                          }}
-                        />
-                        <span className="slider" />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* ── Collapsible: Story Highlight Modules ── */}
-                  <div
-                    onClick={() => setIsStoryModulesExpanded(!isStoryModulesExpanded)}
-                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
-                  >
-                    <h3 className="input-label" style={{ margin: 0 }}>Highlight Modules</h3>
-                    <Icon source={isStoryModulesExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
-                  </div>
-                  <Collapsible open={isStoryModulesExpanded} id="story-modules-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
-                  <h3 className="input-label" style={{ marginBottom: "12px" }}>Highlight Modules</h3>
-                  <div style={{ marginBottom: "32px" }}>
-                    {[
-                      { id: "enable",     label: "Active Stories",    sub: "Render top highlight-bar",  icon: StarIcon },
-                      { id: "promoEnable", label: "Get 10% Off Promo Offer", sub: "Show 10% discount promo story circle", icon: MagicIcon },
-                      { id: "carousel",   label: "Snap Scrolling",    sub: "Touch-optimized motion",    icon: MagicIcon },
-                      { id: "autoplay",   label: "Auto Play Stories", sub: "Animate top highlights",    icon: PlayIcon },
-                      { id: "animateImages", label: "Animate Images", sub: "Subtle zoom effect on photos", icon: MagicIcon },
-                      { id: "activeRing", label: "Moving Story Ring", sub: "Rotating dashed border effect", icon: RefreshIcon },
-                      { id: "pulseRing", label: "Pulsing Story Ring Glow", sub: "Glow & pulse animation around story circles", icon: MagicIcon },
-                      { id: "showNavigation", label: "Story Navigation Arrows", sub: "Show/Hide prev/next buttons", icon: ChevronRightIcon },
-                      { id: "showHeader", label: "Display Branding",  sub: "Show/Hide story title",     icon: MegaphoneIcon },
-                      { id: "showFollowButton", label: "Follow Instagram Button", sub: "Show a direct Follow @handle button below stories", icon: MegaphoneIcon },
-                      { id: "openPopup", label: "Story Pop-up", sub: "Open modal on story click", icon: ViewIcon },
-                      { id: "removeWatermark", label: "Remove App Branding", sub: "Clean & professional look", icon: MagicIcon, isPro: true },
-                    ].map((item, idx) => (
-                      <div key={item.id} className="setting-row" style={{ animation: `slideInUp 0.3s ease-out ${idx * 0.05}s both` }}>
-                        <div className="setting-info">
-                          <div className="setting-icon"><Icon source={item.icon} color="inherit" /></div>
-                          <div>
-                            <div style={{ fontSize: "14px", fontWeight: "600" }}>{item.label}</div>
-                            <div style={{ fontSize: "12px", color: "#9ca3af" }}>{item.sub}</div>
-                          </div>
-                        </div>
-                        <label className="premium-switch">
-                          <input
-                            type="checkbox"
-                            checked={config.stories[item.id]}
-                            onChange={(e) => {
-                              if (item.isPro && !isPaid) {
-                                shopify.toast.show("Unlock PRO to remove watermark", { isError: true });
-                                navigate("/app/plans");
-                                return;
-                              }
-                              updateConfig("stories", item.id, e.target.checked);
-                            }}
-                          />
-                          <span className="slider" />
-                        </label>
-                      </div>
-                    ))}
-
-                    {/* ── Active Ring Color Picker ── */}
-                    {config.stories.activeRing && (
-                      <div className="setting-row" style={{ animation: "slideInUp 0.3s ease-out 0.25s both", background: "#f8fafc", marginTop: "12px" }}>
-                        <div className="setting-info">
-                          <div className="setting-icon"><Icon source={ColorIcon} color="inherit" /></div>
-                          <div>
-                            <p style={{ fontWeight: 600, fontSize: "14px" }}>Ring Color</p>
-                            <p style={{ fontSize: "12px", color: "#64748b" }}>Choose the color of the moving ring</p>
-                          </div>
-                        </div>
-                        <input 
-                          type="color" 
-                          value={config.stories.ringColor || "#e1306c"} 
-                          onChange={(e) => updateConfig("stories", "ringColor", e.target.value)}
-                          style={{ width: "40px", height: "40px", border: "none", borderRadius: "10px", cursor: "pointer", background: "none", padding: 0 }}
-                        />
-                      </div>
-                    )}
-
-                    {/* ── Promo Offer Settings (Label & Description) ── */}
-                    {config.stories.promoEnable !== false && (
-                      <div style={{ marginTop: "16px", padding: "16px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                        <h4 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "12px", color: "#1e293b" }}>Promo Offer Customization</h4>
-                        <div style={{ marginBottom: "12px" }}>
-                          <label className="input-label" style={{ fontSize: "11px" }}>Promo Offer Label</label>
-                          <input
-                            className="premium-input"
-                            value={config.stories.promoLabel ?? "Get 10% Off"}
-                            onChange={(e) => updateConfig("stories", "promoLabel", e.target.value)}
-                            placeholder="e.g. Get 10% Off"
-                          />
-                        </div>
-                        <div>
-                          <label className="input-label" style={{ fontSize: "11px" }}>Promo Offer Popup Message</label>
-                          <textarea
-                            className="premium-input"
-                            rows={3}
-                            value={config.stories.promoDesc ?? "Take a screenshot of a product you wish to buy and tag @gpmbazaar and we will send you a 10% Off Discount Coupon Code!"}
-                            onChange={(e) => updateConfig("stories", "promoDesc", e.target.value)}
-                            placeholder="Take a screenshot of a product you wish to buy and tag @gpmbazaar..."
-                            style={{ resize: "vertical", fontFamily: "inherit" }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  </Collapsible>
-
-                  <Divider />
-
-                  {/* ── Collapsible: Story Branding & Typography ── */}
-                  <div
-                    onClick={() => setIsStoryBrandingExpanded(!isStoryBrandingExpanded)}
-                    style={{ width: "100%", background: "#f8fafc", padding: "14px 18px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginTop: "20px", marginBottom: "12px", boxSizing: "border-box", transition: "all 0.2s ease-in-out" }}
-                  >
-                    <h3 className="input-label" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                      <Icon source={ColorIcon} tone="base" />
-                      Branding & Typography
-                    </h3>
-                    <Icon source={isStoryBrandingExpanded ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
-                  </div>
-                  <Collapsible open={isStoryBrandingExpanded} id="story-branding-collapsible" transition={{ duration: "200ms", timingFunction: "ease-in-out" }}>
-                  <div className="visual-architecture" style={{ animation: "slideInUp 0.3s ease-out 0.2s both" }}>
-
-                    <div className="config-visual-card">
-                      <div className="input-group-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <Icon source={ColorIcon} tone="base" />
-                          <h4>Branding & Typography</h4>
-                        </div>
-                        {hasChanges && (
-                          <div style={{ color: "var(--premium-accent)", fontSize: "11px", fontWeight: "600", animation: "fadeInBlur 0.3s ease" }}>
-                            Unsaved changes
-                          </div>
-                        )}
-                      </div>
-
-                      <div style={{ marginBottom: "24px" }}>
-                        <label className="input-label">Layout Alignment</label>
-                        <select className="premium-input" value={config.stories.alignment} onChange={(e) => updateConfig("stories", "alignment", e.target.value)} style={{ background: "#f8fafc" }}>
-                          <option value="left">Left Aligned</option>
-                          <option value="center">Centered</option>
-                          <option value="right">Right Aligned</option>
-                        </select>
-                      </div>
-
-                      <div style={{ marginBottom: "24px" }}>
-                        <label className="input-label">Typography & Content Presets</label>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px", marginTop: "4px" }}>
-                          {STORY_TYPOGRAPHY_PRESETS.map((preset) => {
-                            const isSelected = isPresetMatch(config.stories, preset);
-                            return (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => {
-                                  setConfig((prev) => ({
-                                    ...prev,
-                                    stories: {
-                                      ...prev.stories,
-                                      heading: preset.textHeading,
-                                      subheading: preset.textSubheading,
-                                      typography: {
-                                        heading: { ...preset.heading },
-                                        subheading: { ...preset.subheading }
-                                      }
-                                    }
-                                  }));
-                                  setActiveTab("story");
-                                }}
-                                style={{
-                                  padding: "10px 12px",
-                                  borderRadius: "10px",
-                                  border: isSelected ? "2px solid #e1306c" : "1px solid #e2e8f0",
-                                  background: isSelected ? "rgba(225, 48, 108, 0.05)" : "#f8fafc",
-                                  cursor: "pointer",
-                                  textAlign: "left",
-                                  transition: "all 0.2s ease"
-                                }}
-                              >
-                                <div style={{ fontWeight: "700", fontSize: "12px", color: isSelected ? "#e1306c" : "#1e293b", marginBottom: "2px" }}>
-                                  {preset.name}
-                                </div>
-                                <div style={{ fontSize: "10px", color: "#64748b", lineHeight: "1.3" }}>
-                                  {preset.desc}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div style={{ marginBottom: "16px" }}>
-                        <label className="input-label">Story Heading</label>
-                        <input className="premium-input" value={config.stories.heading} onChange={(e) => updateConfig("stories", "heading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. SHOP OUR INSTAGRAM" />
-                        {errors.storiesHeading && (
-                          <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
-                            ⚠️ {errors.storiesHeading}
-                          </div>
-                        )}
-                        
-                        <div className="typography-grid">
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Size (px)</label>
-                            <input type="number" className="premium-input" value={config.stories.typography.heading.size}
-                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, size: parseInt(e.target.value) } })} />
-                          </div>
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Weight</label>
-                            <select className="premium-input" value={config.stories.typography.heading.weight}
-                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, weight: e.target.value } })}>
-                              <option value="400">Normal</option>
-                              <option value="600">Semi-Bold</option>
-                              <option value="800">Extra-Bold</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Color</label>
-                            <input type="color" className="premium-input" value={config.stories.typography.heading.color}
-                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, heading: { ...config.stories.typography.heading, color: e.target.value } })} />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ marginTop: "24px" }}>
-                        <label className="input-label">Story Subtext</label>
-                        <input className="premium-input" value={config.stories.subheading} onChange={(e) => updateConfig("stories", "subheading", e.target.value)} style={{ background: "#f8fafc" }} placeholder="e.g. Tag us to get featured!" />
-                        
-                        <div className="typography-grid">
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Size (px)</label>
-                            <input type="number" className="premium-input" value={config.stories.typography.subheading.size}
-                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, size: parseInt(e.target.value) } })} />
-                          </div>
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Weight</label>
-                            <select className="premium-input" value={config.stories.typography.subheading.weight}
-                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, weight: e.target.value } })}>
-                              <option value="400">Normal</option>
-                              <option value="500">Medium</option>
-                              <option value="700">Bold</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="input-label" style={{ fontSize: "9px" }}>Color</label>
-                            <input type="color" className="premium-input" value={config.stories.typography.subheading.color}
-                              onChange={(e) => updateConfig("stories", "typography", { ...config.stories.typography, subheading: { ...config.stories.typography.subheading, color: e.target.value } })} />
-                          </div>
-                        </div>
-                      </div>
-                    <div className="input-group" style={{ marginTop: "20px" }}>
-                      <label className="input-label" style={{ fontSize: "10px" }}>Vertical Spacing (Top: {config.stories.paddingTop}px, Bottom: {config.stories.paddingBottom}px)</label>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                        <div>
-                          <input
-                            type="range"
-                            min="0" max="100"
-                            value={config.stories.paddingTop}
-                            onChange={(e) => updateConfig("stories", "paddingTop", parseInt(e.target.value))}
-                            className="premium-input"
-                            title="Top Padding"
-                          />
-                          {errors.storiesPaddingTop && (
-                            <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
-                              ⚠️ {errors.storiesPaddingTop}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <input
-                            type="range"
-                            min="0" max="100"
-                            value={config.stories.paddingBottom}
-                            onChange={(e) => updateConfig("stories", "paddingBottom", parseInt(e.target.value))}
-                            className="premium-input"
-                            title="Bottom Padding"
-                          />
-                          {errors.storiesPaddingBottom && (
-                            <div style={{ color: "#c70a24", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
-                              ⚠️ {errors.storiesPaddingBottom}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    </div>
-                    </div>
-                  </Collapsible>
-                </>
-              )}
-            </div>
-
-            {/* Bottom Save Bar Notice */}
-            {hasChanges && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "32px", borderTop: "1px dashed #cbd5e1", paddingTop: "24px", animation: "slideInUp 0.3s ease-out" }}>
-                <div style={{ color: "var(--premium-text-secondary)", fontSize: "13px", fontWeight: "500" }}>
-                  ✨ You have unsaved configuration changes.
-                </div>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button className="premium-button" style={{ color: "var(--premium-text-secondary)", background: "transparent" }} onClick={discardChanges}>Discard</button>
-                  <button className="premium-button button-accent" style={{ background: "#303030", color: "white", borderRadius: "8px", minHeight: "36px", padding: "0 16px" }} onClick={applyChanges}>Save Changes</button>
-                </div>
-              </div>
-            )}
-            </div>
-          </Layout.Section>
-
-          {/* ── RIGHT: Preview Panel ── */}
-          <Layout.Section variant="oneThird">
-            <div style={{ position: "sticky", top: "24px" }}>
-              <div className="premium-card" style={{ padding: "24px", background: "#f8fafc" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                <h2 style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: "var(--premium-text-secondary)" }}>LIVE RENDERING</h2>
-                <div style={{ display: "flex", gap: "6px", background: "white", padding: "4px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                  <button
-                    onClick={() => setPreviewDevice("mobile")}
-                    className="premium-button"
-                    style={{ padding: "8px 12px", borderRadius: "8px", background: previewDevice === "mobile" ? "var(--premium-accent)" : "transparent", color: previewDevice === "mobile" ? "white" : "#64748b", minHeight: "unset", transition: "all 0.2s" }}
-                  ><Icon source={MobileIcon} tone="inherit" /></button>
-                  <button
-                    onClick={() => setPreviewDevice("desktop")}
-                    className="premium-button"
-                    style={{ padding: "8px 12px", borderRadius: "8px", background: previewDevice === "desktop" ? "var(--premium-accent)" : "transparent", color: previewDevice === "desktop" ? "white" : "#64748b", minHeight: "unset", transition: "all 0.2s" }}
-                  ><Icon source={DesktopIcon} tone="inherit" /></button>
-                </div>
-              </div>
-
-              <div className="preview-container" style={{ background: "transparent", border: "none", padding: "0", display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: "center", minHeight: previewDevice === "mobile" ? "580px" : "auto" }}>
-                {/* Sync overlay — uses absolute inside preview-container (position:relative) */}
-                {isSyncing && (
-                  <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.82)", zIndex: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)", borderRadius: "16px", animation: "fadeInBlur 0.3s ease" }}>
-                    <div style={{ width: "40px", height: "40px", border: "4px solid #e2e8f0", borderTop: `4px solid var(--premium-accent)`, borderRadius: "50%", animation: "spin 0.8s linear infinite", marginBottom: "16px" }} />
-                    <span style={{ fontWeight: "700", color: "var(--premium-text-primary)" }}>Syncing Live Data…</span>
-                  </div>
-                )}
-
-                {/* ── Hide Mode Preview Banner ── */}
-                {isHideMode && activeTab === "post" && (
-                  <div className="hide-mode-preview-banner">
-                    <div className="banner-icon">👆</div>
-                    <div className="banner-text">
-                      <strong>
-                        <span className="live-indicator" />
-                        Hide Mode Active
-                      </strong>
-                      Tap any post below to hide / unhide it
-                      {config.postFeed.hiddenPostIds?.length > 0 && (
-                        <span className="banner-count-pill">
-                          🙈 {config.postFeed.hiddenPostIds.length} hidden
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Mobile Device Frame ── */}
-                {previewDevice === "mobile" ? (
-                  <div style={{ animation: "fadeInBlur 0.4s ease-out", display: "flex", justifyContent: "center", width: "100%" }}>
-                    <div className={isHideMode && activeTab === "post" ? "hide-mode-device-frame" : ""} style={{ width: "280px", height: "580px", background: "white", borderRadius: "44px", border: "12px solid #1e293b", boxShadow: "0 35px 60px -15px rgba(0,0,0,0.3)", position: "relative", overflow: "hidden", flexShrink: 0 }}>
-                      {/* Status bar */}
-                      <div style={{ height: "40px", padding: "14px 20px 0", display: "flex", justifyContent: "space-between", fontSize: "10px", fontWeight: "700", background: "white" }}>
-                        <span>9:41</span>
-                        <div style={{ display: "flex", gap: "4px" }}>📶 🔋</div>
-                      </div>
-
-                      {/* Scrollable content */}
-                      <div
-                        style={{ height: "calc(100% - 40px)", overflowY: "auto", paddingBottom: "20px" }}
-                        onScroll={(e) => handleScroll(e, "vertical")}
-                      >
-                        {activeTab === "post" ? (
-                          <div className={isHideMode ? "hide-mode-active" : ""} style={{ animation: "fadeInBlur 0.4s ease-out", paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
-                            {/* Header */}
-                            {config.postFeed.header && (config.postFeed.heading?.trim() || config.postFeed.subheading?.trim()) && (
-                              <div style={{ padding: "12px 16px 0", textAlign: config.postFeed.alignment }}>
-                                {config.postFeed.heading?.trim() && (
-                                  <h4 style={{ fontSize: `${config.postFeed.typography.heading.size}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
-                                    {formatDynamicAccountText(config.postFeed.heading)}
-                                  </h4>
-                                )}
-                                {config.postFeed.subheading?.trim() && (
-                                  <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, fontWeight: config.postFeed.typography.subheading.color, color: config.postFeed.typography.subheading.color, margin: 0 }}>
-                                    {formatDynamicAccountText(config.postFeed.subheading)}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-
-                            {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
-                              <div style={{ margin: "12px 16px", padding: "10px 12px", background: "#fffbeb", borderRadius: "8px", border: "1px solid #fef3c7", fontSize: "11px", color: "#b45309", textAlign: "center", lineHeight: "1.4" }}>
-                                ⚠️ Upload more posts to display the feed properly
-                              </div>
-                            )}
-
-                            {/* Carousel or Grid */}
-                            {config.postFeed.carousel ? (
-                              <div className="carousel-wrapper" style={{ padding: `${config.postFeed.gap}px 0`, position: "relative", width: "100%" }}>
-                                <button className="carousel-nav prev" onClick={() => scrollCarousel(mobileCarouselRef, "prev")} style={{ width: "26px", height: "26px", left: "4px" }}>
-                                  <Icon source={ChevronLeftIcon} />
-                                </button>
-                                <div
-                                  className="carousel-container"
-                                  ref={mobileCarouselRef}
-                                  style={{ padding: `0 ${config.postFeed.gap}px`, "--carousel-gap": `${config.postFeed.gap}px`, "--carousel-item-width": `calc((100% - ${(config.postFeed.mobileColumns - 1) * config.postFeed.gap}px) / ${config.postFeed.mobileColumns})` }}
-                                  onScroll={(e) => handleScroll(e, "horizontal")}
-                                >
-                                  {simulatedInfiniteMedia.map((item, i) => renderCarouselCard(item, i))}
-                                </div>
-                                <button className="carousel-nav next" onClick={() => scrollCarousel(mobileCarouselRef, "next")} style={{ width: "26px", height: "26px", right: "4px" }}>
-                                  <Icon source={ChevronRightIcon} />
-                                </button>
-                              </div>
-                            ) : (
-                              <div style={{ padding: `${config.postFeed.gap}px`, display: "grid", gridTemplateColumns: `repeat(${config.postFeed.mobileColumns}, 1fr)`, gap: `${config.postFeed.gap}px`, justifyContent: "center", justifyItems: "center", margin: "0 auto", width: "100%" }}>
-                                {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
-                              </div>
-                            )}
-
-                            {config.postFeed.load && isInfiniteLoading && (
-                              <div style={{ padding: "20px", display: "flex", justifyContent: "center", animation: "fadeInBlur 0.3s ease" }}>
-                                <div style={{ width: "20px", height: "20px", border: "2px solid #e2e8f0", borderTop: "2px solid var(--premium-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                              </div>
-                            )}
-
-                            {config.postFeed.showFollowButton !== false && config.instagramHandle && (
-                              <div style={{ textAlign: "center", marginTop: "16px", marginBottom: "8px" }}>
-                                <a href={`https://instagram.com/${config.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="ai-follow-btn">
-                                  <InstagramIcon />
-                                  <span>Follow on Instagram</span>
-                                </a>
-                              </div>
-                            )}
-
-                            {!config.postFeed.removeWatermark && (
-                              <div style={{ textAlign: "center", padding: "12px", fontSize: "10px", color: "#9ca3af" }}>
-                                <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          /* Story preview – mobile */
-                          <div style={{ padding: "16px", paddingTop: `${config.stories.paddingTop}px`, paddingBottom: `${config.stories.paddingBottom}px` }}>
-                            {config.stories.showHeader && (config.stories.heading?.trim() || config.stories.subheading?.trim()) && (
-                              <div style={{ textAlign: config.stories.alignment, marginBottom: "24px" }}>
-                                {config.stories.heading?.trim() && (
-                                  <h4 style={{ fontSize: `${Math.min(config.stories.typography.heading.size, 22)}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 6px 0", lineHeight: 1.2, color: config.stories.typography.heading.color }}>
-                                    {formatDynamicAccountText(config.stories.heading)}
-                                  </h4>
-                                )}
-                                {config.stories.subheading?.trim() && (
-                                  <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: 0 }}>
-                                    {formatDynamicAccountText(config.stories.subheading)}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-
-                            {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
-                              <div style={{ margin: "0 0 16px 0", padding: "10px 12px", background: "#fffbeb", borderRadius: "8px", border: "1px solid #fef3c7", fontSize: "11px", color: "#b45309", textAlign: "center", lineHeight: "1.4" }}>
-                                ⚠️ Upload more posts to display the feed properly
-                              </div>
-                            )}
-                            {config.stories.enable && (
-                              <div className="carousel-wrapper hover-buttons" style={{ position: "relative" }}>
-                                {config.stories.showNavigation && (
-                                  <button className="carousel-nav prev" onClick={() => scrollCarousel(mobileStoryRef, "prev")} style={{ width: "22px", height: "22px", left: "-6px", top: "28px", transform: "translateY(-50%)" }}>
-                                    <Icon source={ChevronLeftIcon} />
-                                  </button>
-                                )}
-                                <div className="carousel-container" ref={mobileStoryRef} style={{ display: "flex", width: "max-content", maxWidth: "100%", margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0 auto 0 0", gap: "12px", padding: "0 4px 10px" }}>
-                                  {config.stories.promoEnable !== false && (
-                                    <div 
-                                      style={{ flexShrink: 0, width: "60px", textAlign: "center", cursor: "pointer", overflow: "visible" }}
-                                      onClick={() => {
-                                        setModalSource("promo");
-                                        setSelectedPost({ isPromo: true });
-                                      }}
-                                    >
-                                      <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: config.stories.activeRing ? "none" : `2px solid ${config.stories.ringColor || "var(--premium-accent)"}`, background: "white", margin: "0 auto", position: "relative" }}>
-                                        {config.stories.activeRing && (
-                                          <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
-                                          </svg>
-                                        )}
-                                        <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
-                                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                        </div>
-                                      </div>
-                                      <div style={{ marginTop: "4px", textAlign: "center" }}>
-                                        <span style={{ display: "inline-block", padding: "1px 6px", border: `1.5px solid ${config.stories.ringColor || "var(--premium-accent)"}`, color: config.stories.ringColor || "var(--premium-accent)", fontSize: "9px", fontWeight: "700", borderRadius: "12px", whiteSpace: "nowrap", background: "#fff", lineHeight: 1.2 }}>
-                                          {config.stories.promoLabel || "Get 10% Off"}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {filteredStoriesMedia.slice(0, 12).map((item, i) => (
-                                    <div 
-                                      key={i} 
-                                      style={{ flexShrink: 0, width: "60px", textAlign: "center", cursor: config.stories.openPopup ? "pointer" : "default" }}
-                                      onClick={() => {
-                                        if (config.stories.openPopup) {
-                                          setModalSource("story");
-                                          setSelectedPost(item);
-                                        }
-                                      }}
-                                    >
-                                      <div style={{ width: "56px", height: "56px", borderRadius: "50%", padding: "2px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", overflow: "hidden", margin: "0 auto", position: "relative" }}>
-                                        {config.stories.activeRing && (
-                                          <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                            <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
-                                          </svg>
-                                        )}
-                                        <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
-                                          {item.media_type === "VIDEO" ? (
-                                            config.stories.autoplay ? (
-                                              <video src={item.media_url} poster={item.thumbnail_url || undefined} autoPlay muted loop playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                            ) : item.thumbnail_url ? (
-                                              <img 
-                                                loading="lazy" 
-                                                src={item.thumbnail_url} 
-                                                className={config.stories.animateImages ? "ai-ken-burns" : ""}
-                                                style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                                                alt="story" 
-                                              />
-                                            ) : (
-                                              <video src={item.media_url} muted playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                            )
-                                          ) : item.media_url ? (
-                                            <img 
-                                              loading="lazy" 
-                                              src={item.media_url} 
-                                              className={config.stories.animateImages ? "ai-ken-burns" : ""}
-                                              style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                                              alt="story" 
-                                            />
-                                          ) : null}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                                {config.stories.showNavigation && (
-                                  <button className="carousel-nav next" onClick={() => scrollCarousel(mobileStoryRef, "next")} style={{ width: "22px", height: "22px", right: "-6px", top: "28px", transform: "translateY(-50%)" }}>
-                                    <Icon source={ChevronRightIcon} />
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                            {config.stories.showFollowButton && config.instagramHandle && (
-                              <div style={{ textAlign: "center", marginTop: "12px", marginBottom: "4px" }}>
-                                <a href={`https://instagram.com/${config.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="ai-follow-btn">
-                                  <InstagramIcon />
-                                  <span>Follow on Instagram</span>
-                                </a>
-                              </div>
-                            )}
-                            {!config.stories.removeWatermark && (
-                              <div style={{ textAlign: "center", padding: "10px 0 0", fontSize: "10px", color: "#9ca3af" }}>
-                                <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  /* ── Desktop Device Frame ── */
-                  <div style={{ animation: "fadeInBlur 0.4s ease-out", width: "100%", marginTop: "0" }}>
-                    <div style={{ width: "100%", maxWidth: "680px", margin: "0 auto" }}>
-                      {/* Browser Frame */}
-                      <div style={{ width: "100%", background: "#f8fafc", borderRadius: "12px 12px 0 0", padding: "8px 12px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid #cbd5e1", borderBottom: "none" }}>
-                         <div style={{ display: "flex", gap: "6px" }}>
-                           <div style={{ width: "10px", height: "10px", background: "#f87171", borderRadius: "50%" }} />
-                           <div style={{ width: "10px", height: "10px", background: "#fbbf24", borderRadius: "50%" }} />
-                           <div style={{ width: "10px", height: "10px", background: "#34d399", borderRadius: "50%" }} />
-                         </div>
-                      </div>
-                      <div style={{ width: "100%", background: "#ffffff", padding: "10px 16px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid #cbd5e1" }}>
-                         <div style={{ display: "flex", gap: "10px", fontSize: "12px", color: "#94a3b8" }}>
-                           <span>←</span> <span>→</span> <span>↻</span>
-                         </div>
-                         <div style={{ flex: 1, height: "28px", background: "white", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "0 12px", display: "flex", alignItems: "center", gap: "6px" }}>
-                           <span style={{ fontSize: "10px" }}>🔒</span>
-                           <span style={{ fontSize: "11px", color: "#64748b" }}>your-store.myshopify.com</span>
-                         </div>
-                         <div style={{ fontSize: "12px", color: "#94a3b8" }}>≡</div>
-                      </div>
-                      <div style={{ width: "100%", aspectRatio: "1.6/1", background: "white", border: "1px solid #cbd5e1", borderTop: "none", borderRadius: "0 0 12px 12px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                        <div style={{ height: "100%", overflowY: "auto", padding: "24px" }} onScroll={(e) => handleScroll(e, "vertical")}>
-                            {activeTab === "story" ? (
-                              /* Story desktop preview */
-                              <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: `${config.stories.paddingTop}px`, paddingBottom: `${config.stories.paddingBottom}px` }}>
-                                {config.stories.showHeader && (config.stories.heading?.trim() || config.stories.subheading?.trim()) && (
-                                  <div style={{ textAlign: config.stories.alignment, marginBottom: "24px" }}>
-                                    {config.stories.heading?.trim() && (
-                                      <h4 style={{ fontSize: `${config.stories.typography.heading.size}px`, fontWeight: config.stories.typography.heading.weight, margin: "0 0 8px 0", color: config.stories.typography.heading.color }}>
-                                        {formatDynamicAccountText(config.stories.heading)}
-                                      </h4>
-                                    )}
-                                    {config.stories.subheading?.trim() && (
-                                      <p style={{ fontSize: `${config.stories.typography.subheading.size}px`, color: config.stories.typography.subheading.color, fontWeight: config.stories.typography.subheading.weight, margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0" }}>
-                                        {formatDynamicAccountText(config.stories.subheading)}
-                                      </p>
-                                    )}
-                                  </div>
-                                )}
-
-                                {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
-                                  <div style={{ margin: "0 24px 16px", padding: "12px 16px", background: "#fffbeb", borderRadius: "8px", border: "1px solid #fef3c7", fontSize: "13px", color: "#b45309", textAlign: "center", lineHeight: "1.4" }}>
-                                    ⚠️ Please upload more posts on Instagram to display the feed properly (at least 4 posts are recommended).
-                                  </div>
-                                )}
-                                {config.stories.enable && (
-                                  <div className="carousel-wrapper hover-buttons" style={{ position: "relative", padding: "0 24px" }}>
-                                    {config.stories.showNavigation && (
-                                      <button className="carousel-nav prev" onClick={() => scrollCarousel(desktopStoryRef, "prev")} style={{ width: "28px", height: "28px", left: "0px", top: "32px", transform: "translateY(-50%)" }}>
-                                        <Icon source={ChevronLeftIcon} />
-                                      </button>
-                                    )}
-                                    <div className="carousel-container" ref={desktopStoryRef} style={{ display: "flex", width: "max-content", maxWidth: "100%", margin: config.stories.alignment === "center" ? "0 auto" : config.stories.alignment === "right" ? "0 0 0 auto" : "0 auto 0 0", gap: "16px", padding: "8px 4px 12px" }}>
-                                      {config.stories.promoEnable !== false && (
-                                        <div 
-                                          style={{ textAlign: "center", width: "72px", flexShrink: 0, cursor: "pointer", overflow: "visible" }}
-                                          onClick={() => {
-                                            setModalSource("promo");
-                                            setSelectedPost({ isPromo: true });
-                                          }}
-                                        >
-                                          <div style={{ width: "64px", height: "64px", borderRadius: "50%", padding: "3px", border: config.stories.activeRing ? "none" : `2px solid ${config.stories.ringColor || "var(--premium-accent)"}`, background: "white", marginBottom: "4px", overflow: "hidden", margin: "0 auto 4px", position: "relative" }}>
-                                            {config.stories.activeRing && (
-                                              <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
-                                              </svg>
-                                            )}
-                                            <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
-                                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                            </div>
-                                          </div>
-                                          <div style={{ textAlign: "center" }}>
-                                            <span style={{ display: "inline-block", padding: "2px 8px", border: `1.5px solid ${config.stories.ringColor || "var(--premium-accent)"}`, color: config.stories.ringColor || "var(--premium-accent)", fontSize: "10px", fontWeight: "700", borderRadius: "12px", whiteSpace: "nowrap", background: "#fff", lineHeight: 1.2 }}>
-                                              {config.stories.promoLabel || "Get 10% Off"}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      )}
-                                      {filteredStoriesMedia.slice(0, 8).map((item, i) => (
-                                        <div 
-                                          key={i} 
-                                          style={{ textAlign: "center", width: "72px", flexShrink: 0, cursor: config.stories.openPopup ? "pointer" : "default" }}
-                                          onClick={() => {
-                                            if (config.stories.openPopup) {
-                                              setModalSource("story");
-                                              setSelectedPost(item);
-                                            }
-                                          }}
-                                        >
-                                          <div style={{ width: "64px", height: "64px", borderRadius: "50%", padding: "3px", border: config.stories.activeRing ? "none" : "2px solid var(--premium-accent)", background: "white", marginBottom: "6px", overflow: "hidden", margin: "0 auto 6px", position: "relative" }}>
-                                            {config.stories.activeRing && (
-                                              <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, pointerEvents: "none", overflow: "visible", display: "block" }}>
-                                                <circle cx="50" cy="50" r="46.5" fill="none" stroke={config.stories.ringColor || "var(--premium-accent)"} strokeWidth="4" strokeDasharray="12 8" style={{ animation: config.stories.pulseRing ? "rotateRing 6s linear infinite, ringPulse 2.2s ease-in-out infinite" : "rotateRing 6s linear infinite", transformOrigin: "center", transformBox: "fill-box" }} />
-                                              </svg>
-                                            )}
-                                            <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#f1f5f9", overflow: "hidden", position: "relative", zIndex: 1 }}>
-                                              {item.media_type === "VIDEO" ? (
-                                                config.stories.autoplay ? (
-                                                  <video src={item.media_url} poster={item.thumbnail_url || undefined} autoPlay muted loop playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                                ) : item.thumbnail_url ? (
-                                                  <img 
-                                                    loading="lazy" 
-                                                    src={item.thumbnail_url} 
-                                                    className={config.stories.animateImages ? "ai-ken-burns" : ""}
-                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                                                    alt="story" 
-                                                  />
-                                                ) : (
-                                                  <video src={item.media_url} muted playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                                )
-                                              ) : item.media_url ? (
-                                                <img 
-                                                  loading="lazy" 
-                                                  src={item.media_url} 
-                                                  className={config.stories.animateImages ? "ai-ken-burns" : ""}
-                                                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                                                  alt="story" 
-                                                />
-                                              ) : null}
-                                            </div>
-                                          </div>
-
-                                        </div>
-                                      ))}
-                                    </div>
-                                    {config.stories.showNavigation && (
-                                      <button className="carousel-nav next" onClick={() => scrollCarousel(desktopStoryRef, "next")} style={{ width: "28px", height: "28px", right: "0px", top: "32px", transform: "translateY(-50%)" }}>
-                                        <Icon source={ChevronRightIcon} />
-                                      </button>
-                                    )}
-                                  </div>
-                                )}
-                                {config.stories.showFollowButton && config.instagramHandle && (
-                                  <div style={{ textAlign: "center", marginTop: "12px", marginBottom: "4px" }}>
-                                    <a href={`https://instagram.com/${config.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="ai-follow-btn">
-                                      <InstagramIcon />
-                                      <span>Follow on Instagram</span>
-                                    </a>
-                                  </div>
-                                )}
-                                {!config.stories.removeWatermark && (
-                                   <div style={{ textAlign: "center", padding: "10px 0 0", fontSize: "11px", color: "#9ca3af" }}>
-                                     <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
-                                   </div>
-                                )}
-                              </div>
-                            ) : (
-                              /* Feed Grid desktop preview */
-                              <div className={isHideMode ? "hide-mode-active" : ""} style={{ paddingTop: `${config.postFeed.paddingTop}px`, paddingBottom: `${config.postFeed.paddingBottom}px` }}>
                                 {config.postFeed.header && (config.postFeed.heading?.trim() || config.postFeed.subheading?.trim()) && (
-                                  <div style={{ marginBottom: "16px", textAlign: config.postFeed.alignment }}>
+                                  <div style={{ padding: "8px 12px 0", textAlign: config.postFeed.alignment }}>
                                     {config.postFeed.heading?.trim() && (
-                                      <h4 style={{ fontSize: `${config.postFeed.typography.heading.size + 2}px`, fontWeight: config.postFeed.typography.heading.weight, color: config.postFeed.typography.heading.color, margin: "0 0 4px 0" }}>
+                                      <h4
+                                        style={{
+                                          fontSize: `${config.postFeed.typography.heading.size}px`,
+                                          fontWeight: config.postFeed.typography.heading.weight,
+                                          color: config.postFeed.typography.heading.color,
+                                          margin: "0 0 4px 0",
+                                        }}
+                                      >
                                         {formatDynamicAccountText(config.postFeed.heading)}
                                       </h4>
                                     )}
                                     {config.postFeed.subheading?.trim() && (
-                                      <p style={{ fontSize: `${config.postFeed.typography.subheading.size + 1}px`, color: config.postFeed.typography.subheading.color, fontWeight: config.postFeed.typography.subheading.weight, margin: 0 }}>
+                                      <p
+                                        style={{
+                                          fontSize: `${config.postFeed.typography.subheading.size}px`,
+                                          color: config.postFeed.typography.subheading.color,
+                                          margin: 0,
+                                        }}
+                                      >
                                         {formatDynamicAccountText(config.postFeed.subheading)}
                                       </p>
                                     )}
                                   </div>
                                 )}
 
-                                {isConnected && instaData && (instaData.media?.data?.length || 0) < 4 && (
-                                  <div style={{ margin: "0 0 16px 0", padding: "12px 16px", background: "#fffbeb", borderRadius: "8px", border: "1px solid #fef3c7", fontSize: "13px", color: "#b45309", textAlign: "center", lineHeight: "1.4" }}>
-                                    ⚠️ Please upload more posts on Instagram to display the feed properly (at least 4 posts are recommended).
-                                  </div>
-                                )}
-
                                 {config.postFeed.carousel ? (
-                                  <div className="carousel-wrapper">
-                                    <button className="carousel-nav prev" onClick={() => scrollCarousel(desktopCarouselRef, "prev")}>
+                                  <div className="carousel-wrapper" style={{ padding: `${config.postFeed.gap}px 0`, position: "relative" }}>
+                                    <button
+                                      className="carousel-nav prev"
+                                      onClick={() => scrollCarousel(mobileCarouselRef, "prev")}
+                                      style={{ width: "24px", height: "24px", left: "4px" }}
+                                    >
                                       <Icon source={ChevronLeftIcon} />
                                     </button>
                                     <div
                                       className="carousel-container"
-                                      ref={desktopCarouselRef}
-                                      style={{ "--carousel-gap": `${config.postFeed.gap}px`, "--carousel-item-width": `calc((100% - ${(config.postFeed.desktopColumns - 1) * config.postFeed.gap}px) / ${config.postFeed.desktopColumns})` }}
-                                      onScroll={(e) => handleScroll(e, "horizontal")}
+                                      ref={mobileCarouselRef}
+                                      style={{
+                                        padding: `0 ${config.postFeed.gap}px`,
+                                        "--carousel-gap": `${config.postFeed.gap}px`,
+                                        "--carousel-item-width": `calc((100% - ${(config.postFeed.mobileColumns - 1) * config.postFeed.gap}px) / ${config.postFeed.mobileColumns})`,
+                                      }}
                                     >
-                                      {simulatedInfiniteMedia.map((item, i) => renderCarouselCard(item, i, true))}
+                                      {simulatedInfiniteMedia.map((item, i) => renderCarouselCard(item, i))}
                                     </div>
-                                    <button className="carousel-nav next" onClick={() => scrollCarousel(desktopCarouselRef, "next")}>
+                                    <button
+                                      className="carousel-nav next"
+                                      onClick={() => scrollCarousel(mobileCarouselRef, "next")}
+                                      style={{ width: "24px", height: "24px", right: "4px" }}
+                                    >
                                       <Icon source={ChevronRightIcon} />
                                     </button>
                                   </div>
                                 ) : (
-                                  <div style={{ display: "grid", gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`, gap: `${config.postFeed.gap}px`, justifyContent: "center", justifyItems: "center", margin: "0 auto", width: "100%" }}>
-                                    {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i, true))}
+                                  <div
+                                    style={{
+                                      display: "grid",
+                                      gridTemplateColumns: `repeat(${config.postFeed.mobileColumns}, 1fr)`,
+                                      gap: `${config.postFeed.gap}px`,
+                                      padding: `12px ${config.postFeed.gap}px`,
+                                    }}
+                                  >
+                                    {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
                                   </div>
                                 )}
-
-                                {config.postFeed.load && isInfiniteLoading && (
-                                  <div style={{ padding: "24px", display: "flex", justifyContent: "center" }}>
-                                    <div style={{ width: "22px", height: "22px", border: "3px solid #e2e8f0", borderTop: "3px solid var(--premium-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                              </div>
+                            ) : (
+                              /* Story Preview */
+                              <div
+                                style={{
+                                  paddingTop: `${config.stories.paddingTop}px`,
+                                  paddingBottom: `${config.stories.paddingBottom}px`,
+                                }}
+                              >
+                                {config.stories.showHeader && (
+                                  <div style={{ padding: "8px 12px", textAlign: config.stories.alignment }}>
+                                    <h4 style={{ margin: "0 0 4px 0", fontSize: "16px", fontWeight: "700" }}>
+                                      {formatDynamicAccountText(config.stories.heading)}
+                                    </h4>
+                                    <p style={{ margin: 0, fontSize: "11px", color: "#6b7280" }}>
+                                      {formatDynamicAccountText(config.stories.subheading)}
+                                    </p>
                                   </div>
                                 )}
-
-                                {config.postFeed.showFollowButton !== false && config.instagramHandle && (
-                                  <div style={{ textAlign: "center", marginTop: "16px", marginBottom: "8px" }}>
-                                    <a href={`https://instagram.com/${config.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="ai-follow-btn">
-                                      <InstagramIcon />
-                                      <span>Follow on Instagram</span>
-                                    </a>
-                                  </div>
-                                )}
-
-                                {!config.postFeed.removeWatermark && (
-                                  <div style={{ textAlign: "center", padding: "16px", fontSize: "12px", color: "#9ca3af" }}>
-                                    <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
-                                  </div>
-                                )}
+                                <div style={{ display: "flex", gap: "10px", padding: "8px 12px", overflowX: "auto" }}>
+                                  {baseMedia.slice(0, 6).map((item, i) => (
+                                    <div key={i} style={{ textAlign: "center", flexShrink: 0 }}>
+                                      <div
+                                        style={{
+                                          width: "52px",
+                                          height: "52px",
+                                          borderRadius: "50%",
+                                          padding: "2px",
+                                          border: `2px solid ${config.stories.ringColor || "#e1306c"}`,
+                                          overflow: "hidden",
+                                        }}
+                                      >
+                                        <img
+                                          src={item.media_url || item.thumbnail_url}
+                                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                                          alt="Story highlight"
+                                        />
+                                      </div>
+                                      {config.stories.showLabels && (
+                                        <span style={{ fontSize: "9px", color: "#6b7280", marginTop: "2px", display: "block" }}>
+                                          Highlight {i + 1}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
-                  </div>
-                )}
+                    ) : (
+                      /* Desktop Frame Simulator */
+                      <div
+                        style={{
+                          width: "100%",
+                          background: "white",
+                          borderRadius: "12px",
+                          border: "1px solid #e2e8f0",
+                          padding: "16px",
+                          overflowY: "auto",
+                          maxHeight: "560px",
+                        }}
+                      >
+                        {activeTab === "post" ? (
+                          <div>
+                            {config.postFeed.header && (
+                              <div style={{ textAlign: config.postFeed.alignment, marginBottom: "12px" }}>
+                                <h4
+                                  style={{
+                                    fontSize: `${config.postFeed.typography.heading.size}px`,
+                                    fontWeight: config.postFeed.typography.heading.weight,
+                                    color: config.postFeed.typography.heading.color,
+                                    margin: "0 0 4px 0",
+                                  }}
+                                >
+                                  {formatDynamicAccountText(config.postFeed.heading)}
+                                </h4>
+                                <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, color: config.postFeed.typography.subheading.color, margin: 0 }}>
+                                  {formatDynamicAccountText(config.postFeed.subheading)}
+                                </p>
+                              </div>
+                            )}
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`,
+                                gap: `${config.postFeed.gap}px`,
+                              }}
+                            >
+                              {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ textAlign: config.stories.alignment }}>
+                            {config.stories.showHeader && (
+                              <div style={{ marginBottom: "12px" }}>
+                                <h4 style={{ margin: "0 0 4px 0", fontSize: "18px", fontWeight: "700" }}>
+                                  {formatDynamicAccountText(config.stories.heading)}
+                                </h4>
+                                <p style={{ margin: 0, fontSize: "12px", color: "#6b7280" }}>
+                                  {formatDynamicAccountText(config.stories.subheading)}
+                                </p>
+                              </div>
+                            )}
+                            <div style={{ display: "flex", gap: "12px", justifyContent: config.stories.alignment === "center" ? "center" : "flex-start", overflowX: "auto", padding: "8px 0" }}>
+                              {baseMedia.slice(0, 8).map((item, i) => (
+                                <div key={i} style={{ textAlign: "center", flexShrink: 0 }}>
+                                  <div
+                                    style={{
+                                      width: "60px",
+                                      height: "60px",
+                                      borderRadius: "50%",
+                                      padding: "2px",
+                                      border: `2px solid ${config.stories.ringColor || "#e1306c"}`,
+                                      overflow: "hidden",
+                                    }}
+                                  >
+                                    <img
+                                      src={item.media_url || item.thumbnail_url}
+                                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                                      alt="Story highlight"
+                                    />
+                                  </div>
+                                  {config.stories.showLabels && (
+                                    <span style={{ fontSize: "10px", color: "#6b7280", marginTop: "4px", display: "block" }}>
+                                      Highlight {i + 1}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </BlockStack>
+                </Card>
               </div>
-            </div>
-          </div>
-        </Layout.Section>
-        </Layout>
-        </div>
-      </>
-      )}
-
-      {/* ── Premium Post / Promo Modal ── */}
-      {selectedPost && (
-        <div 
-          className="premium-modal-overlay" 
-          onClick={() => setSelectedPost(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.85)",
-            backdropFilter: "blur(12px)",
-            zIndex: 2000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "20px",
-            animation: "fadeInBlur 0.3s ease"
-          }}
-        >
-          {selectedPost.isPromo || modalSource === "promo" ? (
-            <div 
-              className="premium-modal-content" 
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                maxWidth: "600px",
-                width: "100%",
-                display: "flex",
-                flexDirection: window.innerWidth < 520 ? "column" : "row",
-                overflow: "hidden",
-                borderRadius: "20px",
-                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
-                background: "white"
-              }}
-            >
-              {/* Left side: Gradient visual card */}
-              <div style={{ flex: 1, background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "white", padding: "32px", textAlign: "center", minHeight: "200px", boxSizing: "border-box" }}>
-                <div style={{ background: "rgba(255, 255, 255, 0.2)", borderRadius: "50%", padding: "16px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                </div>
-                <h3 style={{ fontSize: "20px", fontWeight: "800", margin: "0 0 8px 0", letterSpacing: "0.5px", lineHeight: "1.2" }}>SPECIAL OFFER</h3>
-                <p style={{ fontSize: "12px", opacity: 0.9, margin: 0, fontWeight: "600" }}>Exclusive Offer</p>
-              </div>
-              {/* Right side: offer details panel */}
-              <div style={{ flex: 1.2, display: "flex", flexDirection: "column", background: "white", padding: "32px", position: "relative", justifyContent: "center", boxSizing: "border-box" }}>
-                <button onClick={() => setSelectedPost(null)} aria-label="Close" style={{ position: "absolute", top: "16px", right: "16px", background: "#f1f5f9", border: "none", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
-                <h4 style={{ fontSize: "18px", fontWeight: "800", color: "#0f172a", margin: "0 0 16px 0", lineHeight: "1.2" }}>{config.stories.promoLabel || "Get 10% Off"}</h4>
-                <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", margin: "0 0 24px 0", fontWeight: "500" }}>
-                  {formatDynamicAccountText(
-                    (config.stories.promoDesc && !config.stories.promoDesc.includes("WELCOME10"))
-                      ? config.stories.promoDesc
-                      : "Take a screenshot of a product you wish to buy and tag @account and we will send you a 10% Off Discount Coupon Code!"
-                  )}
-                </p>
-                <a href={`https://instagram.com/${(config.instagramHandle || "instagram").replace("@", "").trim()}`} target="_blank" rel="noopener noreferrer" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", background: "#0f172a", color: "white", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "13px", cursor: "pointer", textDecoration: "none", boxSizing: "border-box" }}>Open Instagram</a>
-              </div>
-            </div>
-          ) : (
-            <div 
-              className="premium-modal-content" 
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: "white",
-                width: "100%",
-                maxWidth: "1000px",
-                maxHeight: "90vh",
-                borderRadius: "20px",
-                display: "flex",
-                overflow: "hidden",
-                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
-                flexDirection: window.innerWidth < 768 ? "column" : "row"
-              }}
-            >
-            {/* Left: Media Area */}
-            <div style={{ flex: 1.2, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-              {((selectedPost.media_type || "").toUpperCase() === "VIDEO" || (selectedPost.media_type || "").toUpperCase() === "REEL" || (selectedPost.media_url && (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov")))) ? (
-                <video src={selectedPost.media_url} poster={selectedPost.thumbnail_url || undefined} autoPlay loop muted playsInline preload="metadata" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
-              ) : (
-                <img src={selectedPost.media_url} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} alt="Post" />
-              )}
-            </div>
-
-            {/* Right: Info Area */}
-            <div style={{ flex: 0.8, display: "flex", flexDirection: "column", background: "white", padding: "24px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", borderBottom: "1px solid #f1f5f9", paddingBottom: "16px" }}>
-                <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--premium-accent-gradient)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
-                  <InstagramIcon />
-                </div>
-                <div>
-                  <div style={{ fontWeight: "700", fontSize: "16px" }}>@{instaData?.username || config.instagramHandle}</div>
-                  <div style={{ fontSize: "12px", color: "#64748b" }}>Instagram Business Discovery</div>
-                </div>
-                <button 
-                  onClick={() => setSelectedPost(null)}
-                  style={{ marginLeft: "auto", background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px", borderRadius: "8px", cursor: "pointer" }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"></path></svg>
-                </button>
-              </div>
-
-              <div style={{ flex: 1, overflowY: "auto", marginBottom: "24px" }}>
-                <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.6", color: "#334155" }}>
-                  {selectedPost.caption || "No caption provided for this post."}
-                </p>
-                <div style={{ marginTop: "16px", fontSize: "11px", color: "#94a3b8", fontWeight: "600" }}>
-                  {selectedPost.timestamp ? new Date(selectedPost.timestamp).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Recently Shared"}
-                </div>
-              </div>
-
-              <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "20px" }}>
-                <div style={{ display: "flex", gap: "24px", marginBottom: "20px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <svg color="#ef4444" fill="#ef4444" width="22" height="22" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                    <span style={{ fontWeight: "700", fontSize: "18px" }}>{selectedPost.like_count || 0}</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                    <span style={{ fontWeight: "700", fontSize: "18px" }}>{selectedPost.comments_count || 0}</span>
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button
-                    type="button"
-                    className="premium-button button-accent"
-                    onClick={() => {
-                      setModalSource("promo");
-                      setSelectedPost({ isPromo: true });
-                    }}
-                    style={{ flex: 1, textDecoration: "none", justifyContent: "center", cursor: "pointer", background: "linear-gradient(135deg, #e1306c 0%, #f77737 100%)", color: "white", border: "none" }}
-                  >
-                    🎁 {config.stories.promoLabel || "Get 10% Off"}
-                  </button>
-                  <button
-                    type="button"
-                    className="premium-button"
-                    onClick={() => {
-                      const url = selectedPost.permalink || window.location.href;
-                      if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(url);
-                        shopify.toast.show("Link copied to clipboard!");
-                      } else {
-                        window.prompt("Copy post link:", url);
-                      }
-                    }}
-                    style={{ background: "#f1f5f9", color: "#334155", border: "1px solid #cbd5e1" }}
-                    title="Share Post"
-                  >
-                    <Icon source={ShareIcon} />
-                    <span>Share</span>
-                  </button>
-                </div>
-                {((modalSource === "story" && !config.stories.removeWatermark) || (modalSource === "grid" && !config.postFeed.removeWatermark)) && (
-                   <div style={{ textAlign: "center", padding: "12px 0 0", fontSize: "11px", color: "#9ca3af" }}>
-                     <a href="https://apps.shopify.com/ai-instafeed" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", verticalAlign: "middle" }}><img src="/media/logo.png" style={{ height: "16px", verticalAlign: "middle", display: "inline-block" }} alt="BOOST STAR Experts" /></a>
-                   </div>
-                )}
-              </div>
-            </div>
-          </div>
+            </Layout.Section>
+          </Layout>
         )}
-      </div>
-    )}
 
+        {/* ── Modal Dialog for Post Preview ── */}
+        {selectedPost && (
+          <Modal
+            open={Boolean(selectedPost)}
+            onClose={() => setSelectedPost(null)}
+            title={selectedPost.isPromo ? "Special Promotion Offer" : `@${instaData?.username || config.instagramHandle || "Instagram Post"}`}
+            primaryAction={{
+              content: "Close",
+              onAction: () => setSelectedPost(null),
+            }}
+          >
+            <Modal.Section>
+              <BlockStack gap="400">
+                {selectedPost.isPromo ? (
+                  <Box padding="400" background="bg-surface-secondary" borderRadius="200">
+                    <BlockStack gap="300" align="center" inlineAlign="center">
+                      <Text variant="headingLg" as="h3" alignment="center">
+                        🎁 {config.stories.promoLabel || "Get 10% Off"}
+                      </Text>
+                      <Text variant="bodyMd" tone="subdued" alignment="center">
+                        {config.stories.promoDesc || "Take a screenshot of a product you wish to buy and tag us on Instagram for a 10% discount code!"}
+                      </Text>
+                    </BlockStack>
+                  </Box>
+                ) : (
+                  <>
+                    <div style={{ maxHeight: "380px", display: "flex", justifyContent: "center", background: "#000", borderRadius: "8px", overflow: "hidden" }}>
+                      {(selectedPost.media_type || "").toUpperCase() === "VIDEO" ||
+                      (selectedPost.media_type || "").toUpperCase() === "REEL" ||
+                      (selectedPost.media_url && (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov"))) ? (
+                        <video src={selectedPost.media_url} poster={selectedPost.thumbnail_url || undefined} autoPlay loop muted playsInline style={{ maxWidth: "100%", maxHeight: "380px" }} />
+                      ) : (
+                        <img src={selectedPost.media_url} style={{ maxWidth: "100%", maxHeight: "380px", objectFit: "contain" }} alt="Post preview" />
+                      )}
+                    </div>
+                    <Text variant="bodyMd">{selectedPost.caption || "No caption provided for this post."}</Text>
+                    <InlineStack gap="400" align="space-between">
+                      <InlineStack gap="300">
+                        <Text variant="bodySm" tone="subdued">
+                          ❤️ {selectedPost.like_count || 0} Likes
+                        </Text>
+                        <Text variant="bodySm" tone="subdued">
+                          💬 {selectedPost.comments_count || 0} Comments
+                        </Text>
+                      </InlineStack>
+                      <Button
+                        icon={ShareIcon}
+                        size="slim"
+                        onClick={() => {
+                          const url = selectedPost.permalink || window.location.href;
+                          if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(url);
+                            shopify?.toast?.show("Post link copied to clipboard!");
+                          }
+                        }}
+                      >
+                        Share
+                      </Button>
+                    </InlineStack>
+                  </>
+                )}
+              </BlockStack>
+            </Modal.Section>
+          </Modal>
+        )}
 
+        {/* ── Footer ── */}
+        <Box paddingBlock="600">
+          <BlockStack gap="200" align="center" inlineAlign="center">
+            <Text variant="bodySm" tone="subdued">
+              © 2026 AI Instafeed by{" "}
+              <a
+                href="https://apps.shopify.com/partners/boost-star"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "inherit", textDecoration: "underline" }}
+              >
+                BOOST STAR Experts
+              </a>
+            </Text>
+            <InlineStack gap="200" align="center">
+              <Text variant="bodySm" tone="subdued">
+                Terms of Service
+              </Text>
+              <Text variant="bodySm" tone="subdued">
+                •
+              </Text>
+              <Text variant="bodySm" tone="subdued">
+                Privacy Policy
+              </Text>
+            </InlineStack>
+          </BlockStack>
+        </Box>
 
-      <footer style={{ textAlign: "center", padding: "40px 0", marginTop: "24px" }}>
-        <BlockStack gap="200">
-          <Text variant="bodySm" tone="subdued">
-            © 2026 AI Instafeed by{" "}
-            <a 
-              href="https://apps.shopify.com/partners/boost-star" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={{ color: "inherit", textDecoration: "underline" }}
-            >
-              BOOST STAR Experts
-            </a>
-          </Text>
-          <InlineStack gap="200" align="center">
-            <Text variant="bodySm" tone="subdued">Terms of Service</Text>
-            <Text variant="bodySm" tone="subdued">•</Text>
-            <Text variant="bodySm" tone="subdued">Privacy Policy</Text>
-          </InlineStack>
-        </BlockStack>
-      </footer>
-      <ui-save-bar id="app-config-save-bar">
-        <button variant="primary" onClick={applyChanges}>Save</button>
-        <button onClick={discardChanges}>Discard</button>
-      </ui-save-bar>
-    </div>
-    </div>
+        {/* Native Save Bar */}
+        <ui-save-bar id="app-config-save-bar">
+          <button variant="primary" onClick={applyChanges}>
+            Save
+          </button>
+          <button onClick={discardChanges}>Discard</button>
+        </ui-save-bar>
+      </BlockStack>
+    </Page>
   );
 }

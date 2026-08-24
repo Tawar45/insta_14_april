@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLoaderData, useFetcher, useNavigation, Form, useNavigate } from "react-router";
+import { useLoaderData, useFetcher, useNavigation, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import {
@@ -11,64 +11,60 @@ import {
   Button,
   BlockStack,
   InlineStack,
+  Box,
+  Divider,
+  Collapsible,
   SkeletonPage,
   SkeletonDisplayText,
   SkeletonBodyText,
   Icon,
 } from "@shopify/polaris";
 import {
-  ChevronLeftIcon,
   StarIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CheckIcon,
+  CollectionIcon,
+  MegaphoneIcon,
+  ColorIcon,
   MagicIcon,
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FAQ ITEM COMPONENT (Accordion)
+// FAQ ITEM COMPONENT (Polaris Accordion)
 // ─────────────────────────────────────────────────────────────────────────────
-const FAQItem = ({ question, answer, isLast }) => {
+const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div
-      onClick={() => setIsOpen(!isOpen)}
-      style={{
-        width: "100%",
-        background: "#f8fafc",
-        padding: "18px 22px",
-        borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        marginTop: "16px",
-        marginBottom: "12px",
-        cursor: "pointer",
-        transition: "all 0.2s ease-in-out",
-        boxSizing: "border-box"
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-        <Text variant="bodyLg" fontWeight="bold">{question}</Text>
-        <div style={{
-          width: "32px", height: "32px", borderRadius: "50%", background: "#ffffff",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          transition: "all 0.3s ease",
-          transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
-          border: "1px solid #cbd5e1",
-          flexShrink: 0
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
+    <Box paddingBlock="200">
+      <BlockStack gap="200">
+        <div
+          onClick={() => setIsOpen(!isOpen)}
+          style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}
+        >
+          <Text variant="bodyMd" fontWeight="semibold">
+            {question}
+          </Text>
+          <Button
+            variant="plain"
+            icon={isOpen ? ChevronUpIcon : ChevronDownIcon}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(!isOpen);
+            }}
+            accessibilityLabel="Toggle FAQ"
+          />
         </div>
-      </div>
-      <div style={{
-        maxHeight: isOpen ? "300px" : "0",
-        overflow: "hidden",
-        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-        marginTop: isOpen ? "14px" : "0",
-        opacity: isOpen ? 1 : 0
-      }}>
-        <Text variant="bodyMd" tone="subdued">{answer}</Text>
-      </div>
-    </div>
+        <Collapsible open={isOpen} id={`faq-${question.replace(/\s+/g, "-")}`}>
+          <Box paddingBlockStart="100" paddingBlockEnd="200">
+            <Text variant="bodyMd" tone="subdued">
+              {answer}
+            </Text>
+          </Box>
+        </Collapsible>
+        <Divider />
+      </BlockStack>
+    </Box>
   );
 };
 
@@ -85,7 +81,7 @@ export const loader = async ({ request }) => {
     });
 
     const activeSub = billingCheck.hasActivePayment
-      ? billingCheck.appSubscriptions.find(s => s.status === "ACTIVE")
+      ? billingCheck.appSubscriptions.find((s) => s.status === "ACTIVE")
       : null;
 
     return {
@@ -98,7 +94,7 @@ export const loader = async ({ request }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ACTION - Create subscription via GraphQL directly (most reliable method)
+// ACTION - Subscription management
 // ─────────────────────────────────────────────────────────────────────────────
 export const action = async ({ request }) => {
   const { billing, admin, session } = await authenticate.admin(request);
@@ -106,16 +102,14 @@ export const action = async ({ request }) => {
   const planName = formData.get("planName");
   const isTest = process.env.BILLING_TEST_MODE !== "false";
 
-  if (planName === "Starter") {
+  if (planName === "Starter" || planName === "Free") {
     const billingCheck = await billing.check({
       plans: ["Pro Monthly"],
       isTest,
     });
 
     if (billingCheck.hasActivePayment) {
-      const activeSub = billingCheck.appSubscriptions.find(
-        (s) => s.status === "ACTIVE"
-      );
+      const activeSub = billingCheck.appSubscriptions.find((s) => s.status === "ACTIVE");
       if (activeSub) {
         await billing.cancel({
           subscriptionId: activeSub.id,
@@ -131,12 +125,7 @@ export const action = async ({ request }) => {
     return { error: "Plan not found" };
   }
 
-  const appUrl = (
-    process.env.SHOPIFY_APP_URL ||
-    process.env.HOST ||
-    new URL(request.url).origin
-  ).replace(/\/$/, "");
-
+  const appUrl = (process.env.SHOPIFY_APP_URL || process.env.HOST || new URL(request.url).origin).replace(/\/$/, "");
   const shopName = session.shop.replace(".myshopify.com", "");
   const host = Buffer.from(`admin.shopify.com/store/${shopName}`).toString("base64url");
   const returnUrl = `${appUrl}?shop=${session.shop}&host=${host}`;
@@ -224,304 +213,243 @@ export default function Plans() {
 
   const isPageLoading = navigation.state === "loading" || (fetcher.state === "submitting" && fetcher.formData?.get("planName"));
 
-  // Navigate to Shopify billing confirmation page when URL is returned
   useEffect(() => {
     if (fetcher.data?.confirmationUrl) {
       open(fetcher.data.confirmationUrl, "_top");
     }
   }, [fetcher.data]);
 
-  // Toast notifications for success/error
   useEffect(() => {
     if (fetcher.data?.error) {
-      shopify.toast.show(fetcher.data.error, { isError: true });
+      shopify?.toast?.show(fetcher.data.error, { isError: true });
     } else if (fetcher.data?.success) {
-      shopify.toast.show("Plan updated successfully");
+      shopify?.toast?.show("Plan updated successfully");
     }
   }, [fetcher.data, shopify]);
 
-  // ── SKELETON LOADER (Home Page Style) ──
-  if (!isHydrated) {
+  if (!isHydrated || isPageLoading) {
     return (
-      <div style={{ padding: "32px", maxWidth: "1300px", margin: "0 auto", opacity: 0 }}>
-        <SkeletonPage title="Plans & Pricing" />
-      </div>
+      <SkeletonPage title="Plans & Pricing" backAction={{ content: "Dashboard", onAction: () => navigate("/app") }}>
+        <Layout>
+          <Layout.Section>
+            <Card>
+              <SkeletonDisplayText size="small" />
+              <Box paddingBlockStart="400">
+                <SkeletonBodyText lines={6} />
+              </Box>
+            </Card>
+          </Layout.Section>
+          <Layout.Section>
+            <Card>
+              <SkeletonDisplayText size="small" />
+              <Box paddingBlockStart="400">
+                <SkeletonBodyText lines={8} />
+              </Box>
+            </Card>
+          </Layout.Section>
+        </Layout>
+      </SkeletonPage>
     );
   }
 
-  if (isPageLoading) {
-    return (
-      <div className="premium-dashboard page-fade-in">
-        <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
-          <SkeletonPage title="Plans & Pricing" primaryAction>
-            <Layout>
-              <Layout.Section>
-                <Card>
-                  <div style={{ padding: "40px" }}>
-                    <SkeletonDisplayText size="medium" />
-                    <div style={{ marginTop: "24px" }}><SkeletonBodyText lines={3} /></div>
-                  </div>
-                </Card>
-                <div style={{ marginTop: "32px" }}>
-                  <Card>
-                    <div style={{ padding: "40px" }}>
-                      <SkeletonDisplayText size="small" />
-                      <div style={{ marginTop: "24px" }}><SkeletonBodyText lines={5} /></div>
-                    </div>
-                  </Card>
-                </div>
-              </Layout.Section>
-              <Layout.Section variant="oneThird">
-                <Card>
-                  <div style={{ padding: "40px" }}>
-                    <BlockStack gap="500">
-                      <SkeletonDisplayText size="small" />
-                      <SkeletonBodyText lines={10} />
-                    </BlockStack>
-                  </div>
-                </Card>
-              </Layout.Section>
-            </Layout>
-          </SkeletonPage>
-        </div>
-      </div>
-    );
-  }
-
-  const currentPlanName = subscription?.name || "Starter";
-
-  const plans = [
+  const featureCategories = [
     {
-      name: "Free", badge: "FREE FOREVER", tone: "new",
-      description: "Complete access to all Instagram feed features for free.",
-      priceMonthly: 0,
-      isCurrent: true,
-      features: [
-        "Unlimited Posts & Custom Columns",
-        "Story Highlight & Grid Feed Layouts",
-        "Snap & Touch-Optimized Scrolling",
-        "Get 10% Off Promo Offer Module",
-        "Full Custom Branding & Colors",
-        "Post Metrics & Fullscreen Lightbox",
-        "24/7 Dedicated Support"
+      title: "Feed Layouts & Story Highlights",
+      icon: CollectionIcon,
+      items: [
+        { name: "Grid & Story Layouts", desc: "Showcase classic Instagram feeds or circular story highlights." },
+        { name: "Smart Carousel Swiper", desc: "Smooth touch-optimized auto-scrolling with prev/next navigation." },
+        { name: "Responsive Column Control", desc: "Customize 1–6 columns on desktop and 1–3 columns on mobile." },
+        { name: "Aspect Ratio Flexibility", desc: "Choose Auto, Square (1:1), Portrait (3:4), or Story (9:16) sizing." },
       ],
-    }
+    },
+    {
+      title: "Conversion & Social Proof",
+      icon: MegaphoneIcon,
+      items: [
+        { name: "Engagement Metrics Hub", desc: "Display live like and comment counts on post hover." },
+        { name: "Promo Offer & Discount Popup", desc: "Incentivize shoppers with custom discount banners and coupon rewards." },
+        { name: "Interactive Video Lightbox", desc: "High-resolution fullscreen video & image popups with sharing links." },
+        { name: "Follow @Account CTA", desc: "Drive shoppers directly to your social profile with follow buttons." },
+      ],
+    },
+    {
+      title: "Design & Storefront Branding",
+      icon: ColorIcon,
+      items: [
+        { name: "Curated Typography Presets", desc: "Modern Shoppable, Luxury Lookbook, Minimalist, and more." },
+        { name: "Full Color & Spacing Customization", desc: "Match your store theme with pixel-level padding, gap, and color controls." },
+        { name: "Custom Profile Header", desc: "Display store bio, handle, and avatar directly above the feed." },
+        { name: "Custom Story Highlight Rings", desc: "Custom ring colors, active highlights, and animated pulse rings." },
+      ],
+    },
+    {
+      title: "Automation, Speed & 24/7 Support",
+      icon: MagicIcon,
+      items: [
+        { name: "Automated Instagram Sync", desc: "Auto-crawls and syncs all posts into Shopify metafields." },
+        { name: "Blazing Fast Storefront Load", desc: "0 API calls per visitor; async scripts that never slow down checkout." },
+        { name: "Manual Post Moderation", desc: "Easily hide or feature specific posts directly from the live preview." },
+        { name: "24/7 Dedicated Support", desc: "Priority assistance for theme installation and widget custom styling." },
+      ],
+    },
   ];
 
-  const handlePlan = (plan) => {
-    if (plan.isCurrent) return;
-    const name = plan.name === "Starter" ? "Starter" : plan.monthlyName;
-    const fd = new FormData();
-    fd.append("planName", name);
-    fetcher.submit(fd, { method: "POST" });
-  };
-
-  const isSubmitting = fetcher.state !== "idle" || navigation.state !== "idle";
+  const faqs = [
+    {
+      q: "Is AI Instafeed really 100% Free?",
+      a: "Yes! AI Instafeed is 100% free forever with access to all core and advanced features including story highlights, grid feeds, custom styling, and promo discount offers with no hidden fees.",
+    },
+    {
+      q: "Is AI Instafeed really hands-free?",
+      a: "Yes! Once set up, the app automatically syncs your latest Instagram posts directly to your store without manual re-crawling.",
+    },
+    {
+      q: "Will this slow down my store?",
+      a: "No. Our storefront scripts are loaded asynchronously and optimized for blazing fast performance with 0 extra API calls per storefront visitor.",
+    },
+    {
+      q: "Do you offer customer support?",
+      a: "Yes, we provide 24/7 priority support to help you with store setup and theme customization anytime.",
+    },
+  ];
 
   return (
-    <div className="premium-dashboard page-fade-in">
-      <style>{`
-        .page-fade-in { animation: fadeInBlur 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .button-success { 
-          background: rgba(0, 0, 0, 0.05) !important; 
-          color: #8c9196 !important; 
-          box-shadow: none !important;
-          cursor: default;
-        }
-      `}</style>
-      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 16px" }}>
-        <BlockStack gap="300">
+    <Page
+      title="Plans & Pricing"
+      subtitle="Choose the plan that fits your business needs. 100% free with all features included."
+      backAction={{ content: "Dashboard", onAction: () => navigate("/app") }}
+    >
+      <BlockStack gap="500">
+        {/* Main Plan Overview Card */}
+        <Card>
+          <BlockStack gap="400">
+            <InlineStack align="space-between" blockAlign="center" wrap>
+              <InlineStack gap="200" blockAlign="center">
+                <Text variant="headingXl" as="h2">
+                  Free Forever Plan
+                </Text>
+                <Badge tone="success" progress="complete">
+                  ACTIVE PLAN
+                </Badge>
+              </InlineStack>
 
+              <InlineStack gap="100" blockAlign="baseline">
+                <Text variant="heading2xl" as="span">
+                  $0
+                </Text>
+                <Text variant="bodyMd" tone="subdued">
+                  / month (All Features Included)
+                </Text>
+              </InlineStack>
+            </InlineStack>
 
+            <Text variant="bodyMd" tone="subdued">
+              Empower your store with complete access to shoppable Instagram feeds, high-converting story highlights, interactive popups, and advanced design customizations.
+            </Text>
 
-          {/* --- PREMIUM HEADER --- */}
-          <div className="premium-header" style={{
-            marginBottom: "24px", display: "flex", justifyContent: "space-between",
-            alignItems: "center", padding: "16px 28px", gap: "16px"
-          }}>
-            <div className="brand-section">
-              <button
-                onClick={() => navigate("/app")}
-                style={{
-                  background: "transparent", border: "none", cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: "16px", padding: 0,
-                  color: "white"
-                }}
-              >
-                <div style={{
-                  width: "44px", height: "44px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.2)",
-                  display: "flex", alignItems: "center", justifyContent: "center", background: "white",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)", transition: "transform 0.2s"
-                }} className="back-button-hover">
-                  <Icon source={ChevronLeftIcon} tone="base" />
-                </div>
-                <div style={{ textAlign: "left" }}>
-                  <h1 style={{ margin: 0, fontSize: "20px", fontWeight: "900", color: "white", letterSpacing: "-0.5px" }}>Plans & Pricing</h1>
-                  <p style={{ margin: 0, fontSize: "12px", color: "rgba(255, 255, 255, 0.85)", fontWeight: "500" }}>Back to Dashboard</p>
-                </div>
-              </button>
-            </div>
+            <Button variant="primary" disabled fullWidth>
+              ✓ Currently Active on Your Store
+            </Button>
+          </BlockStack>
+        </Card>
 
-            <div style={{
-              background: "rgba(255,255,255,0.15)",
-              border: "1px solid rgba(255,255,255,0.25)",
-              borderRadius: "12px",
-              padding: "8px 20px",
-              color: "white",
-              fontSize: "16px",
-              fontWeight: "700",
-              backdropFilter: "blur(4px)",
-            }}>
-              Hi 👋
-            </div>
+        {/* Categorized Features Section */}
+        <Card>
+          <BlockStack gap="400">
+            <InlineStack align="space-between" blockAlign="center">
+              <Text variant="headingLg" as="h2">
+                Included Features & Capabilities
+              </Text>
+              <Badge tone="info">ALL UNLOCKED</Badge>
+            </InlineStack>
+            <Text variant="bodySm" tone="subdued">
+              Every tool and optimization you need to boost social proof, build trust, and drive storefront conversions.
+            </Text>
 
-          </div>
+            <Divider />
 
-          {/* --- MAIN CONTENT AREA --- */}
-          <div style={{ width: "100%", marginTop: "24px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "16px" }}>
+              {featureCategories.map((cat, idx) => (
+                <Box key={idx} padding="300" background="bg-surface-secondary" borderRadius="200">
+                  <BlockStack gap="300">
+                    <InlineStack gap="200" blockAlign="center">
+                      <Icon source={cat.icon} tone="base" />
+                      <Text variant="headingSm" as="h3">
+                        {cat.title}
+                      </Text>
+                    </InlineStack>
 
-            {/* --- PLANS GRID --- */}
-            <div style={{
-              display: "flex", justifyContent: "center",
-              width: "100%", marginBottom: "48px"
-            }}>
-              {plans.map((p) => (
-                <div key={p.name} className="premium-card" style={{
-                  maxWidth: "560px",
-                  width: "100%",
-                  padding: "40px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "32px",
-                  position: "relative",
-                  overflow: "visible",
-                  border: "2px solid var(--premium-accent)",
-                  background: "white",
-                  boxShadow: "0 20px 25px -5px rgba(225, 48, 108, 0.1), 0 8px 10px -6px rgba(225, 48, 108, 0.1)"
-                }}>
-                  {p.isPopular && (
-                    <div style={{
-                      position: "absolute", top: "-14px", left: "50%", transform: "translateX(-50%)",
-                      background: "var(--premium-accent-gradient)",
-                      color: "white", padding: "4px 16px", borderRadius: "20px",
-                      fontSize: "12px", fontWeight: "900", zIndex: 10
-                    }}>MOST POPULAR</div>
-                  )}
-
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div className="status-badge" style={{
-                      background: p.name === "Pro" ? "rgba(225, 48, 108, 0.1)" : "#f1f5f9",
-                      color: p.name === "Pro" ? "var(--premium-accent)" : "#64748b",
-                      border: "none",
-                      padding: "4px 12px"
-                    }}>{p.badge}</div>
-                    {p.isCurrent && <Badge tone="success">ACTIVE PLAN</Badge>}
-                  </div>
-
-                  <div>
-                    <h3 style={{ fontSize: "32px", fontWeight: "900", color: "var(--premium-text-primary)", margin: 0 }}>{p.name}</h3>
-                    <p style={{ fontSize: "15px", color: "var(--premium-text-secondary)", marginTop: "8px" }}>{p.description}</p>
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-                    {p.priceMonthly === 0 ? (
-                      <span style={{ fontSize: "48px", fontWeight: "900", color: "var(--premium-text-primary)" }}>Free</span>
-                    ) : (
-                      <>
-                        <span style={{ fontSize: "28px", fontWeight: "700", color: "#94a3b8" }}>$</span>
-                        <span style={{ fontSize: "48px", fontWeight: "900", color: "var(--premium-text-primary)" }}>
-                          {p.priceMonthly}
-                        </span>
-                        <span style={{ fontSize: "18px", fontWeight: "600", color: "#94a3b8" }}>/ month</span>
-                      </>
-                    )}
-                  </div>
-
-                  <div style={{ height: "1px", background: "#f1f5f9" }} />
-
-                  <BlockStack gap="400">
-                    {p.features.map((feature, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <div style={{
-                          width: "24px", height: "24px", borderRadius: "50%",
-                          background: p.name === "Pro" ? "#f5f3ff" : "#f0fdf4",
-                          display: "flex", alignItems: "center", justifyContent: "center"
-                        }}>
-                          <Icon source={p.name === "Pro" ? MagicIcon : StarIcon} tone={p.name === "Pro" ? "magic" : "success"} />
-                        </div>
-                        <Text variant="bodyMd" as="span" tone="base">{feature}</Text>
-                      </div>
-                    ))}
+                    <BlockStack gap="200">
+                      {cat.items.map((item, itemIdx) => (
+                        <InlineStack key={itemIdx} gap="200" blockAlign="start" wrap={false}>
+                          <div style={{ flexShrink: 0, marginTop: "2px" }}>
+                            <Icon source={CheckIcon} tone="success" />
+                          </div>
+                          <div>
+                            <Text variant="bodyMd" fontWeight="semibold">
+                              {item.name}
+                            </Text>
+                            <Text variant="bodySm" tone="subdued">
+                              {item.desc}
+                            </Text>
+                          </div>
+                        </InlineStack>
+                      ))}
+                    </BlockStack>
                   </BlockStack>
-
-                  <button
-                    className={`premium-button ${p.isCurrent
-                      ? "button-success"
-                      : (p.name === "Pro" ? "button-accent" : "button-primary")
-                      }`}
-                    disabled={p.isCurrent || isSubmitting}
-                    onClick={() => handlePlan(p)}
-                    style={{
-                      width: "100%",
-                      height: "56px",
-                      fontSize: "17px",
-                      opacity: p.isCurrent ? 0.9 : 1,
-                      cursor: p.isCurrent ? "default" : "pointer"
-                    }}
-                  >
-                    {isSubmitting && fetcher.formData?.get("planName")?.includes(p.name) ? (
-                      <div className="animate-spin" style={{ width: "22px", height: "22px", border: "3px solid rgba(255,255,255,0.3)", borderTopColor: "white", borderRadius: "50%" }}></div>
-                    ) : (
-                      p.isCurrent ? "✓ Active Plan" : (p.name === "Pro" ? "Upgrade Now" : "Choose Starter")
-                    )}
-                  </button>
-                </div>
+                </Box>
               ))}
             </div>
+          </BlockStack>
+        </Card>
 
-            {/* --- FAQ SECTION --- */}
-            <div className="premium-card" style={{ padding: "40px" }}>
-              <div style={{ marginBottom: "24px" }}>
-                <BlockStack gap="100">
-                  <Text variant="headingLg" as="h2">Have Questions?</Text>
-                  <Text variant="bodyMd" as="p" tone="subdued">Everything you need to know about the plans and features.</Text>
-                </BlockStack>
-              </div>
-              <div>
-                {[
-                  { q: "Is AI Instafeed really 100% Free?", a: "Yes! AI Instafeed is 100% free forever with access to all features including story highlights, grid feeds, custom styling, and promo discount offers with no hidden fees." },
-                  { q: "Is AI Instafeed really hands-free?", a: "Yes! Once set up, the app automatically syncs your latest Instagram posts directly to your store." },
-                  { q: "Will this slow down my store?", a: "No. Our scripts are loaded asynchronously and optimized for blazing fast performance." },
-                  { q: "Do you offer support?", a: "Yes, we provide 24/7 priority support to help you with setup and customization anytime." }
-                ].map((faq, i, arr) => (
-                  <FAQItem key={i} question={faq.q} answer={faq.a} isLast={i === arr.length - 1} />
-                ))}
-              </div>
-            </div>
+        {/* FAQ Card */}
+        <Card>
+          <BlockStack gap="300">
+            <Text variant="headingMd" as="h2">
+              Frequently Asked Questions
+            </Text>
+            <Text variant="bodySm" tone="subdued">
+              Everything you need to know about the plans, store performance, and features.
+            </Text>
 
-            <footer style={{ textAlign: "center", padding: "40px 0", marginTop: "24px" }}>
-              <BlockStack gap="200">
-                <Text variant="bodySm" tone="subdued">
-                  © 2026 AI Instafeed by{" "}
-                  <a 
-                    href="https://apps.shopify.com/partners/boost-star" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={{ color: "inherit", textDecoration: "underline" }}
-                  >
-                    BOOST STAR Experts
-                  </a>
-                </Text>
-                <InlineStack gap="200" align="center">
-                  <Text variant="bodySm" tone="subdued">Terms of Service</Text>
-                  <Text variant="bodySm" tone="subdued">•</Text>
-                  <Text variant="bodySm" tone="subdued">Privacy Policy</Text>
-                </InlineStack>
-              </BlockStack>
-            </footer>
-          </div>
-        </BlockStack>
-      </div>
-    </div>
+            <Box paddingBlockStart="200">
+              {faqs.map((faq, i) => (
+                <FAQItem key={i} question={faq.q} answer={faq.a} />
+              ))}
+            </Box>
+          </BlockStack>
+        </Card>
+
+        {/* Footer */}
+        <Box paddingBlock="600">
+          <BlockStack gap="200" align="center" inlineAlign="center">
+            <Text variant="bodySm" tone="subdued">
+              © 2026 AI Instafeed by{" "}
+              <a
+                href="https://apps.shopify.com/partners/boost-star"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "inherit", textDecoration: "underline" }}
+              >
+                BOOST STAR Experts
+              </a>
+            </Text>
+            <InlineStack gap="200" align="center">
+              <Text variant="bodySm" tone="subdued">
+                Terms of Service
+              </Text>
+              <Text variant="bodySm" tone="subdued">
+                •
+              </Text>
+              <Text variant="bodySm" tone="subdued">
+                Privacy Policy
+              </Text>
+            </InlineStack>
+          </BlockStack>
+        </Box>
+      </BlockStack>
+    </Page>
   );
 }
