@@ -1187,6 +1187,7 @@
   column-gap: var(--ai-gap, 16px);
   width: 100%;
 }
+.ai-layout-masonry .ai-grid-wrapper,
 .ai-layout-masonry .ai-grid-item {
   break-inside: avoid !important;
   page-break-inside: avoid !important;
@@ -1194,6 +1195,7 @@
   display: inline-block !important;
   width: 100% !important;
 }
+.ai-layout-masonry .ai-grid-item,
 .ai-layout-masonry .ai-grid-item-inner {
   height: auto !important;
   aspect-ratio: unset !important;
@@ -1214,6 +1216,7 @@
   grid-row: span 2 !important;
   min-height: 100% !important;
 }
+.ai-layout-highlight .ai-highlight-hero .ai-grid-item,
 .ai-layout-highlight .ai-highlight-hero .ai-grid-item-inner {
   height: 100% !important;
   aspect-ratio: 1 / 1 !important;
@@ -1227,6 +1230,7 @@
 }
 
 /* 3. Reels Shelf */
+.ai-layout-reels .ai-grid-item,
 .ai-layout-reels .ai-grid-item-inner {
   aspect-ratio: 9 / 16 !important;
   border-radius: 12px !important;

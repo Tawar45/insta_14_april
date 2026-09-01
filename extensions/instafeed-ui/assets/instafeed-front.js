@@ -399,12 +399,12 @@
       const showFollowInHeader = igHandle && c.showFollowButton !== false && followPosition === "header";
       const showFollowAtBottom = igHandle && c.showFollowButton !== false && followPosition === "bottom";
 
-      if (c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) {
+      if ((c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) || showFollowInHeader) {
         html += '<div style="text-align:' + c.alignment + ';margin-bottom:20px;">';
-        if (c.heading && c.heading.trim()) {
+        if (c.header && c.heading && c.heading.trim()) {
           html += '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 8px 0;line-height:1.2;">' + esc(formatDynamicAccountText(c.heading, config.instagramHandle)) + '</h2>';
         }
-        if (c.subheading && c.subheading.trim()) {
+        if (c.header && c.subheading && c.subheading.trim()) {
           html += '<p style="font-size:' + subSize + 'px;font-weight:' + (c.typography?.subheading?.weight || '500') + ';color:' + (c.typography?.subheading?.color || '#666') + ';margin:0;">' + esc(formatDynamicAccountText(c.subheading, config.instagramHandle)) + '</p>';
         }
         if (showFollowInHeader) {
@@ -429,32 +429,26 @@
               + '<div id="' + sTrackId + '" class="ai-fw-track" style="display:flex;width:100%;justify-content:center;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:4px 4px 16px;">';
         
         if (s.promoEnable !== false) {
-          const promoLabelText = s.promoLabel || "Special Offer";
-          html += '<div class="ai-story-item ai-promo-item" style="flex-shrink:0;width:84px;min-width:84px;text-align:center;cursor:pointer;overflow:visible;">'
+          html += '<div class="ai-story-item ai-promo-item" style="flex-shrink:0;width:64px;min-width:64px;text-align:center;cursor:pointer;overflow:visible;">'
                 + '<a href="javascript:void(0)" style="text-decoration:none;display:block;width:100%;">'
                 + '<div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border:' + (sActiveRing ? 'none' : '2px solid ' + sRingColor) + ';background:white;margin:0 auto;position:relative;">'
                 + (sActiveRing ? '<svg class="ai-story-ring-svg ' + (s.pulseRing === true ? 'ai-story-ring-pulse' : '') + '" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"><circle class="ai-story-ring-circle" cx="50" cy="50" r="47.5" stroke="' + sRingColor + '" /></svg>' : '')
                 + '<div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%);display:flex;align-items:center;justify-content:center;position:relative;z-index:1;">'
                 + '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>'
                 + '</div></div>'
-                + '<div style="margin-top:6px;text-align:center;width:100%;"><span class="ai-promo-pill" style="display:inline-block;padding:3px 10px;border:1.5px solid ' + sRingColor + ';color:' + sRingColor + ';font-size:10px;font-weight:700;border-radius:12px;white-space:nowrap;line-height:1.2;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.06);">' + esc(promoLabelText) + '</span></div>'
                 + '</a></div>';
         }
 
         displayStories.forEach((item, i) => {
           const thumb = item.thumbnail_url || item.media_url || "";
-          const rawLabel = item.caption ? item.caption.split(/\s+/)[0] : 'Story ' + (i + 1);
-          const cleanLabel = rawLabel.replace(/[:,\.\-\s]+$/, '');
-          const labelHtml = (s.showLabels === true) ? '<div class="ai-story-label" style="margin-top:6px;font-size:11.5px;color:#000;font-weight:500;text-align:center;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;">' + esc(cleanLabel) + '</div>' : '';
 
-          html += '<div class="ai-story-item" data-id="' + (item.id || (item.media_url ? item.media_url.slice(-20) : '')) + '" style="flex-shrink:0;width:76px;text-align:center;cursor:pointer;overflow:visible;">'
+          html += '<div class="ai-story-item" data-id="' + (item.id || (item.media_url ? item.media_url.slice(-20) : '')) + '" style="flex-shrink:0;width:64px;text-align:center;cursor:pointer;overflow:visible;">'
                 + '<a href="javascript:void(0)" style="text-decoration:none;display:block;width:100%;">'
                 + '<div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border:' + (sActiveRing ? 'none' : '2px solid ' + sRingColor) + ';background:white;margin:0 auto;position:relative;">'
                 + (sActiveRing ? '<svg class="ai-story-ring-svg ' + (s.pulseRing === true ? 'ai-story-ring-pulse' : '') + '" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"><circle class="ai-story-ring-circle" cx="50" cy="50" r="47.5" stroke="' + sRingColor + '" /></svg>' : '')
                 + '<div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#f1f5f9;position:relative;z-index:1;">'
                 + (thumb ? '<img loading="lazy" src="' + esc(thumb) + '" alt="Story highlight" style="width:100%;height:100%;object-fit:cover;display:block;">' : '<div class="ai-skeleton-tile"></div>')
                 + '</div></div>'
-                + labelHtml
                 + '</a></div>';
         });
 
@@ -482,7 +476,8 @@
               + '</div>';
       } else if (layoutMode === "masonry") {
         html += '<div class="ai-layout-masonry" style="column-count:' + columns + ';--ai-gap:' + gap + 'px;">';
-        mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, '100%'); });
+        const masonryConfig = { ...c, aspectRatio: "auto" };
+        mediaItems.forEach((item) => { html += this.renderMediaCard(item, masonryConfig, '100%'); });
         html += '</div>';
 
         if (c.load && mediaData.length > limit) {
@@ -495,7 +490,8 @@
         html += '<div class="ai-layout-highlight" style="grid-template-columns:repeat(' + highlightCols + ',1fr);gap:' + gap + 'px;">';
         mediaItems.forEach((item, index) => {
           const isHero = index === 0;
-          html += this.renderMediaCard(item, c, '100%', isHero ? 'ai-highlight-hero' : '');
+          const heroConfig = isHero ? { ...c, aspectRatio: "1/1" } : c;
+          html += this.renderMediaCard(item, heroConfig, '100%', isHero ? 'ai-highlight-hero' : '');
         });
         html += '</div>';
 
@@ -587,14 +583,6 @@
       } else {
         inner = `<div class="ai-skeleton-tile"></div>`;
       }
-      let mediaIcon = "";
-      if (isVideo) {
-        const badgeLabel = rawType === "REEL" ? "REEL" : "VIDEO";
-        mediaIcon = `<span class="ai-type-badge-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 7.25h3.614L9.364 2H6a4 4 0 0 0-4 4v1.25Zm20 0h-6.543l3.641-5.097A4.002 4.002 0 0 1 22 6v1.25ZM2 8.75h20V18a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8.75Zm5.457-1.5L11.207 2h6.157l-3.75 5.25H7.457Zm7.404 7.953a.483.483 0 0 0 0-.837l-3.985-2.3a.483.483 0 0 0-.725.418v4.601c0 .372.403.605.725.419l3.985-2.301Z" /></svg><span>${badgeLabel}</span></span>`;
-      } else if (isAlbum) {
-        mediaIcon = `<span class="ai-type-badge-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M20.453 8.5c.005.392.005.818.005 1.279v3.2c0 1.035 0 1.892-.057 2.591-.06.728-.187 1.403-.511 2.038a5.214 5.214 0 0 1-2.278 2.279c-.636.323-1.31.451-2.038.51-.699.058-1.556.058-2.59.058h-3.2c-.32 0-.624 0-.911-.002H5.395A3.856 3.856 0 0 0 8.485 22h7.724A5.793 5.793 0 0 0 22 16.207V8.483a3.856 3.856 0 0 0-1.548-3.093V8.5Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M2 5.4A3.4 3.4 0 0 1 5.4 2h10.2A3.4 3.4 0 0 1 19 5.4v5.482l-1.91-1.25a4.037 4.037 0 0 0-4.767.253L7.87 13.528a2.763 2.763 0 0 1-3.262.173L2 11.994V5.4Zm14.392 5.299L19 12.406V15.6a3.4 3.4 0 0 1-3.4 3.4H5.4A3.4 3.4 0 0 1 2 15.6v-2.082l1.91 1.25a4.038 4.038 0 0 0 4.767-.253l4.453-3.643a2.763 2.763 0 0 1 3.262-.173ZM7.525 9.65a2.125 2.125 0 1 0 0-4.25 2.125 2.125 0 0 0 0 4.25Z"/></svg><span>GALLERY</span></span>`;
-      }
-
       const metrics = c.metrics ? `
         <div style="display:flex;align-items:center;gap:6px;">
           <svg width="18" height="18" viewBox="0 0 20 20" fill="white"><path d="M14.5 3c-1.2 0-2.3.6-3 1.5-.7-.9-1.8-1.5-3-1.5-1.2 0-2.6.4-3.2 2-.6 1.6.2 3.7 1.8 5.4 1.5 1.6 4.4 4.1 4.4 4.1s2.9-2.5 4.4-4.1c1.6-1.7 2.4-3.8 1.8-5.4-.6-1.6-2-2-3.2-2z"/></svg>
@@ -604,9 +592,7 @@
           <svg width="18" height="18" viewBox="0 0 20 20" fill="white"><path d="M17 14c-.5 0-1 .4-1 1v2H4V5h12v2c0 .5.4 1 1 1s1-.5 1-1V5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2-2 2h12.6l2.7 2.7c.1.1.2.2.3.2.4.1.8-.1 1-.5V8c0-.5-.4-1-1-1s-1 .4-1 1v6c0 .5-.4 1-1 1z"/></svg>
           <span>${item.comments_count || 0}</span>
         </div>` : "";
-      const instagramLogo = (c.showInstagramIcon !== false) ? `
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>` : "";
-      const aspect = (c.aspectRatio && c.aspectRatio !== "auto") ? c.aspectRatio : "4/5";
+      const aspect = (c.aspectRatio && c.aspectRatio !== "auto") ? c.aspectRatio : (c.aspectRatio === "auto" ? "auto" : "1/1");
       const itemStyle = (aspect !== "auto") ? `aspect-ratio:${aspect};` : "";
 
       const taggedList = (this.config && this.config.taggedProducts && (this.config.taggedProducts[item.id] || this.config.taggedProducts[item.media_url])) || [];
@@ -622,10 +608,8 @@
                style="text-decoration:none; display:flex; flex-direction:column; cursor:pointer; width:100%; height:100%; background:#f1f5f9; position:relative; border:1px solid #e2e8f0; border-radius:0; box-sizing:border-box; ${itemStyle}">
               ${inner}
               ${shoppableBadge}
-              <div class="ai-badge">${mediaIcon}</div>
               <div class="ai-card-overlay"></div>
               <div class="ai-metrics">${metrics}</div>
-              <div class="ai-ig-icon">${instagramLogo}</div>
           </div>
         </div>`;
     }
@@ -814,10 +798,8 @@
 
         // Prepend promo story if enabled
         if (s.promoEnable !== false) {
-          const promoLabelText = s.promoLabel || "Get 10% Off";
-          
           html += `
-            <div class="ai-story-item ai-promo-item" style="flex-shrink:0;width:84px;min-width:84px;text-align:center;cursor:pointer;overflow:visible;">
+            <div class="ai-story-item ai-promo-item" style="flex-shrink:0;width:64px;min-width:64px;text-align:center;cursor:pointer;overflow:visible;">
               <a href="javascript:void(0)" style="text-decoration:none;display:block;width:100%;">
                 <div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border: ${isActiveRing ? 'none' : '2px solid ' + ringColor};background:white;margin:0 auto;position:relative; transform: translateZ(0); -webkit-transform: translateZ(0);">
                   ${isActiveRing ? `
@@ -827,9 +809,6 @@
                   <div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%);display:flex;align-items:center;justify-content:center;position:relative;z-index:1;">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                   </div>
-                </div>
-                <div style="margin-top:6px;text-align:center;width:100%;">
-                  <span class="ai-promo-pill" style="display:inline-block;padding:3px 10px;border: 1.5px solid ${ringColor};color:${ringColor};font-size:10px;font-weight:700;border-radius:12px;white-space:nowrap;line-height:1.2;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.06);">${esc(promoLabelText)}</span>
                 </div>
               </a>
             </div>`;
@@ -842,10 +821,6 @@
           const posterAttr = thumbUrl ? ` poster="${esc(thumbUrl)}"` : "";
           const href      = item.permalink || "#";
           const target    = href === "#" ? "_self" : "_blank";
-          
-          const rawLabel  = item.caption ? item.caption.split(/\s+/)[0] : `Story ${i + 1}`;
-          const cleanLabel = rawLabel.replace(/[:,\.\-\s]+$/, '');
-          const labelHtml = (s.showLabels === true) ? `<div class="ai-story-label" style="margin-top:6px;font-size:11.5px;color:#000;font-weight:500;text-align:center;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;">${esc(cleanLabel)}</div>` : '';
 
           let mediaTpl = "";
           if (isVideo) {
@@ -868,7 +843,7 @@
           const finalHref   = isPopup ? "javascript:void(0)" : href;
 
           html += `
-            <div class="ai-story-item" data-id="${item.id || (item.media_url ? item.media_url.slice(-20) : '')}" style="flex-shrink:0;width:76px;text-align:center;cursor:pointer;overflow:visible;">
+            <div class="ai-story-item" data-id="${item.id || (item.media_url ? item.media_url.slice(-20) : '')}" style="flex-shrink:0;width:64px;text-align:center;cursor:pointer;overflow:visible;">
               <a href="${esc(finalHref)}" target="${isPopup ? '_self' : target}" rel="noopener noreferrer" style="text-decoration:none;display:block;width:100%;">
                 <div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border: ${isActiveRing ? 'none' : '2px solid ' + ringColor};background:white;margin:0 auto;position:relative; transform: translateZ(0); -webkit-transform: translateZ(0);">
                   ${isActiveRing ? `

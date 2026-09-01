@@ -30,6 +30,7 @@ import {
   SkeletonPage,
   SkeletonBodyText,
   SkeletonDisplayText,
+  Spinner,
 } from "@shopify/polaris";
 import {
   XIcon,
@@ -456,15 +457,15 @@ const DEFAULT_CONFIG = {
     mobileColumns: 2,
     desktopLimit: 8,
     mobileLimit: 4,
-    gap: 16,
+    gap: 8,
     aspectRatio: "auto",
     removeWatermark: false,
     showInstagramIcon: true,
     showFollowButton: true,
     followButtonPosition: "bottom",
     hiddenPostIds: [],
-    paddingTop: 32,
-    paddingBottom: 32,
+    paddingTop: 16,
+    paddingBottom: 16,
     mediaTypeFilter: "videos",
     sortBy: "latest",
     shoppablePins: true,
@@ -591,16 +592,17 @@ const FEED_TEMPLATES = [
         layoutMode: "highlight",
         carousel: false,
         header: true,
-        heading: "Inspire you everyday",
-        subheading: "",
+        heading: "Shop The Highlights",
+        subheading: "Hand-picked favorites and top trending styles this week",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 12,
+        gap: 6,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: true,
+        followButtonPosition: "bottom",
       },
       stories: { enable: false },
     },
@@ -615,16 +617,17 @@ const FEED_TEMPLATES = [
         layoutMode: "carousel",
         carousel: true,
         header: true,
-        heading: "Inspire you everyday",
-        subheading: "",
+        heading: "Swipe Through Our Feed",
+        subheading: "Scroll through our newest community posts & tagged looks",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 16,
+        gap: 8,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: true,
+        followButtonPosition: "bottom",
       },
       stories: { enable: false },
     },
@@ -639,16 +642,17 @@ const FEED_TEMPLATES = [
         layoutMode: "grid",
         carousel: false,
         header: true,
-        heading: "Inspire you everyday",
-        subheading: "",
+        heading: "Shop Our Instagram",
+        subheading: "Click on any photo to instantly shop the look",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 16,
+        gap: 8,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: true,
+        followButtonPosition: "bottom",
       },
       stories: { enable: false },
     },
@@ -663,12 +667,12 @@ const FEED_TEMPLATES = [
         layoutMode: "highlight",
         carousel: false,
         header: true,
-        heading: "@account",
-        subheading: "Inspire you everyday · Follow us for daily updates",
+        heading: "Follow @account",
+        subheading: "Official Instagram · Discover our weekly featured story",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 12,
+        gap: 6,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
@@ -688,12 +692,12 @@ const FEED_TEMPLATES = [
         layoutMode: "carousel",
         carousel: true,
         header: true,
-        heading: "@account",
-        subheading: "Inspire you everyday",
+        heading: "Connect With @account",
+        subheading: "Join our community · Swipe through our daily moments",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 16,
+        gap: 8,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
@@ -713,12 +717,12 @@ const FEED_TEMPLATES = [
         layoutMode: "grid",
         carousel: false,
         header: true,
-        heading: "@account",
-        subheading: "Inspire you everyday",
+        heading: "Welcome To @account",
+        subheading: "Follow our journey · Fresh drops & store updates every week",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 16,
+        gap: 8,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
@@ -738,16 +742,17 @@ const FEED_TEMPLATES = [
         layoutMode: "highlight",
         carousel: false,
         header: true,
-        heading: "Inspire you everyday",
-        subheading: "Tag us @account to be featured in our lookbook",
+        heading: "Featured Stories & Highlights",
+        subheading: "Tap highlights above to explore deals, reviews & new arrivals",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 12,
+        gap: 6,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "videos",
         showFollowButton: true,
+        followButtonPosition: "bottom",
       },
       stories: {
         enable: true,
@@ -755,7 +760,7 @@ const FEED_TEMPLATES = [
         promoLabel: "Special Offer",
         activeRing: true,
         ringColor: "#e1306c",
-        showLabels: true,
+        showLabels: false,
       },
     },
   },
@@ -769,16 +774,17 @@ const FEED_TEMPLATES = [
         layoutMode: "carousel",
         carousel: true,
         header: true,
-        heading: "Inspire you everyday",
-        subheading: "Swipe to shop our latest Instagram looks",
+        heading: "Explore Stories & Looks",
+        subheading: "Watch daily highlights and swipe through customer favorites",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 16,
+        gap: 8,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "videos",
         showFollowButton: true,
+        followButtonPosition: "bottom",
       },
       stories: {
         enable: true,
@@ -786,7 +792,7 @@ const FEED_TEMPLATES = [
         promoLabel: "10% Off",
         activeRing: true,
         ringColor: "#e1306c",
-        showLabels: true,
+        showLabels: false,
       },
     },
   },
@@ -800,16 +806,17 @@ const FEED_TEMPLATES = [
         layoutMode: "grid",
         carousel: false,
         header: true,
-        heading: "Inspire you everyday",
-        subheading: "Shop our latest collections directly from Instagram",
+        heading: "As Seen On Social",
+        subheading: "Browse our highlights & shop complete customer styles",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 16,
+        gap: 8,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: true,
+        followButtonPosition: "bottom",
       },
       stories: {
         enable: true,
@@ -817,7 +824,7 @@ const FEED_TEMPLATES = [
         promoLabel: "New Drop",
         activeRing: true,
         ringColor: "#833ab4",
-        showLabels: true,
+        showLabels: false,
       },
     },
   },
@@ -831,17 +838,18 @@ const FEED_TEMPLATES = [
         layoutMode: "reels",
         carousel: true,
         header: true,
-        heading: "WATCH OUR REELS",
+        heading: "Watch Our Reels",
         subheading: "Click any reel to watch with sound and shop featured items",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 16,
+        gap: 8,
         aspectRatio: "9/16",
         metrics: true,
         mediaTypeFilter: "videos",
         autoplay: true,
         showFollowButton: true,
+        followButtonPosition: "bottom",
       },
       stories: { enable: false },
     },
@@ -856,17 +864,18 @@ const FEED_TEMPLATES = [
         layoutMode: "marquee",
         carousel: false,
         header: true,
-        heading: "LIVE FROM INSTAGRAM",
-        subheading: "",
+        heading: "Live From Instagram",
+        subheading: "Real-time feed streaming directly from our social feed",
         alignment: "center",
         desktopColumns: 6,
         mobileColumns: 3,
-        gap: 16,
+        gap: 8,
         marqueeSpeed: 30,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: false,
+        followButtonPosition: "bottom",
       },
       stories: { enable: false },
     },
@@ -881,16 +890,17 @@ const FEED_TEMPLATES = [
         layoutMode: "masonry",
         carousel: false,
         header: true,
-        heading: "Inspire you everyday",
-        subheading: "Explore our dynamic lookbook",
+        heading: "Our Visual Lookbook",
+        subheading: "Get inspired by community aesthetics, fit checks & styling ideas",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 16,
+        gap: 8,
         aspectRatio: "auto",
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: true,
+        followButtonPosition: "bottom",
       },
       stories: { enable: false },
     },
@@ -899,160 +909,316 @@ const FEED_TEMPLATES = [
 
 function TemplateMockupThumbnail({ template }) {
   const t = template;
-  const isProfile = t.id.includes("profile");
-  const isStories = t.config.stories?.enable;
-  const layout = t.config.postFeed?.layoutMode || t.type;
+  const id = t.id;
 
   return (
     <div
       style={{
         width: "100%",
         aspectRatio: "16 / 9",
-        background: "#262626",
+        background: "#18181b",
         borderRadius: "6px",
         overflow: "hidden",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)",
+        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1)",
       }}
     >
       <svg
-        viewBox="0 0 240 120"
+        viewBox="0 0 240 135"
         style={{ width: "100%", height: "100%", display: "block" }}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Background */}
-        <rect width="240" height="120" fill="#262626" />
+        <rect width="240" height="135" fill="#18181b" />
 
-        {isProfile ? (
-          /* Profile header variant */
+        {/* 1. Highlight Eurus: 1:1 Square Hero (90x90) on Left + 4 1:1 Square Tiles (43x43) on Right */}
+        {id === "highlight-eurus" && (
           <g>
-            {/* Header bar */}
-            <circle cx="24" cy="18" r="10" fill="#ffffff" />
-            <rect x="42" y="12" width="54" height="5" rx="2.5" fill="#ffffff" />
-            <rect x="42" y="21" width="76" height="4" rx="2" fill="#9ca3af" />
-            <rect x="180" y="10" width="50" height="16" rx="8" fill="#ffffff" />
-            <rect x="194" y="16" width="22" height="4" rx="2" fill="#18181b" />
-
-            {/* Posts row */}
-            <rect x="10" y="38" width="50" height="74" rx="3" fill="#ffffff" />
-            <rect x="66" y="38" width="50" height="74" rx="3" fill="#e5e7eb" />
-            <rect x="122" y="38" width="50" height="74" rx="3" fill="#ffffff" />
-            <rect x="178" y="38" width="52" height="74" rx="3" fill="#9ca3af" />
+            <rect x="80" y="6" width="80" height="4" rx="2" fill="#ffffff" />
+            {/* Hero Left: Exact 1:1 Square (90x90) */}
+            <rect x="16" y="16" width="90" height="90" rx="3" fill="#ffffff" />
+            <circle cx="61" cy="61" r="10" fill="rgba(0,0,0,0.15)" />
+            {/* 4 Tiles Right: Exact 1:1 Squares (43x43 each, 43+4+43 = 90) */}
+            <rect x="110" y="16" width="43" height="43" rx="2.5" fill="#e4e4e7" />
+            <rect x="157" y="16" width="43" height="43" rx="2.5" fill="#a1a1aa" />
+            <rect x="110" y="63" width="43" height="43" rx="2.5" fill="#ffffff" />
+            <rect x="157" y="63" width="43" height="43" rx="2.5" fill="#e4e4e7" />
+            {/* Bottom Follow button */}
+            <rect x="88" y="117" width="64" height="8" rx="4" fill="#ffffff" />
           </g>
-        ) : isStories ? (
-          /* Story highlights bar variant */
+        )}
+
+        {/* 2. Slider layout: 1:1 Square Slider Cards (46x46) + Nav Arrows */}
+        {id === "slider-layout" && (
           <g>
-            {/* Stories circles */}
-            {[24, 68, 112, 156, 200].map((cx, i) => (
+            <rect x="85" y="10" width="70" height="4" rx="2" fill="#ffffff" />
+            {/* Left Nav Arrow */}
+            <circle cx="12" cy="63" r="7" fill="#ffffff" />
+            <path d="M14 59L9 63L14 67" stroke="#18181b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            {/* 4 Slider Cards: Exact 1:1 Squares (46x46) */}
+            <rect x="23" y="40" width="46" height="46" rx="3" fill="#ffffff" />
+            <rect x="74" y="40" width="46" height="46" rx="3" fill="#e4e4e7" />
+            <rect x="125" y="40" width="46" height="46" rx="3" fill="#ffffff" />
+            <rect x="176" y="40" width="46" height="46" rx="3" fill="#a1a1aa" />
+            {/* Right Nav Arrow */}
+            <circle cx="228" cy="63" r="7" fill="#ffffff" />
+            <path d="M226 59L231 63L226 67" stroke="#18181b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Bottom Follow button */}
+            <rect x="88" y="108" width="64" height="8" rx="4" fill="#ffffff" />
+          </g>
+        )}
+
+        {/* 3. Grid layout: 4x2 Grid of Exact 1:1 Square Tiles (46x46) */}
+        {id === "grid-layout" && (
+          <g>
+            <rect x="85" y="6" width="70" height="4" rx="2" fill="#ffffff" />
+            {/* Row 1: 1:1 Squares (46x46) */}
+            <rect x="19" y="16" width="46" height="46" rx="2.5" fill="#ffffff" />
+            <rect x="71" y="16" width="46" height="46" rx="2.5" fill="#e4e4e7" />
+            <rect x="123" y="16" width="46" height="46" rx="2.5" fill="#ffffff" />
+            <rect x="175" y="16" width="46" height="46" rx="2.5" fill="#a1a1aa" />
+            {/* Row 2: 1:1 Squares (46x46) */}
+            <rect x="19" y="66" width="46" height="46" rx="2.5" fill="#e4e4e7" />
+            <rect x="71" y="66" width="46" height="46" rx="2.5" fill="#ffffff" />
+            <rect x="123" y="66" width="46" height="46" rx="2.5" fill="#a1a1aa" />
+            <rect x="175" y="66" width="46" height="46" rx="2.5" fill="#ffffff" />
+            {/* Bottom Follow button */}
+            <rect x="88" y="120" width="64" height="8" rx="4" fill="#ffffff" />
+          </g>
+        )}
+
+        {/* 4. Highlight with profile: Profile Header + 1:1 Square Hero (88x88) + 4 1:1 Square Tiles (42x42) */}
+        {id === "highlight-profile" && (
+          <g>
+            {/* Profile Header */}
+            <circle cx="20" cy="15" r="8" fill="#ffffff" />
+            <rect x="34" y="10" width="48" height="4" rx="2" fill="#ffffff" />
+            <rect x="34" y="17" width="65" height="3" rx="1.5" fill="#a1a1aa" />
+            <rect x="176" y="8" width="52" height="14" rx="7" fill="#ffffff" />
+            <rect x="188" y="13" width="28" height="4" rx="2" fill="#18181b" />
+
+            {/* Hero Left: Exact 1:1 Square (88x88) */}
+            <rect x="16" y="28" width="88" height="88" rx="3" fill="#ffffff" />
+            <circle cx="60" cy="72" r="10" fill="rgba(0,0,0,0.15)" />
+            {/* 4 Tiles Right: Exact 1:1 Squares (42x42 each, 42+4+42 = 88) */}
+            <rect x="108" y="28" width="42" height="42" rx="2.5" fill="#e4e4e7" />
+            <rect x="154" y="28" width="42" height="42" rx="2.5" fill="#a1a1aa" />
+            <rect x="108" y="74" width="42" height="42" rx="2.5" fill="#ffffff" />
+            <rect x="154" y="74" width="42" height="42" rx="2.5" fill="#e4e4e7" />
+          </g>
+        )}
+
+        {/* 5. Slider with profile: Profile Header + 1:1 Square Carousel Cards (50x50) */}
+        {id === "slider-profile" && (
+          <g>
+            {/* Profile Header */}
+            <circle cx="20" cy="15" r="8" fill="#ffffff" />
+            <rect x="34" y="10" width="48" height="4" rx="2" fill="#ffffff" />
+            <rect x="34" y="17" width="65" height="3" rx="1.5" fill="#a1a1aa" />
+            <rect x="176" y="8" width="52" height="14" rx="7" fill="#ffffff" />
+            <rect x="188" y="13" width="28" height="4" rx="2" fill="#18181b" />
+
+            {/* Left Nav Arrow */}
+            <circle cx="11" cy="71" r="7" fill="#ffffff" />
+            <path d="M13 67L8 71L13 75" stroke="#18181b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            {/* 4 Slider Cards: Exact 1:1 Squares (50x50) */}
+            <rect x="22" y="46" width="50" height="50" rx="3" fill="#ffffff" />
+            <rect x="76" y="46" width="50" height="50" rx="3" fill="#e4e4e7" />
+            <rect x="130" y="46" width="50" height="50" rx="3" fill="#ffffff" />
+            <rect x="184" y="46" width="50" height="50" rx="3" fill="#a1a1aa" />
+            {/* Right Nav Arrow */}
+            <circle cx="229" cy="71" r="7" fill="#ffffff" />
+            <path d="M227 67L232 71L227 75" stroke="#18181b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+        )}
+
+        {/* 6. Grid with profile: Profile Header + 4x2 Grid of 1:1 Squares (48x48) */}
+        {id === "grid-profile" && (
+          <g>
+            {/* Profile Header */}
+            <circle cx="20" cy="15" r="8" fill="#ffffff" />
+            <rect x="34" y="10" width="48" height="4" rx="2" fill="#ffffff" />
+            <rect x="34" y="17" width="65" height="3" rx="1.5" fill="#a1a1aa" />
+            <rect x="176" y="8" width="52" height="14" rx="7" fill="#ffffff" />
+            <rect x="188" y="13" width="28" height="4" rx="2" fill="#18181b" />
+
+            {/* Row 1: 1:1 Squares (48x48) */}
+            <rect x="16" y="28" width="48" height="48" rx="2.5" fill="#ffffff" />
+            <rect x="70" y="28" width="48" height="48" rx="2.5" fill="#e4e4e7" />
+            <rect x="124" y="28" width="48" height="48" rx="2.5" fill="#ffffff" />
+            <rect x="178" y="28" width="48" height="48" rx="2.5" fill="#a1a1aa" />
+            {/* Row 2: 1:1 Squares (48x48) */}
+            <rect x="16" y="80" width="48" height="48" rx="2.5" fill="#e4e4e7" />
+            <rect x="70" y="80" width="48" height="48" rx="2.5" fill="#ffffff" />
+            <rect x="124" y="80" width="48" height="48" rx="2.5" fill="#a1a1aa" />
+            <rect x="178" y="80" width="48" height="48" rx="2.5" fill="#ffffff" />
+          </g>
+        )}
+
+        {/* 7. Highlight full: Stories bar + 1:1 Square Hero (72x72) + 4 1:1 Square Tiles (34x34) */}
+        {id === "highlight-full" && (
+          <g>
+            <rect x="85" y="4" width="70" height="4" rx="2" fill="#ffffff" />
+            {/* 5 Story Bubbles */}
+            <circle cx="24" cy="22" r="8.5" stroke="#e1306c" strokeWidth="1.5" fill="none" />
+            <circle cx="24" cy="22" r="6" fill="#e1306c" />
+            {[68, 112, 156, 200].map((cx, i) => (
               <g key={i}>
-                <circle cx={cx} cy="22" r="14" stroke="#9ca3af" strokeWidth="2" strokeDasharray={i === 0 ? "none" : "none"} fill="none" />
-                <circle cx={cx} cy="22" r="11" fill={i === 0 ? "#ffffff" : "#d1d5db"} />
+                <circle cx={cx} cy="22" r="8.5" stroke="#a1a1aa" strokeWidth="1.25" fill="none" />
+                <circle cx={cx} cy="22" r="6" fill="#e4e4e7" />
               </g>
             ))}
 
-            {/* Posts below */}
-            <rect x="8" y="46" width="52" height="66" rx="3" fill="#ffffff" />
-            <rect x="64" y="46" width="52" height="66" rx="3" fill="#e5e7eb" />
-            <rect x="120" y="46" width="52" height="66" rx="3" fill="#ffffff" />
-            <rect x="176" y="46" width="56" height="66" rx="3" fill="#9ca3af" />
-          </g>
-        ) : layout === "highlight" ? (
-          /* Eurus highlight: 1 large hero post on left, 4 tiles on right (2x2) */
-          <g>
-            {/* Large hero on left */}
-            <rect x="8" y="8" width="94" height="104" rx="3" fill="#ffffff" />
+            {/* Hero Left: Exact 1:1 Square (72x72) */}
+            <rect x="24" y="36" width="72" height="72" rx="3" fill="#ffffff" />
+            <circle cx="60" cy="72" r="8" fill="rgba(0,0,0,0.15)" />
+            {/* 4 Tiles Right: Exact 1:1 Squares (34x34 each, 34+4+34 = 72) */}
+            <rect x="100" y="36" width="34" height="34" rx="2" fill="#e4e4e7" />
+            <rect x="138" y="36" width="34" height="34" rx="2" fill="#a1a1aa" />
+            <rect x="100" y="74" width="34" height="34" rx="2" fill="#ffffff" />
+            <rect x="138" y="74" width="34" height="34" rx="2" fill="#e4e4e7" />
 
-            {/* 4 tiles on right */}
-            <rect x="106" y="8" width="58" height="50" rx="3" fill="#e5e7eb" />
-            <rect x="168" y="8" width="64" height="50" rx="3" fill="#9ca3af" />
-            <rect x="106" y="62" width="64" height="50" rx="3" fill="#ffffff" />
-            <rect x="174" y="62" width="58" height="50" rx="3" fill="#e5e7eb" />
+            {/* Bottom Follow button */}
+            <rect x="88" y="118" width="64" height="8" rx="4" fill="#ffffff" />
           </g>
-        ) : layout === "carousel" ? (
-          /* Carousel with arrows */
+        )}
+
+        {/* 8. Slider full: Stories bar + 1:1 Square Carousel Cards (46x46) */}
+        {id === "slider-full" && (
           <g>
-            {/* Left arrow button */}
-            <circle cx="14" cy="60" r="9" fill="#ffffff" />
-            <path d="M16 54L10 60L16 66" stroke="#18181b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <rect x="85" y="4" width="70" height="4" rx="2" fill="#ffffff" />
+            {/* 5 Story Bubbles */}
+            <circle cx="24" cy="22" r="8.5" stroke="#e1306c" strokeWidth="1.5" fill="none" />
+            <circle cx="24" cy="22" r="6" fill="#e1306c" />
+            {[68, 112, 156, 200].map((cx, i) => (
+              <g key={i}>
+                <circle cx={cx} cy="22" r="8.5" stroke="#a1a1aa" strokeWidth="1.25" fill="none" />
+                <circle cx={cx} cy="22" r="6" fill="#e4e4e7" />
+              </g>
+            ))}
 
-            {/* Slides */}
-            <rect x="28" y="12" width="44" height="96" rx="3" fill="#ffffff" />
-            <rect x="76" y="12" width="44" height="96" rx="3" fill="#e5e7eb" />
-            <rect x="124" y="12" width="44" height="96" rx="3" fill="#ffffff" />
-            <rect x="172" y="12" width="44" height="96" rx="3" fill="#9ca3af" />
+            {/* Left Nav Arrow */}
+            <circle cx="12" cy="71" r="6.5" fill="#ffffff" />
+            <path d="M14 68L10 71L14 74" stroke="#18181b" strokeWidth="1.5" strokeLinecap="round" />
+            {/* 4 Slider Cards: Exact 1:1 Squares (46x46) */}
+            <rect x="24" y="48" width="46" height="46" rx="2.5" fill="#ffffff" />
+            <rect x="74" y="48" width="46" height="46" rx="2.5" fill="#e4e4e7" />
+            <rect x="124" y="48" width="46" height="46" rx="2.5" fill="#ffffff" />
+            <rect x="174" y="48" width="46" height="46" rx="2.5" fill="#a1a1aa" />
+            {/* Right Nav Arrow */}
+            <circle cx="228" cy="71" r="6.5" fill="#ffffff" />
+            <path d="M226 68L230 71L226 74" stroke="#18181b" strokeWidth="1.5" strokeLinecap="round" />
 
-            {/* Right arrow button */}
-            <circle cx="226" cy="60" r="9" fill="#ffffff" />
-            <path d="M224 54L230 60L224 66" stroke="#18181b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Bottom Follow button */}
+            <rect x="88" y="118" width="64" height="8" rx="4" fill="#ffffff" />
           </g>
-        ) : layout === "reels" ? (
-          /* 9:16 portrait video reels with play icons */
+        )}
+
+        {/* 9. Grid full: Stories bar + 4x2 Grid of 1:1 Squares (38x38) */}
+        {id === "grid-full" && (
           <g>
+            <rect x="85" y="4" width="70" height="4" rx="2" fill="#ffffff" />
+            {/* 5 Story Bubbles */}
+            <circle cx="24" cy="22" r="8.5" stroke="#833ab4" strokeWidth="1.5" fill="none" />
+            <circle cx="24" cy="22" r="6" fill="#833ab4" />
+            {[68, 112, 156, 200].map((cx, i) => (
+              <g key={i}>
+                <circle cx={cx} cy="22" r="8.5" stroke="#a1a1aa" strokeWidth="1.25" fill="none" />
+                <circle cx={cx} cy="22" r="6" fill="#e4e4e7" />
+              </g>
+            ))}
+
+            {/* Row 1: 1:1 Squares (38x38) */}
+            <rect x="28" y="36" width="38" height="38" rx="2.5" fill="#ffffff" />
+            <rect x="72" y="36" width="38" height="38" rx="2.5" fill="#e4e4e7" />
+            <rect x="116" y="36" width="38" height="38" rx="2.5" fill="#ffffff" />
+            <rect x="160" y="36" width="38" height="38" rx="2.5" fill="#a1a1aa" />
+            {/* Row 2: 1:1 Squares (38x38) */}
+            <rect x="28" y="78" width="38" height="38" rx="2.5" fill="#e4e4e7" />
+            <rect x="72" y="78" width="38" height="38" rx="2.5" fill="#ffffff" />
+            <rect x="116" y="78" width="38" height="38" rx="2.5" fill="#a1a1aa" />
+            <rect x="160" y="78" width="38" height="38" rx="2.5" fill="#ffffff" />
+
+            {/* Bottom Follow button */}
+            <rect x="88" y="121" width="64" height="8" rx="4" fill="#ffffff" />
+          </g>
+        )}
+
+        {/* 10. Reels video wall: 4 vertical 9:16 portrait video cards (45x80 -> 45/80 = 9/16) */}
+        {id === "reels-wall" && (
+          <g>
+            <rect x="75" y="6" width="90" height="4" rx="2" fill="#ffffff" />
+            {/* Left Nav Arrow */}
+            <circle cx="10" cy="58" r="6" fill="#ffffff" />
+            <path d="M12 55L8 58L12 61" stroke="#18181b" strokeWidth="1.5" strokeLinecap="round" />
+
             {[
-              { x: 8, w: 52, fill: "#ffffff", iconFill: "#18181b" },
-              { x: 64, w: 52, fill: "#e5e7eb", iconFill: "#18181b" },
-              { x: 120, w: 52, fill: "#ffffff", iconFill: "#18181b" },
-              { x: 176, w: 56, fill: "#9ca3af", iconFill: "#18181b" },
+              { x: 22, fill: "#ffffff" },
+              { x: 74, fill: "#e4e4e7" },
+              { x: 126, fill: "#ffffff" },
+              { x: 178, fill: "#a1a1aa" },
             ].map((reel, idx) => (
               <g key={idx}>
-                <rect x={reel.x} y="8" width={reel.w} height="104" rx="3" fill={reel.fill} />
-                <circle cx={reel.x + reel.w / 2} cy="60" r="10" fill="rgba(24,24,27,0.3)" />
+                {/* Exact 9:16 vertical card (45x80) */}
+                <rect x={reel.x} y="18" width="45" height="80" rx="4" fill={reel.fill} />
+                <circle cx={reel.x + 22.5} cy="58" r="8" fill="rgba(24,24,27,0.45)" />
                 <polygon
-                  points={`${reel.x + reel.w / 2 - 3},54 ${reel.x + reel.w / 2 + 5},60 ${reel.x + reel.w / 2 - 3},66`}
+                  points={`${reel.x + 20},53 ${reel.x + 27},58 ${reel.x + 20},63`}
                   fill="#ffffff"
                 />
               </g>
             ))}
-          </g>
-        ) : layout === "marquee" ? (
-          /* Marquee horizontal ticker */
-          <g>
-            <rect x="4" y="20" width="42" height="80" rx="3" fill="#ffffff" />
-            <rect x="50" y="20" width="42" height="80" rx="3" fill="#e5e7eb" />
-            <rect x="96" y="20" width="42" height="80" rx="3" fill="#ffffff" />
-            <rect x="142" y="20" width="42" height="80" rx="3" fill="#e5e7eb" />
-            <rect x="188" y="20" width="48" height="80" rx="3" fill="#9ca3af" />
 
-            {/* Marquee ticker indicators */}
-            <path d="M10 10L16 10M20 10L30 10M34 10L50 10" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" />
-            <path d="M190 110L200 110M204 110L214 110M218 110L230 110" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" />
+            {/* Right Nav Arrow */}
+            <circle cx="230" cy="58" r="6" fill="#ffffff" />
+            <path d="M228 55L232 58L228 61" stroke="#18181b" strokeWidth="1.5" strokeLinecap="round" />
+
+            {/* Bottom Follow button */}
+            <rect x="88" y="116" width="64" height="9" rx="4.5" fill="#ffffff" />
           </g>
-        ) : layout === "masonry" ? (
-          /* Masonry brick lookbook */
+        )}
+
+        {/* 11. Marquee ticker: Continuous horizontal strip of 1:1 Squares (46x46) */}
+        {id === "marquee-ticker" && (
           <g>
+            <rect x="68" y="8" width="104" height="4" rx="2" fill="#ffffff" />
+            {/* Continuous Ticker: Exact 1:1 Squares (46x46) */}
+            <rect x="4" y="32" width="46" height="46" rx="3" fill="#ffffff" />
+            <rect x="54" y="32" width="46" height="46" rx="3" fill="#e4e4e7" />
+            <rect x="104" y="32" width="46" height="46" rx="3" fill="#ffffff" />
+            <rect x="154" y="32" width="46" height="46" rx="3" fill="#e4e4e7" />
+            <rect x="204" y="32" width="46" height="46" rx="3" fill="#a1a1aa" />
+
+            {/* Motion ticker indicators */}
+            <path d="M12 108L22 108M26 108L42 108M46 108L66 108" stroke="#a1a1aa" strokeWidth="1.75" strokeLinecap="round" />
+            <path d="M174 108L190 108M194 108L210 108M214 108L228 108" stroke="#a1a1aa" strokeWidth="1.75" strokeLinecap="round" />
+          </g>
+        )}
+
+        {/* 12. Masonry Lookbook: 4 waterfall columns with staggered heights (Pinterest style) */}
+        {id === "masonry-lookbook" && (
+          <g>
+            <rect x="85" y="6" width="70" height="4" rx="2" fill="#ffffff" />
             {/* Col 1 */}
-            <rect x="8" y="8" width="50" height="62" rx="3" fill="#ffffff" />
-            <rect x="8" y="74" width="50" height="38" rx="3" fill="#e5e7eb" />
+            <rect x="16" y="18" width="46" height="52" rx="2.5" fill="#ffffff" />
+            <rect x="16" y="74" width="46" height="34" rx="2.5" fill="#e4e4e7" />
 
             {/* Col 2 */}
-            <rect x="64" y="8" width="50" height="38" rx="3" fill="#9ca3af" />
-            <rect x="64" y="50" width="50" height="62" rx="3" fill="#ffffff" />
+            <rect x="68" y="18" width="46" height="34" rx="2.5" fill="#a1a1aa" />
+            <rect x="68" y="56" width="46" height="52" rx="2.5" fill="#ffffff" />
 
             {/* Col 3 */}
-            <rect x="120" y="8" width="50" height="66" rx="3" fill="#e5e7eb" />
-            <rect x="120" y="78" width="50" height="34" rx="3" fill="#ffffff" />
+            <rect x="120" y="18" width="46" height="56" rx="2.5" fill="#e4e4e7" />
+            <rect x="120" y="78" width="46" height="30" rx="2.5" fill="#ffffff" />
 
             {/* Col 4 */}
-            <rect x="176" y="8" width="56" height="46" rx="3" fill="#ffffff" />
-            <rect x="176" y="58" width="56" height="54" rx="3" fill="#9ca3af" />
-          </g>
-        ) : (
-          /* Clean 4x2 Grid */
-          <g>
-            {/* Row 1 */}
-            <rect x="8" y="8" width="52" height="50" rx="3" fill="#ffffff" />
-            <rect x="64" y="8" width="52" height="50" rx="3" fill="#e5e7eb" />
-            <rect x="120" y="8" width="52" height="50" rx="3" fill="#ffffff" />
-            <rect x="176" y="8" width="56" height="50" rx="3" fill="#9ca3af" />
+            <rect x="172" y="18" width="46" height="38" rx="2.5" fill="#ffffff" />
+            <rect x="172" y="60" width="46" height="48" rx="2.5" fill="#a1a1aa" />
 
-            {/* Row 2 */}
-            <rect x="8" y="62" width="52" height="50" rx="3" fill="#e5e7eb" />
-            <rect x="64" y="62" width="52" height="50" rx="3" fill="#ffffff" />
-            <rect x="120" y="62" width="52" height="50" rx="3" fill="#9ca3af" />
-            <rect x="176" y="62" width="56" height="50" rx="3" fill="#ffffff" />
+            {/* Bottom Follow button */}
+            <rect x="88" y="118" width="64" height="8" rx="4" fill="#ffffff" />
           </g>
         )}
       </svg>
@@ -1081,6 +1247,72 @@ function TemplateCard({ template, onApply, onPreview }) {
       </BlockStack>
     </Card>
   );
+}
+
+function LayoutStyleIcon({ type, active }) {
+  const primaryColor = active ? "#1e293b" : "#64748b";
+  const fillColor = active ? "#3b82f6" : "#cbd5e1";
+  const heroFill = active ? "#2563eb" : "#94a3b8";
+
+  switch (type) {
+    case "grid":
+      return (
+        <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="9" height="7" rx="1.5" fill={fillColor} />
+          <rect x="13" y="2" width="9" height="7" rx="1.5" fill={fillColor} />
+          <rect x="2" y="11" width="9" height="7" rx="1.5" fill={fillColor} />
+          <rect x="13" y="11" width="9" height="7" rx="1.5" fill={fillColor} />
+        </svg>
+      );
+    case "carousel":
+      return (
+        <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 10L4.5 8M2.5 10L4.5 12" stroke={primaryColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="6" y="2.5" width="5.5" height="15" rx="1.5" fill={fillColor} />
+          <rect x="12.5" y="2.5" width="5.5" height="15" rx="1.5" fill={fillColor} />
+          <path d="M21.5 10L19.5 8M21.5 10L19.5 12" stroke={primaryColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "masonry":
+      return (
+        <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="5.5" height="9" rx="1.5" fill={fillColor} />
+          <rect x="2" y="12.5" width="5.5" height="5.5" rx="1.5" fill={fillColor} />
+          <rect x="9.25" y="2" width="5.5" height="5" rx="1.5" fill={fillColor} />
+          <rect x="9.25" y="8.5" width="5.5" height="9.5" rx="1.5" fill={fillColor} />
+          <rect x="16.5" y="2" width="5.5" height="8" rx="1.5" fill={fillColor} />
+          <rect x="16.5" y="11.5" width="5.5" height="6.5" rx="1.5" fill={fillColor} />
+        </svg>
+      );
+    case "highlight":
+      return (
+        <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="13" height="16" rx="2" fill={heroFill} />
+          <rect x="16.5" y="2" width="5.5" height="7.2" rx="1.5" fill={fillColor} />
+          <rect x="16.5" y="10.8" width="5.5" height="7.2" rx="1.5" fill={fillColor} />
+        </svg>
+      );
+    case "reels":
+      return (
+        <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="3" width="5" height="14" rx="1.5" fill={fillColor} opacity="0.5" />
+          <rect x="8.5" y="1.5" width="7" height="17" rx="2" fill={heroFill} />
+          <polygon points="11,7.5 14,10 11,12.5" fill="#ffffff" />
+          <rect x="17" y="3" width="5" height="14" rx="1.5" fill={fillColor} opacity="0.5" />
+        </svg>
+      );
+    case "marquee":
+      return (
+        <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.5 10H3.5" stroke={primaryColor} strokeWidth="1.5" strokeLinecap="round" />
+          <rect x="5" y="3" width="5.5" height="14" rx="1.5" fill={fillColor} />
+          <rect x="12" y="3" width="5.5" height="14" rx="1.5" fill={fillColor} />
+          <path d="M19.5 7.5L22 10L19.5 12.5" stroke={primaryColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    default:
+      return null;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1154,27 +1386,17 @@ function UnifiedConfigurator({
       {/* ── Primary Section: Predefined Feed Designs ── */}
       <Card>
         <BlockStack gap="400">
-          <InlineStack align="space-between" blockAlign="start">
-            <BlockStack gap="100">
-              <InlineStack gap="200" blockAlign="center">
-                <Text variant="headingMd" as="h2" fontWeight="bold">
-                  Choose a Predefined Design
-                </Text>
-                {hasUnsavedChanges && (
-                  <Badge tone="warning">Unsaved changes</Badge>
-                )}
-              </InlineStack>
-              <Text tone="subdued" variant="bodySm">
-                Click any layout to preview it in real time. Save when satisfied.
-              </Text>
-            </BlockStack>
+          <InlineStack align="space-between" blockAlign="center">
+            <Text variant="headingMd" as="h2" fontWeight="bold">
+              Choose Design
+            </Text>
 
             <Button
               variant="primary"
               onClick={handleSaveConfig}
               loading={isSaving}
             >
-              Save Feed Design
+              Save
             </Button>
           </InlineStack>
 
@@ -1260,14 +1482,8 @@ function UnifiedConfigurator({
               onClick={() => setIsCustomizingExpanded(!isCustomizingExpanded)}
               style={{ cursor: "pointer", flex: 1 }}
             >
-              <InlineStack gap="200" blockAlign="center">
-                <Text variant="headingSm" as="h3" fontWeight="bold">
-                  ⚙️ Customize this design
-                </Text>
-                <Badge tone="subdued">Optional</Badge>
-              </InlineStack>
-              <Text variant="bodyXs" tone="subdued">
-                Fine-tune headers, story highlights, column grid & tag products if needed
+              <Text variant="headingSm" as="h3" fontWeight="bold">
+                Customize Design
               </Text>
             </div>
             <Button
@@ -1285,7 +1501,7 @@ function UnifiedConfigurator({
         <BlockStack gap="400">
           <InlineStack align="space-between" blockAlign="center">
             <Text variant="headingSm" as="h3" fontWeight="bold">
-              1. Header & Typography
+              Header & Typography
             </Text>
             <Button
               variant="plain"
@@ -1298,8 +1514,7 @@ function UnifiedConfigurator({
           <Collapsible open={isBrandingExpanded} id="unified-branding-collapsible">
             <BlockStack gap="300">
               <Checkbox
-                label="Show Profile & Gallery Header"
-                helpText="Display heading & description above your gallery"
+                label="Show Header"
                 checked={config.postFeed.header}
                 onChange={(val) => updateConfig("postFeed", "header", val)}
               />
@@ -1307,25 +1522,25 @@ function UnifiedConfigurator({
               {config.postFeed.header && (
                 <>
                   <TextField
-                    label="Gallery Heading"
+                    label="Heading"
                     value={config.postFeed.heading}
                     onChange={(val) => updateConfig("postFeed", "heading", val)}
                     autoComplete="off"
                   />
 
                   <TextField
-                    label="Gallery Subtitle"
+                    label="Subtitle"
                     value={config.postFeed.subheading}
                     onChange={(val) => updateConfig("postFeed", "subheading", val)}
                     autoComplete="off"
                   />
 
                   <Select
-                    label="Layout Alignment"
+                    label="Alignment"
                     options={[
-                      { label: "Centered", value: "center" },
-                      { label: "Left Aligned", value: "left" },
-                      { label: "Right Aligned", value: "right" },
+                      { label: "Center", value: "center" },
+                      { label: "Left", value: "left" },
+                      { label: "Right", value: "right" },
                     ]}
                     value={config.postFeed.alignment}
                     onChange={(val) => {
@@ -1334,8 +1549,8 @@ function UnifiedConfigurator({
                     }}
                   />
 
-                  <Text variant="bodyMd" fontWeight="semibold">
-                    Typography Presets
+                  <Text variant="bodySm" fontWeight="semibold">
+                    Presets
                   </Text>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
                     {FEED_TYPOGRAPHY_PRESETS.map((preset) => {
@@ -1362,13 +1577,10 @@ function UnifiedConfigurator({
                               },
                             }));
                           }}
-                          style={{ cursor: "pointer" }}
+                          style={{ cursor: "pointer", textAlign: "center" }}
                         >
-                          <Text variant="bodySm" fontWeight="bold">
+                          <Text variant="bodySm" fontWeight={isSelected ? "bold" : "medium"}>
                             {preset.name}
-                          </Text>
-                          <Text variant="bodyXs" tone="subdued">
-                            {preset.desc}
                           </Text>
                         </Box>
                       );
@@ -1387,10 +1599,10 @@ function UnifiedConfigurator({
           <InlineStack align="space-between" blockAlign="center">
             <InlineStack gap="200" blockAlign="center">
               <Text variant="headingSm" as="h3" fontWeight="bold">
-                2. Story Highlights Bar
+                Story Highlights
               </Text>
               <Badge tone={showStorySection ? "success" : "subdued"}>
-                {showStorySection ? "Active" : totalPostsCount < 6 ? "< 6 Posts (Hidden)" : "Disabled"}
+                {showStorySection ? "Active" : "Disabled"}
               </Badge>
             </InlineStack>
             <Button
@@ -1404,42 +1616,32 @@ function UnifiedConfigurator({
           <Collapsible open={isStoryExpanded} id="unified-story-collapsible">
             <BlockStack gap="300">
               <Checkbox
-                label="Enable Story Highlights Bar"
-                helpText="Renders circular story bubbles directly beneath your heading (by default showcasing your image posts)."
+                label="Enable Stories"
                 checked={config.stories.enable}
                 onChange={(val) => updateConfig("stories", "enable", val)}
               />
 
               {totalPostsCount < 6 && config.stories.enable && (
                 <Banner tone="info">
-                  <strong>Smart Threshold:</strong> Stories are automatically hidden on your storefront when account has fewer than 6 posts to keep your layout full.
+                  Stories appear on your storefront when your account has 6 or more posts.
                 </Banner>
               )}
 
               {config.stories.enable && (
                 <>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
                     <Checkbox
-                      label="Animated Rotating Ring"
-                      helpText="Adds an Instagram-style gradient spin"
+                      label="Rotating Ring"
                       checked={config.stories.activeRing}
                       onChange={(val) => updateConfig("stories", "activeRing", val)}
                     />
                     <Checkbox
-                      label="Pulse Ring Animation"
-                      helpText="Pulsing glow on circular rings"
+                      label="Pulsing Ring"
                       checked={config.stories.pulseRing}
                       onChange={(val) => updateConfig("stories", "pulseRing", val)}
                     />
                     <Checkbox
-                      label="Show Captions as Labels"
-                      helpText="Display titles below story circles"
-                      checked={config.stories.showLabels}
-                      onChange={(val) => updateConfig("stories", "showLabels", val)}
-                    />
-                    <Checkbox
-                      label="Special Offer Promo Bubble"
-                      helpText="Adds a discount offer circle at front"
+                      label="Promo Bubble"
                       checked={config.stories.promoEnable}
                       onChange={(val) => updateConfig("stories", "promoEnable", val)}
                     />
@@ -1448,13 +1650,13 @@ function UnifiedConfigurator({
                   {config.stories.promoEnable && (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                       <TextField
-                        label="Promo Offer Label"
+                        label="Promo Title"
                         value={config.stories.promoLabel}
                         onChange={(val) => updateConfig("stories", "promoLabel", val)}
                         autoComplete="off"
                       />
                       <TextField
-                        label="Promo Description"
+                        label="Promo Subtitle"
                         value={config.stories.promoDesc}
                         onChange={(val) => updateConfig("stories", "promoDesc", val)}
                         autoComplete="off"
@@ -1464,7 +1666,7 @@ function UnifiedConfigurator({
 
                   <div>
                     <Text variant="bodySm" fontWeight="medium">
-                      Ring Highlight Color
+                      Ring Color
                     </Text>
                     <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
                       {["#e1306c", "#833ab4", "#405de6", "#fd1d1d", "#fcb045", "#10b981", "#000000"].map((c) => (
@@ -1497,7 +1699,7 @@ function UnifiedConfigurator({
         <BlockStack gap="400">
           <InlineStack align="space-between" blockAlign="center">
             <Text variant="headingSm" as="h3" fontWeight="bold">
-              3. Feed Grid & Layout
+              Layout & Grid
             </Text>
             <Button
               variant="plain"
@@ -1515,12 +1717,12 @@ function UnifiedConfigurator({
                 </Text>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginTop: "8px" }}>
                   {[
-                    { id: "grid", label: "Grid", icon: "🔲", desc: "Classic clean grid" },
-                    { id: "carousel", label: "Carousel", icon: "↔️", desc: "Slider with arrows" },
-                    { id: "masonry", label: "Masonry", icon: "🧱", desc: "Pinterest waterfall" },
-                    { id: "highlight", label: "Highlight", icon: "🌟", desc: "2x2 big hero left" },
-                    { id: "reels", label: "Reels", icon: "📱", desc: "9:16 vertical video" },
-                    { id: "marquee", label: "Marquee", icon: "⚡", desc: "Continuous ticker" },
+                    { id: "grid", label: "Grid" },
+                    { id: "carousel", label: "Carousel" },
+                    { id: "masonry", label: "Masonry" },
+                    { id: "highlight", label: "Highlight" },
+                    { id: "reels", label: "Reels" },
+                    { id: "marquee", label: "Marquee" },
                   ].map((layout) => {
                     const currentMode = config.postFeed.layoutMode || (config.postFeed.carousel ? "carousel" : "grid");
                     const isSelected = currentMode === layout.id;
@@ -1545,12 +1747,11 @@ function UnifiedConfigurator({
                         }}
                         style={{ cursor: "pointer", textAlign: "center" }}
                       >
-                        <div style={{ fontSize: "20px", marginBottom: "3px" }}>{layout.icon}</div>
+                        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "24px", marginBottom: "4px" }}>
+                          <LayoutStyleIcon type={layout.id} active={isSelected} />
+                        </div>
                         <Text variant="bodySm" fontWeight={isSelected ? "bold" : "medium"}>
                           {layout.label}
-                        </Text>
-                        <Text variant="bodyXs" tone="subdued">
-                          {layout.desc}
                         </Text>
                       </Box>
                     );
@@ -1560,8 +1761,7 @@ function UnifiedConfigurator({
 
               {(config.postFeed.layoutMode === "marquee") && (
                 <RangeSlider
-                  label={`Marquee Scroll Speed (${config.postFeed.marqueeSpeed || 32}s)`}
-                  helpText="Lower seconds scroll faster; higher seconds scroll smoother"
+                  label={`Scroll Speed (${config.postFeed.marqueeSpeed || 32}s)`}
                   value={config.postFeed.marqueeSpeed || 32}
                   min={15}
                   max={60}
@@ -1572,7 +1772,7 @@ function UnifiedConfigurator({
 
               <div>
                 <Text variant="bodySm" fontWeight="medium">
-                  Feed Media Preference
+                  Media Filter
                 </Text>
                 <Box paddingBlockStart="100">
                   <ButtonGroup variant="segmented">
@@ -1580,7 +1780,7 @@ function UnifiedConfigurator({
                       pressed={config.postFeed.mediaTypeFilter === "videos" || !config.postFeed.mediaTypeFilter}
                       onClick={() => updateConfig("postFeed", "mediaTypeFilter", "videos")}
                     >
-                      Videos & Reels (Default)
+                      Videos & Reels
                     </Button>
                     <Button
                       pressed={config.postFeed.mediaTypeFilter === "all"}
@@ -1596,9 +1796,6 @@ function UnifiedConfigurator({
                     </Button>
                   </ButtonGroup>
                 </Box>
-                <Text variant="bodyXs" tone="subdued">
-                  Feed prioritizes videos & reels. If no videos exist in the account, all media automatically displays.
-                </Text>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -1625,7 +1822,7 @@ function UnifiedConfigurator({
               {!config.postFeed.load && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <Select
-                    label="Desktop Total Posts"
+                    label="Desktop Posts Limit"
                     options={[4, 6, 8, 12, 16, 20, 24].map((n) => ({
                       label: `${n} Posts ${!isPaid && n > 12 ? "(PRO)" : ""}`,
                       value: String(n),
@@ -1642,7 +1839,7 @@ function UnifiedConfigurator({
                     }}
                   />
                   <Select
-                    label="Mobile Total Posts"
+                    label="Mobile Posts Limit"
                     options={[3, 4, 6, 8, 12].map((n) => ({
                       label: `${n} Posts`,
                       value: String(n),
@@ -1654,7 +1851,7 @@ function UnifiedConfigurator({
               )}
 
               <RangeSlider
-                label={`Visual Gap (${config.postFeed.gap}px)`}
+                label={`Spacing (${config.postFeed.gap}px)`}
                 value={config.postFeed.gap}
                 min={0}
                 max={40}
@@ -1662,12 +1859,12 @@ function UnifiedConfigurator({
               />
 
               <Select
-                label="Media Aspect Ratio"
+                label="Aspect Ratio"
                 options={[
-                  { label: "Auto (Original)", value: "auto" },
-                  { label: "1:1 (Square)", value: "1/1" },
-                  { label: "4:5 / 3:4 (Portrait)", value: "3/4" },
-                  { label: "9:16 (Story / Reel)", value: "9/16" },
+                  { label: "Original", value: "auto" },
+                  { label: "Square (1:1)", value: "1/1" },
+                  { label: "Portrait (4:5)", value: "4/5" },
+                  { label: "Reel / Story (9:16)", value: "9/16" },
                 ]}
                 value={config.postFeed.aspectRatio || "auto"}
                 onChange={(val) => updateConfig("postFeed", "aspectRatio", val)}
@@ -1675,14 +1872,12 @@ function UnifiedConfigurator({
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
                 <Checkbox
-                  label="Engagement Hub"
-                  helpText="Show likes & comments on hover"
+                  label="Show Likes & Comments on Hover"
                   checked={config.postFeed.metrics}
                   onChange={(val) => updateConfig("postFeed", "metrics", val)}
                 />
                 <Checkbox
                   label="Autoplay Videos"
-                  helpText="Loop muted video clips in feed"
                   checked={config.postFeed.autoplay}
                   onChange={(val) => updateConfig("postFeed", "autoplay", val)}
                 />
@@ -1692,12 +1887,12 @@ function UnifiedConfigurator({
         </BlockStack>
       </Card>
 
-      {/* ── 4. Shoppable Pins & Moderation ── */}
+      {/* ── 4. Shoppable Tags & Moderation ── */}
       <Card>
         <BlockStack gap="400">
           <InlineStack align="space-between" blockAlign="center">
             <Text variant="headingSm" as="h3" fontWeight="bold">
-              4. Shoppable Tags & Moderation
+              Tags & Moderation
             </Text>
             <Button
               variant="plain"
@@ -1711,7 +1906,6 @@ function UnifiedConfigurator({
             <BlockStack gap="300">
               <Checkbox
                 label="Follow on Instagram Button"
-                helpText="Display a branded Instagram follow button"
                 checked={config.postFeed.showFollowButton !== false}
                 onChange={(val) => updateConfig("postFeed", "showFollowButton", val)}
               />
@@ -1720,12 +1914,11 @@ function UnifiedConfigurator({
                 <Select
                   label="Button Placement"
                   options={[
-                    { label: "In the header (alongside profile title)", value: "header" },
-                    { label: "At the bottom (below the feed)", value: "bottom" },
+                    { label: "In the header", value: "header" },
+                    { label: "At the bottom", value: "bottom" },
                   ]}
                   value={config.postFeed.followButtonPosition || (config.appliedTemplateId?.includes("profile") ? "header" : "bottom")}
                   onChange={(val) => updateConfig("postFeed", "followButtonPosition", val)}
-                  helpText="Profile designs display the follow button in the header by default."
                 />
               )}
 
@@ -1743,7 +1936,7 @@ function UnifiedConfigurator({
                     }
                   }}
                 >
-                  {isTagMode ? "Exit Tag Mode" : "🏷️ Tag Products on Posts"}
+                  {isTagMode ? "Exit Tag Mode" : "Tag Products"}
                 </Button>
 
                 <Button
@@ -1759,7 +1952,7 @@ function UnifiedConfigurator({
                     }
                   }}
                 >
-                  {isHideMode ? "Exit Hide Mode" : "👁️ Hide Specific Posts"}
+                  {isHideMode ? "Exit Hide Mode" : "Hide Posts"}
                 </Button>
               </div>
             </BlockStack>
@@ -1773,7 +1966,7 @@ function UnifiedConfigurator({
                 onClick={handleSaveConfig}
                 loading={isSaving}
               >
-                Save Feed Design
+                Save
               </Button>
             </div>
           </div>
@@ -1956,28 +2149,42 @@ export default function Index() {
   const [previewingTemplate, setPreviewingTemplate] = useState(null);
   const [templateFilter, setTemplateFilter] = useState("all");
   const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(true);
+  const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
+  const [applyingTemplateName, setApplyingTemplateName] = useState("");
 
   const handleApplyTemplate = useCallback((template) => {
-    setConfig((prev) => ({
-      ...prev,
-      appliedTemplateId: template.id,
-      postFeed: {
-        ...prev.postFeed,
-        ...(template.config.postFeed || {}),
-        typography: {
-          ...prev.postFeed.typography,
-          ...(template.config.postFeed?.typography || {}),
+    setIsApplyingTemplate(true);
+    setApplyingTemplateName(template.name || "Design");
+
+    setTimeout(() => {
+      const templateFollowPos = template.config.postFeed?.followButtonPosition || (template.id.includes("profile") ? "header" : "bottom");
+      setConfig((prev) => ({
+        ...prev,
+        appliedTemplateId: template.id,
+        postFeed: {
+          ...prev.postFeed,
+          ...(template.config.postFeed || {}),
+          followButtonPosition: templateFollowPos,
+          typography: {
+            ...prev.postFeed.typography,
+            ...(template.config.postFeed?.typography || {}),
+          },
         },
-      },
-      stories: {
-        ...prev.stories,
-        ...(template.config.stories || {}),
-      },
-    }));
-    setHasUnsavedChanges(true);
-    shopify?.toast?.show(`Applied "${template.name}" template!`);
-    setIsTemplatesModalOpen(false);
-    setPreviewingTemplate(null);
+        stories: {
+          ...prev.stories,
+          ...(template.config.stories || {}),
+        },
+      }));
+      setHasUnsavedChanges(true);
+      shopify?.toast?.show(`Applied "${template.name}" template!`);
+      setIsTemplatesModalOpen(false);
+      setPreviewingTemplate(null);
+
+      setTimeout(() => {
+        setIsApplyingTemplate(false);
+        setApplyingTemplateName("");
+      }, 350);
+    }, 50);
   }, [shopify]);
 
   const handlePreviewTemplate = useCallback((template) => {
@@ -2577,22 +2784,6 @@ export default function Index() {
             alt="Instagram post"
           />
         ) : null}
-        {isVideo && (
-          <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10 }}>
-            <span className="ai-type-badge-pill">
-              <VideoMediaIcon />
-              <span>{rawType === "REEL" ? "REEL" : "VIDEO"}</span>
-            </span>
-          </div>
-        )}
-        {isAlbum && (
-          <div className="media-icon-badge" style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10 }}>
-            <span className="ai-type-badge-pill">
-              <CarouselMediaIcon />
-              <span>GALLERY</span>
-            </span>
-          </div>
-        )}
         {config.postFeed.metrics && (
           <div className="media-metrics">
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -2603,11 +2794,6 @@ export default function Index() {
               <Icon source={ChatIcon} tone="inherit" />
               <span>{item.comments_count ?? "0"}</span>
             </div>
-          </div>
-        )}
-        {config.postFeed.showInstagramIcon !== false && (
-          <div className="ai-ig-icon" style={{ color: "white" }}>
-            <InstagramIcon />
           </div>
         )}
         <div className="hover-card-overlay" />
@@ -2623,14 +2809,16 @@ export default function Index() {
 
   const renderPreviewFeed = (isMobile) => {
     const layout = config.postFeed.layoutMode || (config.postFeed.carousel ? "carousel" : "grid");
-    const gap = config.postFeed.gap;
+    const rawGap = config.postFeed.gap ?? 8;
+    // Scale gap proportionally for the preview container (mobile frame is 280px wide)
+    const gap = isMobile ? Math.min(Math.max(Math.round(rawGap * 0.5), 3), 6) : Math.min(rawGap, 8);
     const cols = isMobile ? (config.postFeed.mobileColumns || 2) : (config.postFeed.desktopColumns || 4);
     const carouselRef = isMobile ? mobileCarouselRef : desktopCarouselRef;
 
     if (layout === "carousel") {
       const itemWidth = `calc((100% - ${(cols - 1) * gap}px) / ${cols})`;
       return (
-        <div className="carousel-wrapper" style={{ padding: `${gap}px 0`, position: "relative" }}>
+        <div className="carousel-wrapper" style={{ padding: `${Math.round(gap / 2)}px 0`, position: "relative" }}>
           <button
             className="carousel-nav prev"
             onClick={() => scrollCarousel(carouselRef, "prev")}
@@ -2670,7 +2858,7 @@ export default function Index() {
           style={{
             columnCount: cols,
             columnGap: `${gap}px`,
-            padding: isMobile ? `8px ${gap}px` : "0",
+            padding: isMobile ? `4px ${gap}px` : "0",
           }}
         >
           {simulatedInfiniteMedia.map((item, i) => (
@@ -2690,7 +2878,7 @@ export default function Index() {
             display: "grid",
             gridTemplateColumns: `repeat(${highlightCols}, 1fr)`,
             gap: `${gap}px`,
-            padding: isMobile ? `8px ${gap}px` : "0",
+            padding: isMobile ? `4px ${gap}px` : "0",
           }}
         >
           {simulatedInfiniteMedia.map((item, i) => {
@@ -2719,7 +2907,7 @@ export default function Index() {
     if (layout === "reels") {
       const reelWidth = isMobile ? `calc((100% - ${gap}px) / 2)` : `calc((100% - ${(cols - 1) * gap}px) / ${cols})`;
       return (
-        <div className="carousel-wrapper" style={{ padding: `${gap}px 0`, position: "relative" }}>
+        <div className="carousel-wrapper" style={{ padding: `${Math.round(gap / 2)}px 0`, position: "relative" }}>
           <button
             className="carousel-nav prev"
             onClick={() => scrollCarousel(carouselRef, "prev")}
@@ -2754,7 +2942,7 @@ export default function Index() {
     }
 
     if (layout === "marquee") {
-      const itemWidth = isMobile ? "140px" : "180px";
+      const itemWidth = isMobile ? "130px" : "160px";
       const speed = config.postFeed.marqueeSpeed || 32;
       return (
         <div
@@ -2762,7 +2950,7 @@ export default function Index() {
             overflow: "hidden",
             width: "100%",
             position: "relative",
-            padding: `${gap}px 0`,
+            padding: `${Math.round(gap / 2)}px 0`,
           }}
         >
           <style>{`
@@ -2800,7 +2988,7 @@ export default function Index() {
           display: "grid",
           gridTemplateColumns: `repeat(${cols}, 1fr)`,
           gap: `${gap}px`,
-          padding: isMobile ? `8px ${gap}px` : "0",
+          padding: isMobile ? `4px ${gap}px` : "0",
         }}
       >
         {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
@@ -2811,7 +2999,6 @@ export default function Index() {
   const renderPromoStoryItem = () => {
     const s = config.stories;
     const ringColor = s.ringColor || "#e1306c";
-    const promoLabel = s.promoLabel || "Get 10% Off";
 
     return (
       <div
@@ -2820,7 +3007,7 @@ export default function Index() {
         onClick={() => setSelectedPost({ isPromo: true })}
         style={{
           flexShrink: 0,
-          width: "72px",
+          width: "56px",
           textAlign: "center",
           cursor: "pointer",
         }}
@@ -2875,25 +3062,6 @@ export default function Index() {
             </svg>
           </div>
         </div>
-        <div style={{ marginTop: "4px" }}>
-          <span
-            className="ai-promo-pill"
-            style={{
-              display: "inline-block",
-              padding: "2px 6px",
-              border: `1.5px solid ${ringColor}`,
-              color: ringColor,
-              fontSize: "9px",
-              fontWeight: "700",
-              borderRadius: "10px",
-              whiteSpace: "nowrap",
-              background: "white",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
-            }}
-          >
-            {promoLabel}
-          </span>
-        </div>
       </div>
     );
   };
@@ -2903,8 +3071,6 @@ export default function Index() {
     const ringColor = s.ringColor || "#e1306c";
     const rawType = (item.media_type || "").toUpperCase();
     const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
-    const rawLabel = item.caption ? item.caption.split(/\s+/)[0] : `Story ${i + 1}`;
-    const cleanLabel = rawLabel.replace(/[:,\.\-\s]+$/, "");
 
     return (
       <div
@@ -2913,7 +3079,7 @@ export default function Index() {
         onClick={() => setSelectedPost(item)}
         style={{
           flexShrink: 0,
-          width: "66px",
+          width: "56px",
           textAlign: "center",
           cursor: "pointer",
         }}
@@ -2976,21 +3142,6 @@ export default function Index() {
             )}
           </div>
         </div>
-        {s.showLabels && (
-          <div
-            style={{
-              marginTop: "4px",
-              fontSize: "10px",
-              fontWeight: "500",
-              color: "#1e293b",
-              textOverflow: "ellipsis",
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {cleanLabel}
-          </div>
-        )}
       </div>
     );
   };
@@ -2999,7 +3150,7 @@ export default function Index() {
     const handle = (instaData?.username || config.instagramHandle || "").replace("@", "").trim();
     if (!handle) return null;
     return (
-      <div style={{ textAlign: inHeader ? config.postFeed.alignment : "center", marginTop: inHeader ? "10px" : "18px", marginBottom: inHeader ? "6px" : "8px" }}>
+      <div style={{ textAlign: inHeader ? config.postFeed.alignment : "center", marginTop: inHeader ? "6px" : "10px", marginBottom: inHeader ? "4px" : "4px" }}>
         <a
           href={`https://instagram.com/${handle}`}
           target="_blank"
@@ -3100,27 +3251,27 @@ export default function Index() {
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <div
                   style={{
-                    width: "22px",
-                    height: "22px",
+                    width: "20px",
+                    height: "20px",
                     borderRadius: "50%",
                     background: "#16a34a",
                     color: "#ffffff",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "12px",
+                    fontSize: "11px",
                     fontWeight: "bold",
                     flexShrink: 0,
                   }}
                 >
                   ✓
                 </div>
-                <div>
-                  <span style={{ fontSize: "14px", fontWeight: "700", color: "#0f172a" }}>
-                    Setup guide completed!
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "13.5px", fontWeight: "600", color: "#0f172a" }}>
+                    Setup guide completed
                   </span>
-                  <span style={{ fontSize: "12.5px", color: "#64748b", marginLeft: "8px" }}>
-                    All 3 tasks completed · Your Instagram feed is active in store
+                  <span style={{ fontSize: "12.5px", color: "#64748b" }}>
+                    · Feed is active in store
                   </span>
                 </div>
               </div>
@@ -3504,29 +3655,9 @@ export default function Index() {
               gap: "10px",
             }}
           >
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <h2 style={{ fontSize: "15px", fontWeight: "700", color: "#0f172a", margin: 0 }}>
-                  Feed Analytics
-                </h2>
-                <span
-                  style={{
-                    background: "#eff6ff",
-                    color: "#2563eb",
-                    fontSize: "11px",
-                    fontWeight: "700",
-                    padding: "2px 8px",
-                    borderRadius: "12px",
-                    border: "1px solid #dbeafe",
-                  }}
-                >
-                  Live Tracking
-                </span>
-              </div>
-              <p style={{ fontSize: "13px", color: "#64748b", margin: "3px 0 0 0" }}>
-                Track impressions, shoppable hotspot clicks, and customer engagement across your store.
-              </p>
-            </div>
+            <h2 style={{ fontSize: "15px", fontWeight: "700", color: "#0f172a", margin: 0 }}>
+              Feed Analytics
+            </h2>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "12.5px", color: "#64748b", fontWeight: "500" }}>Timeframe:</span>
@@ -3737,11 +3868,63 @@ export default function Index() {
             }}
           >
             <Card>
-                  <BlockStack gap="300">
-                    <InlineStack align="space-between" blockAlign="center">
-                      <Text variant="headingSm" as="h3">
-                        Live Preview
-                      </Text>
+              <div style={{ position: "relative" }}>
+                {isApplyingTemplate && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "-12px",
+                      background: "rgba(255, 255, 255, 0.85)",
+                      backdropFilter: "blur(6px)",
+                      WebkitBackdropFilter: "blur(6px)",
+                      zIndex: 100,
+                      borderRadius: "12px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "14px",
+                      pointerEvents: "all",
+                      animation: "fadeIn 0.15s ease-out",
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "18px 24px",
+                        background: "#ffffff",
+                        borderRadius: "14px",
+                        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
+                        border: "1px solid #e2e8f0",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "10px",
+                        textAlign: "center",
+                        minWidth: "200px",
+                      }}
+                    >
+                      <Spinner accessibilityLabel="Applying design template" size="large" />
+                      <div>
+                        <Text variant="headingSm" as="h4">
+                          Applying Design
+                        </Text>
+                        {applyingTemplateName && (
+                          <div style={{ marginTop: "3px" }}>
+                            <Text variant="bodyXs" tone="subdued">
+                              {applyingTemplateName}
+                            </Text>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <BlockStack gap="300">
+                  <InlineStack align="space-between" blockAlign="center">
+                    <Text variant="headingSm" as="h3">
+                      Live Preview
+                    </Text>
                       <ButtonGroup variant="segmented">
                         <Button
                           pressed={previewDevice === "mobile"}
@@ -3821,31 +4004,31 @@ export default function Index() {
                             </div>
 
                             <div
-                              style={{ height: "calc(100% - 36px)", overflowY: "auto", paddingBottom: "20px" }}
+                              style={{ height: "calc(100% - 36px)", overflowY: "auto", paddingBottom: "8px" }}
                               onScroll={(e) => handleScroll(e, "vertical")}
                             >
                               <div
                                 style={{
-                                  paddingTop: `${config.postFeed.paddingTop}px`,
-                                  paddingBottom: `${config.postFeed.paddingBottom}px`,
+                                  paddingTop: `${Math.min(config.postFeed.paddingTop || 12, 12)}px`,
+                                  paddingBottom: `${Math.min(config.postFeed.paddingBottom || 12, 12)}px`,
                                 }}
                               >
                                 {/* 1. Header: Title & Description & Contextual Follow Button */}
-                                {config.postFeed.header && (config.postFeed.heading?.trim() || config.postFeed.subheading?.trim()) && (
-                                  <div style={{ padding: "8px 12px 0", textAlign: config.postFeed.alignment }}>
-                                    {config.postFeed.heading?.trim() && (
+                                {(config.postFeed.header || showHeaderFollow) && (
+                                  <div style={{ padding: "4px 8px 0", textAlign: config.postFeed.alignment }}>
+                                    {config.postFeed.header && config.postFeed.heading?.trim() && (
                                       <h4
                                         style={{
                                           fontSize: `${config.postFeed.typography.heading.size}px`,
                                           fontWeight: config.postFeed.typography.heading.weight,
                                           color: config.postFeed.typography.heading.color,
-                                          margin: "0 0 4px 0",
+                                          margin: "0 0 2px 0",
                                         }}
                                       >
                                         {formatDynamicAccountText(config.postFeed.heading)}
                                       </h4>
                                     )}
-                                    {config.postFeed.subheading?.trim() && (
+                                    {config.postFeed.header && config.postFeed.subheading?.trim() && (
                                       <p
                                         style={{
                                           fontSize: `${config.postFeed.typography.subheading.size}px`,
@@ -3862,7 +4045,7 @@ export default function Index() {
 
                                 {/* 2. Story Highlights Bar (images by default, threshold >= 6 posts) */}
                                 {showStorySection && storyMedia.length > 0 && (
-                                  <div style={{ display: "flex", gap: "8px", padding: "10px 10px 6px", overflowX: "auto" }}>
+                                  <div style={{ display: "flex", gap: "6px", padding: "4px 6px 4px", overflowX: "auto" }}>
                                     {config.stories.promoEnable !== false && renderPromoStoryItem()}
                                     {storyMedia.slice(0, 8).map((item, i) => renderStoryItem(item, i))}
                                   </div>
@@ -3885,28 +4068,32 @@ export default function Index() {
                             background: "white",
                             borderRadius: "12px",
                             border: "1px solid #e2e8f0",
-                            padding: "16px",
+                            padding: "12px",
                             overflowY: "auto",
                             maxHeight: "560px",
                           }}
                         >
                           <div>
                             {/* 1. Header: Title & Description & Contextual Follow Button */}
-                            {config.postFeed.header && (
-                              <div style={{ textAlign: config.postFeed.alignment, marginBottom: "12px" }}>
-                                <h4
-                                  style={{
-                                    fontSize: `${config.postFeed.typography.heading.size}px`,
-                                    fontWeight: config.postFeed.typography.heading.weight,
-                                    color: config.postFeed.typography.heading.color,
-                                    margin: "0 0 4px 0",
-                                  }}
-                                >
-                                  {formatDynamicAccountText(config.postFeed.heading)}
-                                </h4>
-                                <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, color: config.postFeed.typography.subheading.color, margin: 0 }}>
-                                  {formatDynamicAccountText(config.postFeed.subheading)}
-                                </p>
+                            {(config.postFeed.header || showHeaderFollow) && (
+                              <div style={{ textAlign: config.postFeed.alignment, marginBottom: "8px" }}>
+                                {config.postFeed.header && config.postFeed.heading?.trim() && (
+                                  <h4
+                                    style={{
+                                      fontSize: `${config.postFeed.typography.heading.size}px`,
+                                      fontWeight: config.postFeed.typography.heading.weight,
+                                      color: config.postFeed.typography.heading.color,
+                                      margin: "0 0 4px 0",
+                                    }}
+                                  >
+                                    {formatDynamicAccountText(config.postFeed.heading)}
+                                  </h4>
+                                )}
+                                {config.postFeed.header && config.postFeed.subheading?.trim() && (
+                                  <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, color: config.postFeed.typography.subheading.color, margin: 0 }}>
+                                    {formatDynamicAccountText(config.postFeed.subheading)}
+                                  </p>
+                                )}
                                 {showHeaderFollow && renderFollowButton(true)}
                               </div>
                             )}
@@ -3916,10 +4103,10 @@ export default function Index() {
                               <div
                                 style={{
                                   display: "flex",
-                                  gap: "12px",
+                                  gap: "8px",
                                   justifyContent: config.postFeed.alignment === "center" ? "center" : "flex-start",
                                   overflowX: "auto",
-                                  padding: "6px 0 14px",
+                                  padding: "4px 0 8px",
                                 }}
                               >
                                 {config.stories.promoEnable !== false && renderPromoStoryItem()}
@@ -3937,7 +4124,8 @@ export default function Index() {
                       );
                     })()}
                   </BlockStack>
-                </Card>
+                </div>
+              </Card>
           </div>
         </div>
 
