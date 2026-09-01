@@ -1180,3 +1180,93 @@
   background: #334155 !important;
 }
 
+/* ── Extended Layouts: Masonry, Highlight, Reels, Marquee ── */
+
+/* 1. Masonry / Waterfall */
+.ai-layout-masonry {
+  column-gap: var(--ai-gap, 16px);
+  width: 100%;
+}
+.ai-layout-masonry .ai-grid-item {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  margin-bottom: var(--ai-gap, 16px) !important;
+  display: inline-block !important;
+  width: 100% !important;
+}
+.ai-layout-masonry .ai-grid-item-inner {
+  height: auto !important;
+  aspect-ratio: unset !important;
+}
+.ai-layout-masonry img,
+.ai-layout-masonry video {
+  height: auto !important;
+  display: block !important;
+}
+
+/* 2. Highlight (Hero Left 2x2 + Small Right) */
+.ai-layout-highlight {
+  display: grid !important;
+  width: 100%;
+}
+.ai-layout-highlight .ai-highlight-hero {
+  grid-column: span 2 !important;
+  grid-row: span 2 !important;
+  min-height: 100% !important;
+}
+.ai-layout-highlight .ai-highlight-hero .ai-grid-item-inner {
+  height: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+}
+
+@media (max-width: 640px) {
+  .ai-layout-highlight .ai-highlight-hero {
+    grid-column: span 2 !important;
+    grid-row: span 1 !important;
+  }
+}
+
+/* 3. Reels Shelf */
+.ai-layout-reels .ai-grid-item-inner {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px !important;
+}
+.ai-layout-reels .ai-type-badge-pill {
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  font-weight: 700 !important;
+}
+
+/* 4. Marquee Auto-Ticker */
+@keyframes ai-marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ai-marquee-wrapper {
+  overflow: hidden !important;
+  width: 100% !important;
+  position: relative !important;
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+}
+
+.ai-marquee-track {
+  display: flex !important;
+  width: max-content !important;
+  animation: ai-marquee-scroll var(--ai-marquee-speed, 35s) linear infinite !important;
+  gap: var(--ai-gap, 16px) !important;
+  will-change: transform;
+}
+
+.ai-marquee-track:hover {
+  animation-play-state: paused !important;
+}
+
+.ai-marquee-item {
+  flex-shrink: 0 !important;
+  width: var(--ai-marquee-item-width, 220px) !important;
+}
+
+

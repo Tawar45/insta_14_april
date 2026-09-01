@@ -19,10 +19,8 @@ import {
   Select,
   RangeSlider,
   Checkbox,
-  Tabs,
   BlockStack,
   InlineStack,
-  InlineGrid,
   Box,
   Divider,
   Collapsible,
@@ -34,7 +32,6 @@ import {
   SkeletonDisplayText,
 } from "@shopify/polaris";
 import {
-  RefreshIcon,
   XIcon,
   CheckIcon,
   ChevronLeftIcon,
@@ -43,7 +40,6 @@ import {
   ChevronUpIcon,
   HeartIcon,
   ChatIcon,
-  LinkIcon,
   StarIcon,
   StoreIcon,
   DesktopIcon,
@@ -51,6 +47,9 @@ import {
   ViewIcon,
   ShareIcon,
   ExternalIcon,
+  PlayIcon,
+  PlusIcon,
+  CheckCircleIcon,
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -441,6 +440,8 @@ const DEFAULT_CONFIG = {
     metrics: true,
     load: false,
     carousel: true,
+    layoutMode: "carousel",
+    marqueeSpeed: 32,
     autoplay: true,
     modalSound: false,
     modalNavigation: true,
@@ -463,7 +464,7 @@ const DEFAULT_CONFIG = {
     hiddenPostIds: [],
     paddingTop: 32,
     paddingBottom: 32,
-    mediaTypeFilter: "all",
+    mediaTypeFilter: "videos",
     sortBy: "latest",
     shoppablePins: true,
   },
@@ -494,7 +495,7 @@ const DEFAULT_CONFIG = {
     openPopup: true,
     removeWatermark: false,
     showFollowButton: false,
-    mediaTypeFilter: "all",
+    mediaTypeFilter: "images",
     sortBy: "latest",
   },
 };
@@ -567,6 +568,1206 @@ const isPresetMatch = (currentConfigSection, preset) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// READY-TO-USE DESIGN TEMPLATES LIBRARY
+// ─────────────────────────────────────────────────────────────────────────────
+const MOCK_THUMBS = [
+  "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1556760544-74068565f05c?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1512290900672-1f48ba635c40?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=300&h=300&fit=crop",
+];
+
+const FEED_TEMPLATES = [
+  {
+    id: "highlight-eurus",
+    name: "Highlight Eurus layout",
+    desc: "1 large hero post on the left with 4 square tiles on the right.",
+    type: "highlight",
+    config: {
+      postFeed: {
+        layoutMode: "highlight",
+        carousel: false,
+        header: true,
+        heading: "Inspire you everyday",
+        subheading: "",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 12,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+      },
+      stories: { enable: false },
+    },
+  },
+  {
+    id: "slider-layout",
+    name: "Slider layout",
+    desc: "Smooth sliding carousel with modern navigation arrows.",
+    type: "carousel",
+    config: {
+      postFeed: {
+        layoutMode: "carousel",
+        carousel: true,
+        header: true,
+        heading: "Inspire you everyday",
+        subheading: "",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 16,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+      },
+      stories: { enable: false },
+    },
+  },
+  {
+    id: "grid-layout",
+    name: "Grid layout",
+    desc: "Symmetrical clean grid with uniform rows and columns.",
+    type: "grid",
+    config: {
+      postFeed: {
+        layoutMode: "grid",
+        carousel: false,
+        header: true,
+        heading: "Inspire you everyday",
+        subheading: "",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 16,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+      },
+      stories: { enable: false },
+    },
+  },
+  {
+    id: "highlight-profile",
+    name: "Highlight with profile layout",
+    desc: "Instagram profile header banner with 2x2 highlight grid.",
+    type: "highlight",
+    config: {
+      postFeed: {
+        layoutMode: "highlight",
+        carousel: false,
+        header: true,
+        heading: "@account",
+        subheading: "Inspire you everyday · Follow us for daily updates",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 12,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+      },
+      stories: { enable: false },
+    },
+  },
+  {
+    id: "slider-profile",
+    name: "Slider with profile layout",
+    desc: "Profile header banner paired with an auto-sliding carousel.",
+    type: "carousel",
+    config: {
+      postFeed: {
+        layoutMode: "carousel",
+        carousel: true,
+        header: true,
+        heading: "@account",
+        subheading: "Inspire you everyday",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 16,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+      },
+      stories: { enable: false },
+    },
+  },
+  {
+    id: "grid-profile",
+    name: "Grid with profile layout",
+    desc: "Profile header banner paired with a clean symmetrical grid.",
+    type: "grid",
+    config: {
+      postFeed: {
+        layoutMode: "grid",
+        carousel: false,
+        header: true,
+        heading: "@account",
+        subheading: "Inspire you everyday",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 16,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+      },
+      stories: { enable: false },
+    },
+  },
+  {
+    id: "highlight-full",
+    name: "Highlight layout with full features",
+    desc: "Story highlights bar, 2x2 highlight grid, hover metrics & follow button.",
+    type: "highlight",
+    config: {
+      postFeed: {
+        layoutMode: "highlight",
+        carousel: false,
+        header: true,
+        heading: "Inspire you everyday",
+        subheading: "Tag us @account to be featured in our lookbook",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 12,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "videos",
+        showFollowButton: true,
+      },
+      stories: {
+        enable: true,
+        promoEnable: true,
+        promoLabel: "Special Offer",
+        activeRing: true,
+        ringColor: "#e1306c",
+        showLabels: true,
+      },
+    },
+  },
+  {
+    id: "slider-full",
+    name: "Slider layout with full features",
+    desc: "Story highlights circles on top with horizontal carousel slider below.",
+    type: "carousel",
+    config: {
+      postFeed: {
+        layoutMode: "carousel",
+        carousel: true,
+        header: true,
+        heading: "Inspire you everyday",
+        subheading: "Swipe to shop our latest Instagram looks",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 16,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "videos",
+        showFollowButton: true,
+      },
+      stories: {
+        enable: true,
+        promoEnable: true,
+        promoLabel: "10% Off",
+        activeRing: true,
+        ringColor: "#e1306c",
+        showLabels: true,
+      },
+    },
+  },
+  {
+    id: "grid-full",
+    name: "Grid layout with full features",
+    desc: "Circular story highlights with complete shoppable grid & product tags.",
+    type: "grid",
+    config: {
+      postFeed: {
+        layoutMode: "grid",
+        carousel: false,
+        header: true,
+        heading: "Inspire you everyday",
+        subheading: "Shop our latest collections directly from Instagram",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 16,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+      },
+      stories: {
+        enable: true,
+        promoEnable: true,
+        promoLabel: "New Drop",
+        activeRing: true,
+        ringColor: "#833ab4",
+        showLabels: true,
+      },
+    },
+  },
+  {
+    id: "reels-wall",
+    name: "Reels video wall layout",
+    desc: "9:16 vertical video reel showcase with auto-looping clips.",
+    type: "reels",
+    config: {
+      postFeed: {
+        layoutMode: "reels",
+        carousel: true,
+        header: true,
+        heading: "WATCH OUR REELS",
+        subheading: "Click any reel to watch with sound and shop featured items",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 16,
+        aspectRatio: "9/16",
+        metrics: true,
+        mediaTypeFilter: "videos",
+        autoplay: true,
+        showFollowButton: true,
+      },
+      stories: { enable: false },
+    },
+  },
+  {
+    id: "marquee-ticker",
+    name: "Marquee ticker layout",
+    desc: "Continuous infinite auto-scrolling social ticker ribbon.",
+    type: "marquee",
+    config: {
+      postFeed: {
+        layoutMode: "marquee",
+        carousel: false,
+        header: true,
+        heading: "LIVE FROM INSTAGRAM",
+        subheading: "",
+        alignment: "center",
+        desktopColumns: 6,
+        mobileColumns: 3,
+        gap: 16,
+        marqueeSpeed: 30,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: false,
+      },
+      stories: { enable: false },
+    },
+  },
+  {
+    id: "masonry-lookbook",
+    name: "Masonry Lookbook layout",
+    desc: "Dynamic Pinterest-style staggered waterfall columns.",
+    type: "masonry",
+    config: {
+      postFeed: {
+        layoutMode: "masonry",
+        carousel: false,
+        header: true,
+        heading: "Inspire you everyday",
+        subheading: "Explore our dynamic lookbook",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 16,
+        aspectRatio: "auto",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+      },
+      stories: { enable: false },
+    },
+  },
+];
+
+function TemplateMockupThumbnail({ template }) {
+  const t = template;
+  const isProfile = t.id.includes("profile");
+  const isStories = t.config.stories?.enable;
+  const layout = t.config.postFeed?.layoutMode || t.type;
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        aspectRatio: "16 / 9",
+        background: "#262626",
+        borderRadius: "6px",
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)",
+      }}
+    >
+      <svg
+        viewBox="0 0 240 120"
+        style={{ width: "100%", height: "100%", display: "block" }}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Background */}
+        <rect width="240" height="120" fill="#262626" />
+
+        {isProfile ? (
+          /* Profile header variant */
+          <g>
+            {/* Header bar */}
+            <circle cx="24" cy="18" r="10" fill="#ffffff" />
+            <rect x="42" y="12" width="54" height="5" rx="2.5" fill="#ffffff" />
+            <rect x="42" y="21" width="76" height="4" rx="2" fill="#9ca3af" />
+            <rect x="180" y="10" width="50" height="16" rx="8" fill="#ffffff" />
+            <rect x="194" y="16" width="22" height="4" rx="2" fill="#18181b" />
+
+            {/* Posts row */}
+            <rect x="10" y="38" width="50" height="74" rx="3" fill="#ffffff" />
+            <rect x="66" y="38" width="50" height="74" rx="3" fill="#e5e7eb" />
+            <rect x="122" y="38" width="50" height="74" rx="3" fill="#ffffff" />
+            <rect x="178" y="38" width="52" height="74" rx="3" fill="#9ca3af" />
+          </g>
+        ) : isStories ? (
+          /* Story highlights bar variant */
+          <g>
+            {/* Stories circles */}
+            {[24, 68, 112, 156, 200].map((cx, i) => (
+              <g key={i}>
+                <circle cx={cx} cy="22" r="14" stroke="#9ca3af" strokeWidth="2" strokeDasharray={i === 0 ? "none" : "none"} fill="none" />
+                <circle cx={cx} cy="22" r="11" fill={i === 0 ? "#ffffff" : "#d1d5db"} />
+              </g>
+            ))}
+
+            {/* Posts below */}
+            <rect x="8" y="46" width="52" height="66" rx="3" fill="#ffffff" />
+            <rect x="64" y="46" width="52" height="66" rx="3" fill="#e5e7eb" />
+            <rect x="120" y="46" width="52" height="66" rx="3" fill="#ffffff" />
+            <rect x="176" y="46" width="56" height="66" rx="3" fill="#9ca3af" />
+          </g>
+        ) : layout === "highlight" ? (
+          /* Eurus highlight: 1 large hero post on left, 4 tiles on right (2x2) */
+          <g>
+            {/* Large hero on left */}
+            <rect x="8" y="8" width="94" height="104" rx="3" fill="#ffffff" />
+
+            {/* 4 tiles on right */}
+            <rect x="106" y="8" width="58" height="50" rx="3" fill="#e5e7eb" />
+            <rect x="168" y="8" width="64" height="50" rx="3" fill="#9ca3af" />
+            <rect x="106" y="62" width="64" height="50" rx="3" fill="#ffffff" />
+            <rect x="174" y="62" width="58" height="50" rx="3" fill="#e5e7eb" />
+          </g>
+        ) : layout === "carousel" ? (
+          /* Carousel with arrows */
+          <g>
+            {/* Left arrow button */}
+            <circle cx="14" cy="60" r="9" fill="#ffffff" />
+            <path d="M16 54L10 60L16 66" stroke="#18181b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+            {/* Slides */}
+            <rect x="28" y="12" width="44" height="96" rx="3" fill="#ffffff" />
+            <rect x="76" y="12" width="44" height="96" rx="3" fill="#e5e7eb" />
+            <rect x="124" y="12" width="44" height="96" rx="3" fill="#ffffff" />
+            <rect x="172" y="12" width="44" height="96" rx="3" fill="#9ca3af" />
+
+            {/* Right arrow button */}
+            <circle cx="226" cy="60" r="9" fill="#ffffff" />
+            <path d="M224 54L230 60L224 66" stroke="#18181b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+        ) : layout === "reels" ? (
+          /* 9:16 portrait video reels with play icons */
+          <g>
+            {[
+              { x: 8, w: 52, fill: "#ffffff", iconFill: "#18181b" },
+              { x: 64, w: 52, fill: "#e5e7eb", iconFill: "#18181b" },
+              { x: 120, w: 52, fill: "#ffffff", iconFill: "#18181b" },
+              { x: 176, w: 56, fill: "#9ca3af", iconFill: "#18181b" },
+            ].map((reel, idx) => (
+              <g key={idx}>
+                <rect x={reel.x} y="8" width={reel.w} height="104" rx="3" fill={reel.fill} />
+                <circle cx={reel.x + reel.w / 2} cy="60" r="10" fill="rgba(24,24,27,0.3)" />
+                <polygon
+                  points={`${reel.x + reel.w / 2 - 3},54 ${reel.x + reel.w / 2 + 5},60 ${reel.x + reel.w / 2 - 3},66`}
+                  fill="#ffffff"
+                />
+              </g>
+            ))}
+          </g>
+        ) : layout === "marquee" ? (
+          /* Marquee horizontal ticker */
+          <g>
+            <rect x="4" y="20" width="42" height="80" rx="3" fill="#ffffff" />
+            <rect x="50" y="20" width="42" height="80" rx="3" fill="#e5e7eb" />
+            <rect x="96" y="20" width="42" height="80" rx="3" fill="#ffffff" />
+            <rect x="142" y="20" width="42" height="80" rx="3" fill="#e5e7eb" />
+            <rect x="188" y="20" width="48" height="80" rx="3" fill="#9ca3af" />
+
+            {/* Marquee ticker indicators */}
+            <path d="M10 10L16 10M20 10L30 10M34 10L50 10" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" />
+            <path d="M190 110L200 110M204 110L214 110M218 110L230 110" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" />
+          </g>
+        ) : layout === "masonry" ? (
+          /* Masonry brick lookbook */
+          <g>
+            {/* Col 1 */}
+            <rect x="8" y="8" width="50" height="62" rx="3" fill="#ffffff" />
+            <rect x="8" y="74" width="50" height="38" rx="3" fill="#e5e7eb" />
+
+            {/* Col 2 */}
+            <rect x="64" y="8" width="50" height="38" rx="3" fill="#9ca3af" />
+            <rect x="64" y="50" width="50" height="62" rx="3" fill="#ffffff" />
+
+            {/* Col 3 */}
+            <rect x="120" y="8" width="50" height="66" rx="3" fill="#e5e7eb" />
+            <rect x="120" y="78" width="50" height="34" rx="3" fill="#ffffff" />
+
+            {/* Col 4 */}
+            <rect x="176" y="8" width="56" height="46" rx="3" fill="#ffffff" />
+            <rect x="176" y="58" width="56" height="54" rx="3" fill="#9ca3af" />
+          </g>
+        ) : (
+          /* Clean 4x2 Grid */
+          <g>
+            {/* Row 1 */}
+            <rect x="8" y="8" width="52" height="50" rx="3" fill="#ffffff" />
+            <rect x="64" y="8" width="52" height="50" rx="3" fill="#e5e7eb" />
+            <rect x="120" y="8" width="52" height="50" rx="3" fill="#ffffff" />
+            <rect x="176" y="8" width="56" height="50" rx="3" fill="#9ca3af" />
+
+            {/* Row 2 */}
+            <rect x="8" y="62" width="52" height="50" rx="3" fill="#e5e7eb" />
+            <rect x="64" y="62" width="52" height="50" rx="3" fill="#ffffff" />
+            <rect x="120" y="62" width="52" height="50" rx="3" fill="#9ca3af" />
+            <rect x="176" y="62" width="56" height="50" rx="3" fill="#ffffff" />
+          </g>
+        )}
+      </svg>
+    </div>
+  );
+}
+
+function TemplateCard({ template, onApply, onPreview }) {
+  return (
+    <Card padding="300">
+      <BlockStack gap="200">
+        <TemplateMockupThumbnail template={template} />
+        <div style={{ minHeight: "36px" }}>
+          <Text variant="bodySm" fontWeight="bold" as="h4">
+            {template.name}
+          </Text>
+        </div>
+        <InlineStack align="space-between" blockAlign="center">
+          <Button size="slim" onClick={() => onApply(template)}>
+            Try it now
+          </Button>
+          <Button size="slim" variant="plain" onClick={() => onPreview(template)}>
+            Preview
+          </Button>
+        </InlineStack>
+      </BlockStack>
+    </Card>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UNIFIED SINGLE-TAB CONFIGURATOR COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+function UnifiedConfigurator({
+  config,
+  updateConfig,
+  setConfig,
+  isPaid,
+  isHideMode,
+  setIsHideMode,
+  isTagMode,
+  setIsTagMode,
+  showStorySection,
+  totalPostsCount,
+  shopify,
+  navigate,
+  onApplyTemplate,
+  handleSaveConfig,
+  isSaving,
+  hasUnsavedChanges,
+}) {
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isCustomizingExpanded, setIsCustomizingExpanded] = useState(false);
+
+  const [isBrandingExpanded, setIsBrandingExpanded] = useState(true);
+  const [isStoryExpanded, setIsStoryExpanded] = useState(true);
+  const [isLayoutExpanded, setIsLayoutExpanded] = useState(true);
+  const [isModerationExpanded, setIsModerationExpanded] = useState(false);
+
+  const categories = [
+    { id: "all", label: "All Designs" },
+    { id: "grid", label: "Grid" },
+    { id: "carousel", label: "Carousel" },
+    { id: "highlight", label: "Highlight" },
+    { id: "reels", label: "Reels (9:16)" },
+    { id: "stories", label: "With Stories" },
+    { id: "marquee", label: "Marquee" },
+    { id: "masonry", label: "Masonry" },
+  ];
+
+  const filteredTemplates = useMemo(() => {
+    if (selectedCategory === "all") return FEED_TEMPLATES;
+    if (selectedCategory === "stories") return FEED_TEMPLATES.filter((t) => t.config.stories?.enable);
+    if (selectedCategory === "carousel") return FEED_TEMPLATES.filter((t) => t.type === "carousel" || t.config.postFeed?.carousel);
+    return FEED_TEMPLATES.filter((t) => t.type === selectedCategory || t.config.postFeed?.layoutMode === selectedCategory);
+  }, [selectedCategory]);
+
+  const isTemplateMatch = (template) => {
+    if (config.appliedTemplateId) {
+      return config.appliedTemplateId === template.id;
+    }
+    const p = template.config.postFeed;
+    const s = template.config.stories;
+    const currentMode = config.postFeed?.layoutMode || (config.postFeed?.carousel ? "carousel" : "grid");
+    const tplMode = p?.layoutMode || (p?.carousel ? "carousel" : "grid");
+    if (currentMode !== tplMode) return false;
+    if (Boolean(s?.enable) !== Boolean(config.stories?.enable)) return false;
+
+    // Differentiate profile templates from standard templates
+    const isTplProfile = template.id.includes("profile");
+    const isConfigProfile = config.postFeed?.heading === "@account" || config.postFeed?.heading?.startsWith("@");
+    if (isTplProfile !== isConfigProfile) return false;
+
+    return true;
+  };
+
+  return (
+    <BlockStack gap="400">
+      {/* ── Primary Section: Predefined Feed Designs ── */}
+      <Card>
+        <BlockStack gap="400">
+          <InlineStack align="space-between" blockAlign="start">
+            <BlockStack gap="100">
+              <InlineStack gap="200" blockAlign="center">
+                <Text variant="headingMd" as="h2" fontWeight="bold">
+                  Choose a Predefined Design
+                </Text>
+                {hasUnsavedChanges && (
+                  <Badge tone="warning">Unsaved changes</Badge>
+                )}
+              </InlineStack>
+              <Text tone="subdued" variant="bodySm">
+                Click any layout to preview it in real time. Save when satisfied.
+              </Text>
+            </BlockStack>
+
+            <Button
+              variant="primary"
+              onClick={handleSaveConfig}
+              loading={isSaving}
+            >
+              Save Feed Design
+            </Button>
+          </InlineStack>
+
+          {/* Category Filter Pills using Polaris Buttons */}
+          <InlineStack gap="150" wrap>
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat.id;
+              return (
+                <Button
+                  key={cat.id}
+                  size="slim"
+                  variant={isSelected ? "primary" : "secondary"}
+                  onClick={() => setSelectedCategory(cat.id)}
+                >
+                  {cat.label}
+                </Button>
+              );
+            })}
+          </InlineStack>
+
+          <Divider />
+
+          {/* Predefined Designs Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: "12px" }}>
+            {filteredTemplates.map((template) => {
+              const isMatching = isTemplateMatch(template);
+              return (
+                <div
+                  key={template.id}
+                  onClick={() => onApplyTemplate(template)}
+                  style={{
+                    border: isMatching ? "2px solid #16a34a" : "1px solid #e1e3e5",
+                    background: isMatching ? "#f0fdf4" : "#ffffff",
+                    borderRadius: "8px",
+                    padding: "12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "10px",
+                    boxShadow: isMatching ? "0 0 0 1px #16a34a" : "none",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <BlockStack gap="200">
+                    <TemplateMockupThumbnail template={template} />
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text variant="bodySm" fontWeight="bold">
+                        {template.name}
+                      </Text>
+                      {isMatching ? (
+                        <Badge tone="success">Active</Badge>
+                      ) : (
+                        <Badge tone="subdued">{template.type}</Badge>
+                      )}
+                    </InlineStack>
+                  </BlockStack>
+
+                  <Button
+                    size="slim"
+                    fullWidth
+                    variant={isMatching ? "primary" : "secondary"}
+                    tone={isMatching ? "success" : undefined}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onApplyTemplate(template);
+                    }}
+                  >
+                    {isMatching ? "Active on Preview" : "Apply Design"}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </BlockStack>
+      </Card>
+
+      {/* ── Optional Customization Accordion ── */}
+      <Card>
+        <BlockStack gap="300">
+          <InlineStack align="space-between" blockAlign="center">
+            <div
+              onClick={() => setIsCustomizingExpanded(!isCustomizingExpanded)}
+              style={{ cursor: "pointer", flex: 1 }}
+            >
+              <InlineStack gap="200" blockAlign="center">
+                <Text variant="headingSm" as="h3" fontWeight="bold">
+                  ⚙️ Customize this design
+                </Text>
+                <Badge tone="subdued">Optional</Badge>
+              </InlineStack>
+              <Text variant="bodyXs" tone="subdued">
+                Fine-tune headers, story highlights, column grid & tag products if needed
+              </Text>
+            </div>
+            <Button
+              variant="plain"
+              icon={isCustomizingExpanded ? ChevronUpIcon : ChevronDownIcon}
+              onClick={() => setIsCustomizingExpanded(!isCustomizingExpanded)}
+              accessibilityLabel="Toggle customizer accordion"
+            />
+          </InlineStack>
+
+          <Collapsible open={isCustomizingExpanded} id="unified-customizer-collapsible">
+            <div style={{ paddingTop: "12px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              {/* ── 1. Heading & Typography Presets ── */}
+              <Card>
+        <BlockStack gap="400">
+          <InlineStack align="space-between" blockAlign="center">
+            <Text variant="headingSm" as="h3" fontWeight="bold">
+              1. Header & Typography
+            </Text>
+            <Button
+              variant="plain"
+              icon={isBrandingExpanded ? ChevronUpIcon : ChevronDownIcon}
+              onClick={() => setIsBrandingExpanded(!isBrandingExpanded)}
+              accessibilityLabel="Toggle Header Section"
+            />
+          </InlineStack>
+
+          <Collapsible open={isBrandingExpanded} id="unified-branding-collapsible">
+            <BlockStack gap="300">
+              <Checkbox
+                label="Show Profile & Gallery Header"
+                helpText="Display heading & description above your gallery"
+                checked={config.postFeed.header}
+                onChange={(val) => updateConfig("postFeed", "header", val)}
+              />
+
+              {config.postFeed.header && (
+                <>
+                  <TextField
+                    label="Gallery Heading"
+                    value={config.postFeed.heading}
+                    onChange={(val) => updateConfig("postFeed", "heading", val)}
+                    autoComplete="off"
+                  />
+
+                  <TextField
+                    label="Gallery Subtitle"
+                    value={config.postFeed.subheading}
+                    onChange={(val) => updateConfig("postFeed", "subheading", val)}
+                    autoComplete="off"
+                  />
+
+                  <Select
+                    label="Layout Alignment"
+                    options={[
+                      { label: "Centered", value: "center" },
+                      { label: "Left Aligned", value: "left" },
+                      { label: "Right Aligned", value: "right" },
+                    ]}
+                    value={config.postFeed.alignment}
+                    onChange={(val) => {
+                      updateConfig("postFeed", "alignment", val);
+                      updateConfig("stories", "alignment", val);
+                    }}
+                  />
+
+                  <Text variant="bodyMd" fontWeight="semibold">
+                    Typography Presets
+                  </Text>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
+                    {FEED_TYPOGRAPHY_PRESETS.map((preset) => {
+                      const isSelected = isPresetMatch(config.postFeed, preset);
+                      return (
+                        <Box
+                          key={preset.name}
+                          padding="200"
+                          borderWidth="025"
+                          borderColor={isSelected ? "border-brand" : "border"}
+                          borderRadius="200"
+                          background={isSelected ? "bg-surface-brand-active" : "bg-surface-secondary"}
+                          onClick={() => {
+                            setConfig((prev) => ({
+                              ...prev,
+                              postFeed: {
+                                ...prev.postFeed,
+                                heading: preset.textHeading,
+                                subheading: preset.textSubheading,
+                                typography: {
+                                  heading: { ...preset.heading },
+                                  subheading: { ...preset.subheading },
+                                },
+                              },
+                            }));
+                          }}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <Text variant="bodySm" fontWeight="bold">
+                            {preset.name}
+                          </Text>
+                          <Text variant="bodyXs" tone="subdued">
+                            {preset.desc}
+                          </Text>
+                        </Box>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </BlockStack>
+          </Collapsible>
+        </BlockStack>
+      </Card>
+
+      {/* ── 2. Story Highlights Bar ── */}
+      <Card>
+        <BlockStack gap="400">
+          <InlineStack align="space-between" blockAlign="center">
+            <InlineStack gap="200" blockAlign="center">
+              <Text variant="headingSm" as="h3" fontWeight="bold">
+                2. Story Highlights Bar
+              </Text>
+              <Badge tone={showStorySection ? "success" : "subdued"}>
+                {showStorySection ? "Active" : totalPostsCount < 6 ? "< 6 Posts (Hidden)" : "Disabled"}
+              </Badge>
+            </InlineStack>
+            <Button
+              variant="plain"
+              icon={isStoryExpanded ? ChevronUpIcon : ChevronDownIcon}
+              onClick={() => setIsStoryExpanded(!isStoryExpanded)}
+              accessibilityLabel="Toggle Story Section"
+            />
+          </InlineStack>
+
+          <Collapsible open={isStoryExpanded} id="unified-story-collapsible">
+            <BlockStack gap="300">
+              <Checkbox
+                label="Enable Story Highlights Bar"
+                helpText="Renders circular story bubbles directly beneath your heading (by default showcasing your image posts)."
+                checked={config.stories.enable}
+                onChange={(val) => updateConfig("stories", "enable", val)}
+              />
+
+              {totalPostsCount < 6 && config.stories.enable && (
+                <Banner tone="info">
+                  <strong>Smart Threshold:</strong> Stories are automatically hidden on your storefront when account has fewer than 6 posts to keep your layout full.
+                </Banner>
+              )}
+
+              {config.stories.enable && (
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+                    <Checkbox
+                      label="Animated Rotating Ring"
+                      helpText="Adds an Instagram-style gradient spin"
+                      checked={config.stories.activeRing}
+                      onChange={(val) => updateConfig("stories", "activeRing", val)}
+                    />
+                    <Checkbox
+                      label="Pulse Ring Animation"
+                      helpText="Pulsing glow on circular rings"
+                      checked={config.stories.pulseRing}
+                      onChange={(val) => updateConfig("stories", "pulseRing", val)}
+                    />
+                    <Checkbox
+                      label="Show Captions as Labels"
+                      helpText="Display titles below story circles"
+                      checked={config.stories.showLabels}
+                      onChange={(val) => updateConfig("stories", "showLabels", val)}
+                    />
+                    <Checkbox
+                      label="Special Offer Promo Bubble"
+                      helpText="Adds a discount offer circle at front"
+                      checked={config.stories.promoEnable}
+                      onChange={(val) => updateConfig("stories", "promoEnable", val)}
+                    />
+                  </div>
+
+                  {config.stories.promoEnable && (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                      <TextField
+                        label="Promo Offer Label"
+                        value={config.stories.promoLabel}
+                        onChange={(val) => updateConfig("stories", "promoLabel", val)}
+                        autoComplete="off"
+                      />
+                      <TextField
+                        label="Promo Description"
+                        value={config.stories.promoDesc}
+                        onChange={(val) => updateConfig("stories", "promoDesc", val)}
+                        autoComplete="off"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <Text variant="bodySm" fontWeight="medium">
+                      Ring Highlight Color
+                    </Text>
+                    <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                      {["#e1306c", "#833ab4", "#405de6", "#fd1d1d", "#fcb045", "#10b981", "#000000"].map((c) => (
+                        <div
+                          key={c}
+                          onClick={() => updateConfig("stories", "ringColor", c)}
+                          style={{
+                            width: "24px",
+                            height: "24px",
+                            borderRadius: "50%",
+                            background: c,
+                            cursor: "pointer",
+                            border: config.stories.ringColor === c ? "2px solid #000" : "1px solid #ddd",
+                            transform: config.stories.ringColor === c ? "scale(1.2)" : "scale(1)",
+                            transition: "transform 0.15s ease",
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </BlockStack>
+          </Collapsible>
+        </BlockStack>
+      </Card>
+
+      {/* ── 3. Feed Grid & Layout Architecture ── */}
+      <Card>
+        <BlockStack gap="400">
+          <InlineStack align="space-between" blockAlign="center">
+            <Text variant="headingSm" as="h3" fontWeight="bold">
+              3. Feed Grid & Layout
+            </Text>
+            <Button
+              variant="plain"
+              icon={isLayoutExpanded ? ChevronUpIcon : ChevronDownIcon}
+              onClick={() => setIsLayoutExpanded(!isLayoutExpanded)}
+              accessibilityLabel="Toggle Layout Section"
+            />
+          </InlineStack>
+
+          <Collapsible open={isLayoutExpanded} id="unified-layout-collapsible">
+            <BlockStack gap="300">
+              <div>
+                <Text variant="bodySm" fontWeight="semibold">
+                  Layout Style
+                </Text>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginTop: "8px" }}>
+                  {[
+                    { id: "grid", label: "Grid", icon: "🔲", desc: "Classic clean grid" },
+                    { id: "carousel", label: "Carousel", icon: "↔️", desc: "Slider with arrows" },
+                    { id: "masonry", label: "Masonry", icon: "🧱", desc: "Pinterest waterfall" },
+                    { id: "highlight", label: "Highlight", icon: "🌟", desc: "2x2 big hero left" },
+                    { id: "reels", label: "Reels", icon: "📱", desc: "9:16 vertical video" },
+                    { id: "marquee", label: "Marquee", icon: "⚡", desc: "Continuous ticker" },
+                  ].map((layout) => {
+                    const currentMode = config.postFeed.layoutMode || (config.postFeed.carousel ? "carousel" : "grid");
+                    const isSelected = currentMode === layout.id;
+                    return (
+                      <Box
+                        key={layout.id}
+                        padding="200"
+                        borderWidth="025"
+                        borderColor={isSelected ? "border-brand" : "border"}
+                        borderRadius="200"
+                        background={isSelected ? "bg-surface-brand-active" : "bg-surface-secondary"}
+                        onClick={() => {
+                          setConfig((prev) => ({
+                            ...prev,
+                            postFeed: {
+                              ...prev.postFeed,
+                              layoutMode: layout.id,
+                              carousel: layout.id === "carousel",
+                              ...(layout.id === "reels" ? { mediaTypeFilter: "videos", aspectRatio: "9/16" } : {}),
+                            },
+                          }));
+                        }}
+                        style={{ cursor: "pointer", textAlign: "center" }}
+                      >
+                        <div style={{ fontSize: "20px", marginBottom: "3px" }}>{layout.icon}</div>
+                        <Text variant="bodySm" fontWeight={isSelected ? "bold" : "medium"}>
+                          {layout.label}
+                        </Text>
+                        <Text variant="bodyXs" tone="subdued">
+                          {layout.desc}
+                        </Text>
+                      </Box>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {(config.postFeed.layoutMode === "marquee") && (
+                <RangeSlider
+                  label={`Marquee Scroll Speed (${config.postFeed.marqueeSpeed || 32}s)`}
+                  helpText="Lower seconds scroll faster; higher seconds scroll smoother"
+                  value={config.postFeed.marqueeSpeed || 32}
+                  min={15}
+                  max={60}
+                  step={1}
+                  onChange={(val) => updateConfig("postFeed", "marqueeSpeed", val)}
+                />
+              )}
+
+              <div>
+                <Text variant="bodySm" fontWeight="medium">
+                  Feed Media Preference
+                </Text>
+                <Box paddingBlockStart="100">
+                  <ButtonGroup variant="segmented">
+                    <Button
+                      pressed={config.postFeed.mediaTypeFilter === "videos" || !config.postFeed.mediaTypeFilter}
+                      onClick={() => updateConfig("postFeed", "mediaTypeFilter", "videos")}
+                    >
+                      Videos & Reels (Default)
+                    </Button>
+                    <Button
+                      pressed={config.postFeed.mediaTypeFilter === "all"}
+                      onClick={() => updateConfig("postFeed", "mediaTypeFilter", "all")}
+                    >
+                      All Media
+                    </Button>
+                    <Button
+                      pressed={config.postFeed.mediaTypeFilter === "images"}
+                      onClick={() => updateConfig("postFeed", "mediaTypeFilter", "images")}
+                    >
+                      Images Only
+                    </Button>
+                  </ButtonGroup>
+                </Box>
+                <Text variant="bodyXs" tone="subdued">
+                  Feed prioritizes videos & reels. If no videos exist in the account, all media automatically displays.
+                </Text>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <Select
+                  label="Desktop Columns"
+                  options={[3, 4, 5, 6].map((n) => ({
+                    label: `${n} Columns`,
+                    value: String(n),
+                  }))}
+                  value={String(config.postFeed.desktopColumns || 4)}
+                  onChange={(val) => updateConfig("postFeed", "desktopColumns", parseInt(val))}
+                />
+                <Select
+                  label="Mobile Columns"
+                  options={[1, 2, 3].map((n) => ({
+                    label: `${n} Column${n > 1 ? "s" : ""}`,
+                    value: String(n),
+                  }))}
+                  value={String(config.postFeed.mobileColumns || 2)}
+                  onChange={(val) => updateConfig("postFeed", "mobileColumns", parseInt(val))}
+                />
+              </div>
+
+              {!config.postFeed.load && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <Select
+                    label="Desktop Total Posts"
+                    options={[4, 6, 8, 12, 16, 20, 24].map((n) => ({
+                      label: `${n} Posts ${!isPaid && n > 12 ? "(PRO)" : ""}`,
+                      value: String(n),
+                    }))}
+                    value={String(config.postFeed.desktopLimit || 8)}
+                    onChange={(val) => {
+                      const num = parseInt(val);
+                      if (!isPaid && num > 12) {
+                        shopify?.toast?.show("Unlock PRO for more than 12 posts", { isError: true });
+                        navigate("/app/plans");
+                        return;
+                      }
+                      updateConfig("postFeed", "desktopLimit", num);
+                    }}
+                  />
+                  <Select
+                    label="Mobile Total Posts"
+                    options={[3, 4, 6, 8, 12].map((n) => ({
+                      label: `${n} Posts`,
+                      value: String(n),
+                    }))}
+                    value={String(config.postFeed.mobileLimit || 4)}
+                    onChange={(val) => updateConfig("postFeed", "mobileLimit", parseInt(val))}
+                  />
+                </div>
+              )}
+
+              <RangeSlider
+                label={`Visual Gap (${config.postFeed.gap}px)`}
+                value={config.postFeed.gap}
+                min={0}
+                max={40}
+                onChange={(val) => updateConfig("postFeed", "gap", val)}
+              />
+
+              <Select
+                label="Media Aspect Ratio"
+                options={[
+                  { label: "Auto (Original)", value: "auto" },
+                  { label: "1:1 (Square)", value: "1/1" },
+                  { label: "4:5 / 3:4 (Portrait)", value: "3/4" },
+                  { label: "9:16 (Story / Reel)", value: "9/16" },
+                ]}
+                value={config.postFeed.aspectRatio || "auto"}
+                onChange={(val) => updateConfig("postFeed", "aspectRatio", val)}
+              />
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+                <Checkbox
+                  label="Engagement Hub"
+                  helpText="Show likes & comments on hover"
+                  checked={config.postFeed.metrics}
+                  onChange={(val) => updateConfig("postFeed", "metrics", val)}
+                />
+                <Checkbox
+                  label="Autoplay Videos"
+                  helpText="Loop muted video clips in feed"
+                  checked={config.postFeed.autoplay}
+                  onChange={(val) => updateConfig("postFeed", "autoplay", val)}
+                />
+              </div>
+            </BlockStack>
+          </Collapsible>
+        </BlockStack>
+      </Card>
+
+      {/* ── 4. Shoppable Pins & Moderation ── */}
+      <Card>
+        <BlockStack gap="400">
+          <InlineStack align="space-between" blockAlign="center">
+            <Text variant="headingSm" as="h3" fontWeight="bold">
+              4. Shoppable Tags & Moderation
+            </Text>
+            <Button
+              variant="plain"
+              icon={isModerationExpanded ? ChevronUpIcon : ChevronDownIcon}
+              onClick={() => setIsModerationExpanded(!isModerationExpanded)}
+              accessibilityLabel="Toggle Moderation Section"
+            />
+          </InlineStack>
+
+          <Collapsible open={isModerationExpanded} id="unified-moderation-collapsible">
+            <BlockStack gap="300">
+              <Checkbox
+                label="Follow on Instagram Button"
+                helpText="Adds an attractive follow button at the bottom of the feed"
+                checked={config.postFeed.showFollowButton !== false}
+                onChange={(val) => updateConfig("postFeed", "showFollowButton", val)}
+              />
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+                <Button
+                  variant={isTagMode ? "primary" : "secondary"}
+                  tone={isTagMode ? "success" : undefined}
+                  onClick={() => {
+                    setIsTagMode(!isTagMode);
+                    if (!isTagMode) {
+                      setIsHideMode(false);
+                      shopify?.toast?.show("🏷️ Tag Mode ON — Click any post in the preview to tag products");
+                    } else {
+                      shopify?.toast?.show("Tag Mode turned off");
+                    }
+                  }}
+                >
+                  {isTagMode ? "Exit Tag Mode" : "🏷️ Tag Products on Posts"}
+                </Button>
+
+                <Button
+                  variant={isHideMode ? "primary" : "secondary"}
+                  tone={isHideMode ? "critical" : undefined}
+                  onClick={() => {
+                    setIsHideMode(!isHideMode);
+                    if (!isHideMode) {
+                      setIsTagMode(false);
+                      shopify?.toast?.show("👆 Hide Mode ON — Click any post in the preview to hide it");
+                    } else {
+                      shopify?.toast?.show("Hide Mode turned off");
+                    }
+                  }}
+                >
+                  {isHideMode ? "Exit Hide Mode" : "👁️ Hide Specific Posts"}
+                </Button>
+              </div>
+            </BlockStack>
+          </Collapsible>
+        </BlockStack>
+      </Card>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "10px" }}>
+              <Button
+                variant="primary"
+                onClick={handleSaveConfig}
+                loading={isSaving}
+              >
+                Save Feed Design
+              </Button>
+            </div>
+          </div>
+        </Collapsible>
+      </BlockStack>
+    </Card>
+  </BlockStack>
+);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Index() {
@@ -581,10 +1782,10 @@ export default function Index() {
 
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
   const activeTab = selectedTabIndex === 0 ? "post" : "story";
-  const [previewDevice, setPreviewDevice] = useState("mobile");
+  const [previewDevice, setPreviewDevice] = useState("desktop");
 
-  const isPaid = !!loaderData.subscription;
-  const planName = loaderData.subscription?.name || "Free Plan";
+  const isPaid = true;
+  const planName = "Free Forever";
 
   const [instaData, setInstaData] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -592,37 +1793,197 @@ export default function Index() {
   const [extraLoadCount, setExtraLoadCount] = useState(0);
   const [connectError, setConnectError] = useState(null);
 
-  const PLACEHOLDER_MEDIA = useMemo(() => {
-    const baseUrls = [
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1485230895905-ec17bd36b5cc?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1475184447565-30060953d611?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=600&h=600&fit=crop",
-    ];
-    return Array.from({ length: 24 }).map((_, i) => ({
-      id: `placeholder_${i}`,
-      media_url: baseUrls[i % baseUrls.length],
+  const PLACEHOLDER_MEDIA = useMemo(() => [
+    {
+      id: "placeholder_1",
+      media_url: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=800&fit=crop",
       media_type: "IMAGE",
-      like_count: 120 + ((i * 5) % 80),
-      comments_count: 8 + ((i * 2) % 15),
-    }));
-  }, []);
+      caption: "Golden hour glow ✨ Our Botanical Face Oil in its natural habitat. 100% cold-pressed organic ingredients. #cleanbeauty #skincareroutine",
+      like_count: 428,
+      comments_count: 24,
+      permalink: "https://instagram.com",
+      taggedProducts: [
+        { id: "tp_1", title: "Botanical Face Oil", price: "48.00", image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=200&h=200&fit=crop", x: 48, y: 55 }
+      ],
+    },
+    {
+      id: "placeholder_2",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=800&fit=crop",
+      media_type: "VIDEO",
+      caption: "Behind the seams: styling our Spring Linen Collection for everyday ease 🌿 Which look is your favorite? #springstyle #sustainablefashion",
+      like_count: 892,
+      comments_count: 53,
+      permalink: "https://instagram.com",
+      taggedProducts: [
+        { id: "tp_2", title: "Relaxed Linen Trouser", price: "88.00", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=200&h=200&fit=crop", x: 50, y: 65 }
+      ],
+    },
+    {
+      id: "placeholder_3",
+      media_url: "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Layered neutrals for city strolls. The Silk Rib Tank restocked in 4 shades ☁️ Tap to shop! #minimalstyle #ootd",
+      like_count: 615,
+      comments_count: 19,
+      permalink: "https://instagram.com",
+      taggedProducts: [
+        { id: "tp_3", title: "Silk Rib Tank", price: "64.00", image: "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=200&h=200&fit=crop", x: 42, y: 40 }
+      ],
+    },
+    {
+      id: "placeholder_4",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=800&h=800&fit=crop",
+      media_type: "VIDEO",
+      caption: "Quick unboxing of our best-selling hydrating serum drop! 💧 Limited batch now online. #unboxing #reels #beautycommunity",
+      like_count: 1240,
+      comments_count: 88,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_5",
+      media_url: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Sun-drenched moments wearing the Palma Midi Dress ☀️ Perfect for coastal getaways. #resortwear #vacationvibes",
+      like_count: 730,
+      comments_count: 31,
+      permalink: "https://instagram.com",
+      taggedProducts: [
+        { id: "tp_4", title: "Palma Midi Dress", price: "145.00", image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=200&h=200&fit=crop", x: 55, y: 50 }
+      ],
+    },
+    {
+      id: "placeholder_6",
+      media_url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Everyday luxury in pure organic cotton. Crafted responsibly in Portugal. 🌿 #slowfashion #ethicalwear",
+      like_count: 512,
+      comments_count: 14,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_7",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=800&fit=crop",
+      media_type: "VIDEO",
+      caption: "How our community wears the Cloud Soft Cardigan 🧶 Swipe for styling ideas! #community #lookbook",
+      like_count: 940,
+      comments_count: 67,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_8",
+      media_url: "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Sculptural accessories to elevate any outfit. Handcrafted brass earrings now online ✨ #jewelrylovers #statementjewelry",
+      like_count: 380,
+      comments_count: 22,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_9",
+      media_url: "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Clean lines, timeless palette. The Classic Trench in Sandstone 🍂 #autumnlayers #classicstyle",
+      like_count: 685,
+      comments_count: 28,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_10",
+      media_url: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Coffee runs in our Oversized Crewneck ☕️ Cozy season has officially arrived. #casualchic #cozyvibes",
+      like_count: 490,
+      comments_count: 17,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_11",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=800&h=800&fit=crop",
+      media_type: "VIDEO",
+      caption: "Morning skincare rituals with our antioxidant glow duo 🍊 Watch the texture melt in. #skincaretips #glowingskin",
+      like_count: 1120,
+      comments_count: 75,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_12",
+      media_url: "https://images.unsplash.com/photo-1485230895905-ec17bd36b5cc?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1485230895905-ec17bd36b5cc?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Soft tailoring for modern living. Designed to transition from day to evening seamlessly 🌙 #effortlessstyle",
+      like_count: 560,
+      comments_count: 32,
+      permalink: "https://instagram.com",
+    },
+  ], []);
 
   const [config, setConfig] = useState(DEFAULT_CONFIG);
-  const [lastSavedConfig, setLastSavedConfig] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [analyticsRange, setAnalyticsRange] = useState("30");
   const [isHideMode, setIsHideMode] = useState(false);
   const [isTagMode, setIsTagMode] = useState(false);
   const [taggingPost, setTaggingPost] = useState(null);
   const [taggingPins, setTaggingPins] = useState([]);
+  const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
+  const [previewingTemplate, setPreviewingTemplate] = useState(null);
+  const [templateFilter, setTemplateFilter] = useState("all");
+  const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(true);
+
+  const handleApplyTemplate = useCallback((template) => {
+    setConfig((prev) => ({
+      ...prev,
+      appliedTemplateId: template.id,
+      postFeed: {
+        ...prev.postFeed,
+        ...(template.config.postFeed || {}),
+        typography: {
+          ...prev.postFeed.typography,
+          ...(template.config.postFeed?.typography || {}),
+        },
+      },
+      stories: {
+        ...prev.stories,
+        ...(template.config.stories || {}),
+      },
+    }));
+    setHasUnsavedChanges(true);
+    shopify?.toast?.show(`Applied "${template.name}" template!`);
+    setIsTemplatesModalOpen(false);
+    setPreviewingTemplate(null);
+  }, [shopify]);
+
+  const handlePreviewTemplate = useCallback((template) => {
+    setPreviewingTemplate(template);
+  }, []);
+
+  const isSaving = saveFetcher.state !== "idle";
+
+  const handleSaveConfig = useCallback(() => {
+    const fd = new FormData();
+    fd.append("intent", "saveConfig");
+    fd.append("config", JSON.stringify(config));
+    saveFetcher.submit(fd, { method: "post" });
+  }, [config, saveFetcher]);
+
+  useEffect(() => {
+    if (saveFetcher.data?.success) {
+      shopify?.toast?.show("✓ Feed design saved successfully!");
+      setHasUnsavedChanges(false);
+    } else if (saveFetcher.data?.error) {
+      shopify?.toast?.show(saveFetcher.data.error, { isError: true });
+    }
+  }, [saveFetcher.data, shopify]);
 
   const rangeOptions = useMemo(
     () => [
@@ -721,7 +2082,6 @@ export default function Index() {
     };
 
     setConfig(merged);
-    setLastSavedConfig(merged);
 
     if (loaderData.instaData) {
       try {
@@ -737,19 +2097,36 @@ export default function Index() {
     return config.instagramHandle.trim().toLowerCase() === instaData.username?.toLowerCase();
   }, [instaData, config.instagramHandle]);
 
-  const setupProgress = [
-    loaderData.dynamicAppEmbedEnabled ? 1 : 0,
-    loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? 1 : 0,
-  ].reduce((a, b) => a + b, 0);
-  const isSetupComplete = setupProgress === 2;
+  const setupStep1 = isConnected;
+  const setupStep2 = !!loaderData.dynamicAppEmbedEnabled;
+  const setupStep3 = !!(loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story);
+  const welcomeCompletedSteps = (setupStep1 ? 1 : 0) + (setupStep2 ? 1 : 0) + (setupStep3 ? 1 : 0);
+  const allTasksDone = isConnected && !!loaderData.dynamicAppEmbedEnabled;
+  const isAllSetupComplete = allTasksDone;
+
+  const [wizardStep, setWizardStep] = useState(isConnected ? 2 : 1);
+  const [isWizardMode, setIsWizardMode] = useState(!isAllSetupComplete);
+  const [isWelcomeExpanded, setIsWelcomeExpanded] = useState(!allTasksDone);
 
   const [isConnectExpanded, setIsConnectExpanded] = useState(!isConnected);
-  const [isSetupExpanded, setIsSetupExpanded] = useState(isConnected && !isSetupComplete);
+  const [isSetupExpanded, setIsSetupExpanded] = useState(isConnected && !isAllSetupComplete);
+
+  useEffect(() => {
+    if (allTasksDone) {
+      setIsWelcomeExpanded(false);
+    }
+  }, [allTasksDone]);
+
+  useEffect(() => {
+    if (isConnected && wizardStep === 1) {
+      setWizardStep(2);
+    }
+  }, [isConnected]);
 
   useEffect(() => {
     setIsConnectExpanded(!isConnected);
-    setIsSetupExpanded(isConnected && !isSetupComplete);
-  }, [isConnected, isSetupComplete]);
+    setIsSetupExpanded(isConnected && !isAllSetupComplete);
+  }, [isConnected, isAllSetupComplete]);
 
   // ── Handle Fetcher Responses ──
   useEffect(() => {
@@ -774,7 +2151,6 @@ export default function Index() {
       };
 
       setConfig(newConfig);
-      setLastSavedConfig(newConfig);
 
       const fd = new FormData();
       fd.append("intent", "saveConfig");
@@ -796,7 +2172,6 @@ export default function Index() {
     setInstaData(null);
     const newConfig = { ...config, instagramHandle: "" };
     setConfig(newConfig);
-    setLastSavedConfig(newConfig);
 
     const fd = new FormData();
     fd.append("intent", "saveConfig");
@@ -811,6 +2186,7 @@ export default function Index() {
       ...prev,
       [section]: { ...prev[section], [key]: value },
     }));
+    setHasUnsavedChanges(true);
     if (key === "mobileColumns" || key === "mobileLimit") setPreviewDevice("mobile");
     if (key === "desktopColumns" || key === "desktopLimit") setPreviewDevice("desktop");
     if (section === "stories") setSelectedTabIndex(1);
@@ -818,10 +2194,7 @@ export default function Index() {
   }, []);
 
   // ── Dirty State & Save Bar ──
-  const hasChanges = useMemo(() => {
-    if (!lastSavedConfig) return false;
-    return JSON.stringify(config) !== JSON.stringify(lastSavedConfig);
-  }, [config, lastSavedConfig]);
+  const hasChanges = hasUnsavedChanges;
 
   useEffect(() => {
     const saveBar = document.getElementById("app-config-save-bar");
@@ -838,16 +2211,12 @@ export default function Index() {
     fd.append("intent", "saveConfig");
     fd.append("config", JSON.stringify(config));
     saveFetcher.submit(fd, { method: "post" });
-    setLastSavedConfig(config);
-    shopify?.toast?.show("Changes saved successfully!");
-  }, [config, saveFetcher, shopify]);
+  }, [config, saveFetcher]);
 
   const discardChanges = useCallback(() => {
-    if (lastSavedConfig) {
-      setConfig(lastSavedConfig);
-      shopify?.toast?.show("Unsaved changes discarded.");
-    }
-  }, [lastSavedConfig, shopify]);
+    setHasUnsavedChanges(false);
+    shopify?.toast?.show("Unsaved changes discarded.");
+  }, [shopify]);
 
   const handleToggleHidePost = useCallback((postId) => {
     setConfig((prev) => {
@@ -873,6 +2242,25 @@ export default function Index() {
     return PLACEHOLDER_MEDIA;
   }, [instaData, PLACEHOLDER_MEDIA]);
 
+  // ── Smart Media Separation & Fallback Logic ──
+  // Threshold rule: If less posts are there (< 6), only show feed, no need to display story section
+  const totalPostsCount = baseMedia.length;
+  const showStorySection = totalPostsCount >= 6 && config.stories?.enable !== false;
+
+  // Story Media: Default to images (with fallback to baseMedia if 0 images)
+  const storyMedia = useMemo(() => {
+    if (!showStorySection) return [];
+    let images = baseMedia.filter((m) => {
+      const t = (m.media_type || "").toUpperCase();
+      return t === "IMAGE" || t === "CAROUSEL_ALBUM" || t === "ALBUM";
+    });
+    if (images.length === 0) {
+      images = baseMedia;
+    }
+    return images.slice(0, 10);
+  }, [baseMedia, showStorySection]);
+
+  // Feed Media: Default to videos & reels (with fallback to all media if 0 videos)
   const filteredGridMedia = useMemo(() => {
     let list = [...baseMedia];
     const filter = config.postFeed.mediaTypeFilter;
@@ -881,11 +2269,13 @@ export default function Index() {
         const t = (m.media_type || "").toUpperCase();
         return t === "IMAGE" || t === "CAROUSEL_ALBUM" || t === "ALBUM";
       });
-    } else if (filter === "videos") {
-      list = list.filter((m) => {
+    } else if (filter === "videos" || !filter || filter === "default") {
+      const videos = list.filter((m) => {
         const t = (m.media_type || "").toUpperCase();
-        return t === "VIDEO" || t === "REEL";
+        return t === "VIDEO" || t === "REEL" || (m.media_url && m.media_url.toLowerCase().includes(".mp4"));
       });
+      // Fallback: If no videos exist in the account, show all media so feed is never blank
+      list = videos.length > 0 ? videos : list;
     }
     if (isPaid && config.postFeed.sortBy === "engaging") {
       list.sort((a, b) => ((b.like_count || 0) + (b.comments_count || 0)) - ((a.like_count || 0) + (a.comments_count || 0)));
@@ -1067,16 +2457,16 @@ export default function Index() {
   // ─────────────────────────────────────────────────────────────────────────
   // MEDIA CARD RENDERER
   // ─────────────────────────────────────────────────────────────────────────
-  const renderMediaCard = (item, i) => {
+  const renderMediaCard = (item, i, customAspect, customStyle = {}) => {
     const itemIdentifier = item.id || item.media_url;
     const isHidden = config.postFeed.hiddenPostIds?.includes(itemIdentifier);
-    const aspect = config.postFeed.aspectRatio === "auto" ? "auto" : config.postFeed.aspectRatio || "1/1";
+    const aspect = customAspect || (config.postFeed.aspectRatio === "auto" ? "auto" : config.postFeed.aspectRatio || "1/1");
 
     const rawType = (item.media_type || "").toUpperCase();
     const isVideo = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
     const isAlbum = rawType === "CAROUSEL_ALBUM" || rawType === "ALBUM";
 
-    const itemTags = config.taggedProducts?.[itemIdentifier] || [];
+    const itemTags = config.taggedProducts?.[itemIdentifier] || item.taggedProducts || [];
 
     return (
       <div
@@ -1102,6 +2492,7 @@ export default function Index() {
           cursor: isHideMode || isTagMode ? "pointer" : "default",
           opacity: isHideMode && isHidden ? 0.4 : 1,
           transition: "opacity 0.2s",
+          ...customStyle,
         }}
       >
         {isHideMode && isHidden && (
@@ -1212,6 +2603,193 @@ export default function Index() {
       {renderMediaCard(item, i)}
     </div>
   );
+
+  const renderPreviewFeed = (isMobile) => {
+    const layout = config.postFeed.layoutMode || (config.postFeed.carousel ? "carousel" : "grid");
+    const gap = config.postFeed.gap;
+    const cols = isMobile ? (config.postFeed.mobileColumns || 2) : (config.postFeed.desktopColumns || 4);
+    const carouselRef = isMobile ? mobileCarouselRef : desktopCarouselRef;
+
+    if (layout === "carousel") {
+      const itemWidth = `calc((100% - ${(cols - 1) * gap}px) / ${cols})`;
+      return (
+        <div className="carousel-wrapper" style={{ padding: `${gap}px 0`, position: "relative" }}>
+          <button
+            className="carousel-nav prev"
+            onClick={() => scrollCarousel(carouselRef, "prev")}
+            style={{ width: isMobile ? "24px" : "32px", height: isMobile ? "24px" : "32px", left: "0px" }}
+          >
+            <Icon source={ChevronLeftIcon} />
+          </button>
+          <div
+            className="carousel-container"
+            ref={carouselRef}
+            style={{
+              padding: `0 ${gap}px`,
+              "--carousel-gap": `${gap}px`,
+              "--carousel-item-width": itemWidth,
+            }}
+          >
+            {simulatedInfiniteMedia.map((item, i) => (
+              <div key={item.id || i} className="carousel-item">
+                {renderMediaCard(item, i)}
+              </div>
+            ))}
+          </div>
+          <button
+            className="carousel-nav next"
+            onClick={() => scrollCarousel(carouselRef, "next")}
+            style={{ width: isMobile ? "24px" : "32px", height: isMobile ? "24px" : "32px", right: "0px" }}
+          >
+            <Icon source={ChevronRightIcon} />
+          </button>
+        </div>
+      );
+    }
+
+    if (layout === "masonry") {
+      return (
+        <div
+          style={{
+            columnCount: cols,
+            columnGap: `${gap}px`,
+            padding: isMobile ? `8px ${gap}px` : "0",
+          }}
+        >
+          {simulatedInfiniteMedia.map((item, i) => (
+            <div key={item.id || i} style={{ breakInside: "avoid", marginBottom: `${gap}px` }}>
+              {renderMediaCard(item, i, "auto")}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (layout === "highlight") {
+      const highlightCols = isMobile ? 2 : Math.max(cols, 4);
+      return (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${highlightCols}, 1fr)`,
+            gap: `${gap}px`,
+            padding: isMobile ? `8px ${gap}px` : "0",
+          }}
+        >
+          {simulatedInfiniteMedia.map((item, i) => {
+            const isHero = i === 0;
+            return (
+              <div
+                key={item.id || i}
+                style={
+                  isHero
+                    ? {
+                        gridColumn: "span 2",
+                        gridRow: isMobile ? "span 1" : "span 2",
+                        height: "100%",
+                      }
+                    : { height: "100%" }
+                }
+              >
+                {renderMediaCard(item, i, isHero ? "1/1" : undefined, isHero ? { height: "100%" } : {})}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    if (layout === "reels") {
+      const reelWidth = isMobile ? `calc((100% - ${gap}px) / 2)` : `calc((100% - ${(cols - 1) * gap}px) / ${cols})`;
+      return (
+        <div className="carousel-wrapper" style={{ padding: `${gap}px 0`, position: "relative" }}>
+          <button
+            className="carousel-nav prev"
+            onClick={() => scrollCarousel(carouselRef, "prev")}
+            style={{ width: isMobile ? "24px" : "32px", height: isMobile ? "24px" : "32px", left: "0px" }}
+          >
+            <Icon source={ChevronLeftIcon} />
+          </button>
+          <div
+            className="carousel-container"
+            ref={carouselRef}
+            style={{
+              padding: `0 ${gap}px`,
+              "--carousel-gap": `${gap}px`,
+              "--carousel-item-width": reelWidth,
+            }}
+          >
+            {simulatedInfiniteMedia.map((item, i) => (
+              <div key={item.id || i} className="carousel-item" style={{ borderRadius: "12px", overflow: "hidden" }}>
+                {renderMediaCard(item, i, "9/16")}
+              </div>
+            ))}
+          </div>
+          <button
+            className="carousel-nav next"
+            onClick={() => scrollCarousel(carouselRef, "next")}
+            style={{ width: isMobile ? "24px" : "32px", height: isMobile ? "24px" : "32px", right: "0px" }}
+          >
+            <Icon source={ChevronRightIcon} />
+          </button>
+        </div>
+      );
+    }
+
+    if (layout === "marquee") {
+      const itemWidth = isMobile ? "140px" : "180px";
+      const speed = config.postFeed.marqueeSpeed || 32;
+      return (
+        <div
+          style={{
+            overflow: "hidden",
+            width: "100%",
+            position: "relative",
+            padding: `${gap}px 0`,
+          }}
+        >
+          <style>{`
+            @keyframes ai-preview-marquee {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .ai-preview-ticker:hover {
+              animation-play-state: paused !important;
+            }
+          `}</style>
+          <div
+            className="ai-preview-ticker"
+            style={{
+              display: "flex",
+              width: "max-content",
+              gap: `${gap}px`,
+              animation: `ai-preview-marquee ${speed}s linear infinite`,
+            }}
+          >
+            {[...simulatedInfiniteMedia, ...simulatedInfiniteMedia].map((item, i) => (
+              <div key={`${item.id || i}-${i}`} style={{ width: itemWidth, flexShrink: 0 }}>
+                {renderMediaCard(item, i)}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // Default Grid
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gap: `${gap}px`,
+          padding: isMobile ? `8px ${gap}px` : "0",
+        }}
+      >
+        {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
+      </div>
+    );
+  };
 
   const renderPromoStoryItem = () => {
     const s = config.stories;
@@ -1433,1230 +3011,714 @@ export default function Index() {
   };
 
   return (
-    <Page
-      title="AI Instafeed Expert"
-      subtitle="Showcase your shoppable Instagram feed & stories directly on your Shopify storefront"
-      badge={<Badge tone={isPaid ? "success" : "info"}>{isPaid ? planName : "Free Plan"}</Badge>}
-      primaryAction={{
-        content: "Customize in Store",
-        icon: StoreIcon,
-        disabled: !isConnected,
-        onAction: () => {
-          setIsSetupExpanded(true);
-          setTimeout(() => {
-            const card = document.getElementById("store-setup-status-card");
-            if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-          }, 100);
-        },
-      }}
-      secondaryActions={[
-        {
-          content: isPaid ? "Manage Plan" : "Upgrade to Pro",
-          icon: StarIcon,
-          onAction: () => navigate("/app/plans"),
-        },
-        {
-          content: "Setup Guide",
-          onAction: () => navigate("/app/guide"),
-        },
-      ]}
-    >
-      <BlockStack gap="500">
-        {/* ── Top Overview & Simplified Monitoring Card (Only when Connected) ── */}
-        {isConnected && (
-          <Card padding="400">
-            <BlockStack gap="300">
-              <InlineStack align="space-between" blockAlign="center" wrap>
-                <InlineStack gap="200" blockAlign="center">
-                  <Text variant="headingSm" as="h3" fontWeight="bold">
-                    Feed Performance & Overview
-                  </Text>
-                  <Badge tone="info">
-                    {rangeOptions.find((o) => o.value === analyticsRange)?.label || "Last 30 days"}
-                  </Badge>
-                </InlineStack>
+    <Page fullWidth>
+      <BlockStack gap="400">
+        <style>{`
+          @media (max-width: 1024px) {
+            .instafeed-main-dashboard-grid {
+              grid-template-columns: 1fr !important;
+            }
+            #feed-preview-container {
+              position: static !important;
+            }
+          }
+        `}</style>
+        {/* ── 1. Top Header Bar ── */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "12px", paddingBottom: "4px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <h1 style={{ fontSize: "21px", fontWeight: "700", color: "#111827", margin: 0, letterSpacing: "-0.3px" }}>
+              Welcome to AI Instafeed Expert!
+            </h1>
+            <Badge tone="success">Free Forever</Badge>
+          </div>
+        </div>
 
-                <div style={{ minWidth: "170px" }}>
-                  <Select
-                    label="Filter Timeframe"
-                    labelHidden
-                    options={rangeOptions}
-                    value={analyticsRange}
-                    onChange={setAnalyticsRange}
-                  />
-                </div>
-              </InlineStack>
-
-              <InlineGrid columns={{ xs: 1, sm: 2, md: 4 }} gap="300">
-                {/* Tile 1: Total Views */}
-                <Box
-                  padding="300"
-                  background="bg-surface-secondary"
-                  borderRadius="200"
-                  borderWidth="025"
-                  borderColor="border-subdued"
-                >
-                  <BlockStack gap="100">
-                    <InlineStack align="space-between" blockAlign="center">
-                      <Text variant="bodySm" tone="subdued" fontWeight="medium">
-                        Storefront Views
-                      </Text>
-                      <Icon source={ViewIcon} tone="subdued" />
-                    </InlineStack>
-                    <Text variant="headingLg" as="p" fontWeight="bold">
-                      {(filteredAnalytics.totalViews ?? 0).toLocaleString()}
-                    </Text>
-                    <Text variant="bodyXs" tone="subdued">
-                      Feed impressions
-                    </Text>
-                  </BlockStack>
-                </Box>
-
-                {/* Tile 2: Product Clicks */}
-                <Box
-                  padding="300"
-                  background="bg-surface-secondary"
-                  borderRadius="200"
-                  borderWidth="025"
-                  borderColor="border-subdued"
-                >
-                  <BlockStack gap="100">
-                    <InlineStack align="space-between" blockAlign="center">
-                      <Text variant="bodySm" tone="subdued" fontWeight="medium">
-                        Product Clicks
-                      </Text>
-                      <Badge tone={Number(filteredAnalytics.ctr) > 0 ? "success" : "subdued"}>
-                        {filteredAnalytics.ctr ?? "0.0"}% CTR
-                      </Badge>
-                    </InlineStack>
-                    <Text variant="headingLg" as="p" fontWeight="bold">
-                      {(filteredAnalytics.totalClicks ?? 0).toLocaleString()}
-                    </Text>
-                    <Text variant="bodyXs" tone="subdued">
-                      Shoppable tag taps
-                    </Text>
-                  </BlockStack>
-                </Box>
-
-                {/* Tile 3: Shoppable Media */}
-                <Box
-                  padding="300"
-                  background="bg-surface-secondary"
-                  borderRadius="200"
-                  borderWidth="025"
-                  borderColor="border-subdued"
-                >
-                  <BlockStack gap="100">
-                    <InlineStack align="space-between" blockAlign="center">
-                      <Text variant="bodySm" tone="subdued" fontWeight="medium">
-                        Shoppable Media
-                      </Text>
-                      <Badge tone={(filteredAnalytics.taggedCount ?? 0) > 0 ? "success" : "attention"}>
-                        {filteredAnalytics.taggedCount ?? 0} Tagged
-                      </Badge>
-                    </InlineStack>
-                    <Text variant="headingLg" as="p" fontWeight="bold">
-                      {instaData?.media?.data?.length ?? (isConnected ? config.postFeed?.desktopLimit ?? 8 : 0)}
-                    </Text>
-                    <Text variant="bodyXs" tone="subdued">
-                      Total synced posts
-                    </Text>
-                  </BlockStack>
-                </Box>
-
-                {/* Tile 4: Feed Status */}
-                <Box
-                  padding="300"
-                  background="bg-surface-secondary"
-                  borderRadius="200"
-                  borderWidth="025"
-                  borderColor="border-subdued"
-                >
-                  <BlockStack gap="100">
-                    <InlineStack align="space-between" blockAlign="center">
-                      <Text variant="bodySm" tone="subdued" fontWeight="medium">
-                        Theme Integration
-                      </Text>
-                      <Icon source={StoreIcon} tone="subdued" />
-                    </InlineStack>
-                    <InlineStack gap="150" blockAlign="center">
-                      <Badge tone={loaderData.dynamicAppEmbedEnabled ? "success" : "attention"}>
-                        {loaderData.dynamicAppEmbedEnabled ? "✓ Active in Theme" : "Setup Needed"}
-                      </Badge>
-                    </InlineStack>
-                    <Text variant="bodyXs" tone="subdued">
-                      {isConnected ? `Synced @${instaData?.username || config.instagramHandle}` : "Account unlinked"}
-                    </Text>
-                  </BlockStack>
-                </Box>
-              </InlineGrid>
-            </BlockStack>
-          </Card>
-        )}
-
-        {/* ── 1. Instagram Connection Card ── */}
-        {isConnected ? (
-          <Card padding="300">
-            <InlineStack align="space-between" blockAlign="center" wrap>
-              <InlineStack gap="300" blockAlign="center">
-                <div
-                  style={{
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: "50%",
-                    background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <InstagramIcon />
-                </div>
-                <div>
-                  <InlineStack gap="200" blockAlign="center">
-                    <Text variant="headingSm" as="h3" fontWeight="bold">
-                      @{instaData?.username || config.instagramHandle}
-                    </Text>
-                    <Badge tone="success" progress="complete">
-                      Connected
-                    </Badge>
-                  </InlineStack>
-                  <Text variant="bodyXs" tone="subdued">
-                    {instaData?.media?.data?.length || 0} posts synced • Last sync:{" "}
-                    {instaData?._crawledAt
-                      ? new Date(instaData._crawledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                      : "Recently"}
-                  </Text>
-                </div>
-              </InlineStack>
-
-              <ButtonGroup>
-                <Button
-                  size="slim"
-                  icon={RefreshIcon}
-                  loading={isSyncing}
-                  onClick={() => {
-                    const fd = new FormData();
-                    fd.append("handle", config.instagramHandle);
-                    fetcher.submit(fd, { method: "post" });
-                  }}
-                >
-                  Re-sync
-                </Button>
-                <Button
-                  size="slim"
-                  variant="secondary"
-                  tone="critical"
-                  icon={XIcon}
-                  loading={isSyncing}
-                  onClick={handleDisconnect}
-                >
-                  Disconnect
-                </Button>
-              </ButtonGroup>
-            </InlineStack>
-          </Card>
-        ) : (
-          <Card>
-            <BlockStack gap="400">
-              <InlineStack align="space-between" blockAlign="center">
-                <InlineStack gap="300" blockAlign="center">
-                  <Text variant="headingMd" as="h2">
-                    1. Connect Your Instagram Account
-                  </Text>
-                  <Badge tone="critical">Account Unlinked</Badge>
-                </InlineStack>
-                <Button
-                  variant="plain"
-                  icon={isConnectExpanded ? ChevronUpIcon : ChevronDownIcon}
-                  onClick={() => setIsConnectExpanded(!isConnectExpanded)}
-                  accessibilityLabel="Toggle Connect Section"
-                />
-              </InlineStack>
-
-              <Collapsible open={isConnectExpanded} id="connect-account-collapsible">
-                <BlockStack gap="300">
-                  <Text variant="bodyMd" tone="subdued">
-                    Seamlessly sync your Instagram feed to your Shopify storefront. Enter your public Business or Creator username or profile URL to begin.
-                  </Text>
-
-                  <InlineStack gap="300" blockAlign="start">
-                    <div style={{ flex: 1 }}>
-                      <TextField
-                        label="Instagram Username or Profile URL"
-                        labelHidden
-                        value={config.instagramHandle}
-                        onChange={(val) => {
-                          let parsed = val;
-                          if (parsed.includes("instagram.com/")) {
-                            try {
-                              const url = new URL(parsed.startsWith("http") ? parsed : `https://${parsed}`);
-                              const parts = url.pathname.split("/").filter(Boolean);
-                              if (parts.length > 0) parsed = parts[0];
-                            } catch {
-                              const parts = parsed.replace(/\/$/, "").split("/");
-                              parsed = parts[parts.length - 1].split("?")[0];
-                            }
-                          }
-                          parsed = parsed.replace("@", "").split("?")[0].trim();
-                          setConfig((prev) => ({ ...prev, instagramHandle: parsed }));
-                          setConnectError(null);
-                        }}
-                        placeholder="e.g. yourbrand or instagram.com/yourbrand"
-                        autoComplete="off"
-                        prefix={<Icon source={InstagramIcon} />}
-                        error={errors.instagramHandle}
-                      />
-                    </div>
-
-                    <Button
-                      variant="primary"
-                      icon={LinkIcon}
-                      loading={isSyncing}
-                      onClick={() => {
-                        if (!config.instagramHandle.trim()) {
-                          shopify?.toast?.show("Please enter an Instagram handle", { isError: true });
-                          return;
-                        }
-                        const fd = new FormData();
-                        fd.append("handle", config.instagramHandle);
-                        fetcher.submit(fd, { method: "post" });
-                      }}
-                    >
-                      Connect & Sync All
-                    </Button>
-                  </InlineStack>
-
-                  {connectError && !isSyncing && (
-                    <Banner tone="critical" onDismiss={() => setConnectError(null)}>
-                      {linkifyText(connectError)}
-                    </Banner>
-                  )}
-
-                  {!connectError && (
-                    <Text variant="bodySm" tone="subdued">
-                      Must be a <strong>public Instagram Business or Creator account</strong>.{" "}
-                      <a
-                        href="https://help.instagram.com/502981923235522/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: "inherit", textDecoration: "underline" }}
-                      >
-                        How to switch account type
-                      </a>
-                    </Text>
-                  )}
-                </BlockStack>
-              </Collapsible>
-            </BlockStack>
-          </Card>
-        )}
-
-        {/* ── 2. Store Setup Status Card ── */}
-        {isConnected && (
-          <div id="store-setup-status-card">
-            {isSetupComplete ? (
-              <Card padding="300">
-                <InlineStack align="space-between" blockAlign="center" wrap>
-                  <InlineStack gap="300" blockAlign="center">
-                    <div
-                      style={{
-                        width: "36px",
-                        height: "36px",
-                        borderRadius: "50%",
-                        background: "#f0fdf4",
-                        border: "1px solid #bbf7d0",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#16a34a",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <StoreIcon />
-                    </div>
-                    <div>
-                      <InlineStack gap="200" blockAlign="center">
-                        <Text variant="headingSm" as="h3" fontWeight="bold">
-                          Store Theme Integration
-                        </Text>
-                        <Badge tone="success" progress="complete">
-                          ✓ 2/2 Steps Completed
-                        </Badge>
-                      </InlineStack>
-                      <Text variant="bodyXs" tone="subdued">
-                        App Embed & Sections are active on{" "}
-                        <strong>
-                          {loaderData.allThemes?.find((t) => t.id === (loaderData.selectedThemeId || loaderData.themeId))?.name || "Live Theme"}
-                        </strong>
-                      </Text>
-                    </div>
-                  </InlineStack>
-
-                  <InlineStack gap="200" blockAlign="center">
-                    {loaderData.allThemes?.length > 1 && (
-                      <div style={{ minWidth: "160px" }}>
-                        <Select
-                          label="Target Theme"
-                          labelHidden
-                          options={loaderData.allThemes.map((t) => ({
-                            label: `${t.isLive ? "🟢 " : ""}${t.name}${t.isLive ? " (Live)" : ""}`,
-                            value: t.id,
-                          }))}
-                          value={loaderData.selectedThemeId || loaderData.themeId}
-                          onChange={(newThemeId) => {
-                            const searchParams = new URLSearchParams(window.location.search);
-                            searchParams.set("selectedThemeId", newThemeId);
-                            navigate(`?${searchParams.toString()}`, { replace: true });
-                          }}
-                        />
-                      </div>
-                    )}
-                    <Button
-                      size="slim"
-                      icon={ExternalIcon}
-                      onClick={() => {
-                        const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor`;
-                        window.open(url, "_blank");
-                      }}
-                    >
-                      Open Theme Editor
-                    </Button>
-                    <Button
-                      variant="plain"
-                      icon={isSetupExpanded ? ChevronUpIcon : ChevronDownIcon}
-                      onClick={() => setIsSetupExpanded(!isSetupExpanded)}
-                      accessibilityLabel="Toggle Setup Details"
-                    />
-                  </InlineStack>
-                </InlineStack>
-
-                <Collapsible open={isSetupExpanded} id="store-setup-collapsible-complete">
-                  <Box paddingBlockStart="300">
-                    <BlockStack gap="300">
-                      {/* Step 1: Main Ext */}
-                      <Box padding="300" background="bg-surface-secondary" borderRadius="200">
-                        <InlineStack align="space-between" blockAlign="center" wrap>
-                          <InlineStack gap="300" blockAlign="center">
-                            <Badge tone="success">✓ Active</Badge>
-                            <div>
-                              <Text variant="bodyMd" fontWeight="semibold">
-                                App Embed Extension
-                              </Text>
-                              <Text variant="bodySm" tone="subdued">
-                                Loads widget scripts in your theme asynchronously.
-                              </Text>
-                            </div>
-                          </InlineStack>
-                          <Button
-                            variant="secondary"
-                            size="slim"
-                            icon={ExternalIcon}
-                            onClick={() => {
-                              const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
-                              window.open(url, "_blank");
-                            }}
-                          >
-                            App Embed Enabled
-                          </Button>
-                        </InlineStack>
-                      </Box>
-
-                      {/* Step 2: Sections */}
-                      <Box padding="300" background="bg-surface-secondary" borderRadius="200">
-                        <InlineStack align="space-between" blockAlign="center" wrap>
-                          <InlineStack gap="300" blockAlign="center">
-                            <Badge tone="success">✓ Active</Badge>
-                            <div>
-                              <Text variant="bodyMd" fontWeight="semibold">
-                                Feed Sections
-                              </Text>
-                              <Text variant="bodySm" tone="subdued">
-                                Feed Grid and Story sections in your storefront pages.
-                              </Text>
-                            </div>
-                          </InlineStack>
-                          <ButtonGroup>
-                            <Button
-                              variant="secondary"
-                              size="slim"
-                              icon={ExternalIcon}
-                              onClick={() => {
-                                const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/feed-grid&target=newAppsSection`;
-                                window.open(url, "_blank");
-                              }}
-                            >
-                              Add Grid
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              size="slim"
-                              icon={ExternalIcon}
-                              onClick={() => {
-                                const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/story-layout&target=newAppsSection`;
-                                window.open(url, "_blank");
-                              }}
-                            >
-                              Add Stories
-                            </Button>
-                          </ButtonGroup>
-                        </InlineStack>
-                      </Box>
-                    </BlockStack>
-                  </Box>
-                </Collapsible>
-              </Card>
-            ) : (
-              <Card>
-                <BlockStack gap="400">
-                  <InlineStack align="space-between" blockAlign="center" wrap>
-                    <InlineStack gap="300" blockAlign="center">
-                      <Text variant="headingMd" as="h2">
-                        2. Store Setup Status
-                      </Text>
-                      <Badge tone="attention">
-                        {setupProgress} / 2 Steps Completed
-                      </Badge>
-                    </InlineStack>
-
-                    <InlineStack gap="200" blockAlign="center">
-                      {loaderData.allThemes?.length > 0 && (
-                        <div style={{ minWidth: "180px" }}>
-                          <Select
-                            label="Target Theme"
-                            labelHidden
-                            options={loaderData.allThemes.map((t) => ({
-                              label: `${t.isLive ? "🟢 " : ""}${t.name}${t.isLive ? " (Live)" : ""}`,
-                              value: t.id,
-                            }))}
-                            value={loaderData.selectedThemeId || loaderData.themeId}
-                            onChange={(newThemeId) => {
-                              const searchParams = new URLSearchParams(window.location.search);
-                              searchParams.set("selectedThemeId", newThemeId);
-                              navigate(`?${searchParams.toString()}`, { replace: true });
-                            }}
-                          />
-                        </div>
-                      )}
-                      <Button
-                        variant="plain"
-                        icon={isSetupExpanded ? ChevronUpIcon : ChevronDownIcon}
-                        onClick={() => setIsSetupExpanded(!isSetupExpanded)}
-                        accessibilityLabel="Toggle Setup Status"
-                      />
-                    </InlineStack>
-                  </InlineStack>
-
-                  <ProgressBar progress={setupProgress === 1 ? 50 : 0} size="small" tone="highlight" />
-
-                  <Collapsible open={isSetupExpanded} id="store-setup-collapsible">
-                    <BlockStack gap="300">
-                      {/* Step 1: Main Ext */}
-                      <Box padding="300" background="bg-surface-secondary" borderRadius="200">
-                        <InlineStack align="space-between" blockAlign="center" wrap>
-                          <InlineStack gap="300" blockAlign="center">
-                            <Badge tone={loaderData.dynamicAppEmbedEnabled ? "success" : "subdued"}>
-                              {loaderData.dynamicAppEmbedEnabled ? "✓ Active" : "Step 1"}
-                            </Badge>
-                            <div>
-                              <Text variant="bodyMd" fontWeight="semibold">
-                                Enable App Embed Extension
-                              </Text>
-                              <Text variant="bodySm" tone="subdued">
-                                Required to load widget scripts in your theme without slowing down pages.
-                              </Text>
-                            </div>
-                          </InlineStack>
-                          <Button
-                            variant={loaderData.dynamicAppEmbedEnabled ? "secondary" : "primary"}
-                            icon={ExternalIcon}
-                            onClick={() => {
-                              const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
-                              window.open(url, "_blank");
-                              const newConfig = { ...config, appSetup: { ...config.appSetup, mainExt: true } };
-                              setConfig(newConfig);
-                              const fd = new FormData();
-                              fd.append("config", JSON.stringify(newConfig));
-                              saveFetcher.submit(fd, { method: "post" });
-                            }}
-                          >
-                            {loaderData.dynamicAppEmbedEnabled ? "App Embed Enabled" : "Enable in Theme"}
-                          </Button>
-                        </InlineStack>
-                      </Box>
-
-                      {/* Step 2: Sections */}
-                      <Box padding="300" background="bg-surface-secondary" borderRadius="200">
-                        <InlineStack align="space-between" blockAlign="center" wrap>
-                          <InlineStack gap="300" blockAlign="center">
-                            <Badge tone={loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? "success" : "subdued"}>
-                              {loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story ? "✓ Active" : "Step 2"}
-                            </Badge>
-                            <div>
-                              <Text variant="bodyMd" fontWeight="semibold">
-                                Add Feed Grid or Story Section
-                              </Text>
-                              <Text variant="bodySm" tone="subdued">
-                                Insert the Instagram gallery block into your storefront pages.
-                              </Text>
-                            </div>
-                          </InlineStack>
-                          <ButtonGroup>
-                            <Button
-                              variant={loaderData.dynamicSections?.grid ? "secondary" : "primary"}
-                              icon={ExternalIcon}
-                              onClick={() => {
-                                const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/feed-grid&target=newAppsSection`;
-                                window.open(url, "_blank");
-                                const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
-                                setConfig(newConfig);
-                                const fd = new FormData();
-                                fd.append("config", JSON.stringify(newConfig));
-                                saveFetcher.submit(fd, { method: "post" });
-                              }}
-                            >
-                              {loaderData.dynamicSections?.grid ? "Grid Added" : "Add Feed Grid"}
-                            </Button>
-                            <Button
-                              variant={loaderData.dynamicSections?.story ? "secondary" : "primary"}
-                              icon={ExternalIcon}
-                              onClick={() => {
-                                const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?addAppBlockId=${loaderData.clientId}/story-layout&target=newAppsSection`;
-                                window.open(url, "_blank");
-                                const newConfig = { ...config, appSetup: { ...config.appSetup, sectionExt: true } };
-                                setConfig(newConfig);
-                                const fd = new FormData();
-                                fd.append("config", JSON.stringify(newConfig));
-                                saveFetcher.submit(fd, { method: "post" });
-                              }}
-                            >
-                              {loaderData.dynamicSections?.story ? "Story Added" : "Add Story Layout"}
-                            </Button>
-                          </ButtonGroup>
-                        </InlineStack>
-                      </Box>
-                    </BlockStack>
-                  </Collapsible>
-                </BlockStack>
-              </Card>
-            )}
+        {/* ── 2. Red Alert Banner (When Unlinked) ── */}
+        {!isConnected && (
+          <div style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #fecaca", boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div
+              style={{
+                background: "#dc2626",
+                color: "#ffffff",
+                padding: "10px 16px",
+                fontWeight: "700",
+                fontSize: "13.5px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <span style={{ fontSize: "14px" }}>⚠️</span>
+              <span>Connect Instagram account</span>
+            </div>
+            <div
+              style={{
+                background: "#ffffff",
+                padding: "14px 16px",
+                fontSize: "13.5px",
+                color: "#334155",
+              }}
+            >
+              To continue, you need to connect your Instagram account.
+            </div>
           </div>
         )}
 
-        {/* ── 3. Main Dashboard Layout (Configurator & Live Preview) ── */}
-        {!isConnected ? (
-          <Card>
-            <Box padding="800">
-              <BlockStack gap="400" align="center" inlineAlign="center">
-                <Icon source={InstagramIcon} tone="subdued" />
-                <Text variant="headingLg" as="h3">
-                  Connect Instagram to Customize
-                </Text>
-                <Text variant="bodyMd" tone="subdued" alignment="center">
-                  Link your Instagram account above to unlock custom typography presets, adjust layouts, select/hide posts, and preview your live feed instantly.
-                </Text>
-                <Button
-                  variant="primary"
-                  icon={LinkIcon}
-                  onClick={() => {
-                    setIsConnectExpanded(true);
-                    const inputEl = document.querySelector("input");
-                    if (inputEl) {
-                      inputEl.focus();
-                      inputEl.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }
+        {/* ── 3. Setup Guide Card (Compacted When All Done) ── */}
+        <div
+          id="welcome-widget-card"
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: "10px",
+            padding: allTasksDone && !isWelcomeExpanded ? "12px 18px" : "20px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            transition: "all 0.2s ease",
+          }}
+        >
+          {allTasksDone && !isWelcomeExpanded ? (
+            /* Compacted Banner View When All 3 Tasks Completed */
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div
+                  style={{
+                    width: "22px",
+                    height: "22px",
+                    borderRadius: "50%",
+                    background: "#16a34a",
+                    color: "#ffffff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    flexShrink: 0,
                   }}
                 >
-                  Connect Account Now
-                </Button>
-              </BlockStack>
-            </Box>
-          </Card>
-        ) : (
-          <Layout>
-            {/* ── Left Column: Configurator Tabs & Settings ── */}
-            <Layout.Section>
-              <Card padding="0">
-                <Tabs
-                  tabs={[
-                    { id: "feed-grid-tab", content: "Feed Grid Settings", accessibilityLabel: "Feed Grid Settings" },
-                    { id: "stories-tab", content: "Story & Layouts", accessibilityLabel: "Story & Layouts" },
-                  ]}
-                  selected={selectedTabIndex}
-                  onSelect={setSelectedTabIndex}
-                />
+                  ✓
+                </div>
+                <div>
+                  <span style={{ fontSize: "14px", fontWeight: "700", color: "#0f172a" }}>
+                    Setup guide completed!
+                  </span>
+                  <span style={{ fontSize: "12.5px", color: "#64748b", marginLeft: "8px" }}>
+                    All 3 tasks completed · Your Instagram feed is active in store
+                  </span>
+                </div>
+              </div>
 
-                <Box padding="400">
-                  {activeTab === "post" ? (
-                    <BlockStack gap="400">
-                      {/* Media Filter */}
-                      <Card>
-                        <BlockStack gap="200">
-                          <Text variant="headingSm" as="h3">
-                            Show Media Type
-                          </Text>
-                          <ButtonGroup variant="segmented">
-                            <Button
-                              pressed={config.postFeed.mediaTypeFilter === "all" || !config.postFeed.mediaTypeFilter}
-                              onClick={() => updateConfig("postFeed", "mediaTypeFilter", "all")}
-                            >
-                              All Media
-                            </Button>
-                            <Button
-                              pressed={config.postFeed.mediaTypeFilter === "images"}
-                              onClick={() => updateConfig("postFeed", "mediaTypeFilter", "images")}
-                            >
-                              Images Only
-                            </Button>
-                            <Button
-                              pressed={config.postFeed.mediaTypeFilter === "videos"}
-                              onClick={() => updateConfig("postFeed", "mediaTypeFilter", "videos")}
-                            >
-                              Videos & Reels
-                            </Button>
-                          </ButtonGroup>
-                        </BlockStack>
-                      </Card>
-
-                      {/* Feature Modules */}
-                      <Card>
-                        <BlockStack gap="400">
-                          <InlineStack align="space-between" blockAlign="center">
-                            <Text variant="headingSm" as="h3">
-                              Feature Modules
-                            </Text>
-                            <Button
-                              variant="plain"
-                              icon={isPostModulesExpanded ? ChevronUpIcon : ChevronDownIcon}
-                              onClick={() => setIsPostModulesExpanded(!isPostModulesExpanded)}
-                            />
-                          </InlineStack>
-
-                          <Collapsible open={isPostModulesExpanded} id="post-modules-collapsible">
-                            <BlockStack gap="300">
-                              <Text variant="bodySm" tone="subdued" fontWeight="bold">
-                                STANDARD MODULES
-                              </Text>
-                              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
-                                <Checkbox
-                                  label="Profile Header"
-                                  helpText="Show store bio & icon on storefront feed"
-                                  checked={config.postFeed.header}
-                                  onChange={(val) => updateConfig("postFeed", "header", val)}
-                                />
-                                <Checkbox
-                                  label="Engagement Hub"
-                                  helpText="Visualize likes & comments on hover"
-                                  checked={config.postFeed.metrics}
-                                  onChange={(val) => updateConfig("postFeed", "metrics", val)}
-                                />
-                                <Checkbox
-                                  label="Smart Carousel"
-                                  helpText="Display posts in an auto-swipe slider"
-                                  checked={config.postFeed.carousel}
-                                  onChange={(val) => updateConfig("postFeed", "carousel", val)}
-                                />
-                                <Checkbox
-                                  label="Smart Autoplay"
-                                  helpText="Preload and autoplay video/reel content"
-                                  checked={config.postFeed.autoplay}
-                                  onChange={(val) => updateConfig("postFeed", "autoplay", val)}
-                                />
-                                <Checkbox
-                                  label="Modal Navigation"
-                                  helpText="Show Prev/Next arrows in popup modal"
-                                  checked={config.postFeed.modalNavigation}
-                                  onChange={(val) => updateConfig("postFeed", "modalNavigation", val)}
-                                />
-                                <Checkbox
-                                  label="Instagram Icon"
-                                  helpText="Display Instagram branding badge on posts"
-                                  checked={config.postFeed.showInstagramIcon !== false}
-                                  onChange={(val) => updateConfig("postFeed", "showInstagramIcon", val)}
-                                />
-                              </div>
-
-                              <Divider />
-
-                              <InlineStack gap="200" blockAlign="center">
-                                <Text variant="bodySm" tone="subdued" fontWeight="bold">
-                                  AI & PRO MODULES
-                                </Text>
-                                <Badge tone="info">PRO</Badge>
-                              </InlineStack>
-
-                              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
-                                <Checkbox
-                                  label="AI Smart Sorting"
-                                  helpText="Sort feed dynamically by top engagement"
-                                  checked={isPaid && config.postFeed.sortBy === "engaging"}
-                                  disabled={!isPaid}
-                                  onChange={(val) => {
-                                    if (!isPaid) {
-                                      shopify?.toast?.show("AI Smart Sorting is a PRO feature", { isError: true });
-                                      navigate("/app/plans");
-                                      return;
-                                    }
-                                    updateConfig("postFeed", "sortBy", val ? "engaging" : "latest");
-                                  }}
-                                />
-                                <Checkbox
-                                  label="AI Sentiment Moderation"
-                                  helpText="Automatically hide posts with spam/negative comments"
-                                  checked={isPaid && !!config.aiCommentModeration}
-                                  disabled={!isPaid}
-                                  onChange={(val) => {
-                                    if (!isPaid) {
-                                      shopify?.toast?.show("AI Moderation is a PRO feature", { isError: true });
-                                      navigate("/app/plans");
-                                      return;
-                                    }
-                                    setConfig((prev) => ({ ...prev, aiCommentModeration: val }));
-                                  }}
-                                />
-                                <Checkbox
-                                  label="Infinite Paging"
-                                  helpText="Endless scrolling on page load"
-                                  checked={isPaid && !!config.postFeed.load}
-                                  disabled={!isPaid}
-                                  onChange={(val) => {
-                                    if (!isPaid) {
-                                      shopify?.toast?.show("Infinite paging is a PRO feature", { isError: true });
-                                      navigate("/app/plans");
-                                      return;
-                                    }
-                                    updateConfig("postFeed", "load", val);
-                                  }}
-                                />
-                                <Checkbox
-                                  label="Remove Watermark"
-                                  helpText="Hide the 'By BOOST STAR' brand watermark"
-                                  checked={isPaid && !!config.postFeed.removeWatermark}
-                                  disabled={!isPaid}
-                                  onChange={(val) => {
-                                    if (!isPaid) {
-                                      shopify?.toast?.show("Remove watermark is a PRO feature", { isError: true });
-                                      navigate("/app/plans");
-                                      return;
-                                    }
-                                    updateConfig("postFeed", "removeWatermark", val);
-                                  }}
-                                />
-                                <Checkbox
-                                  label="Manual Hide Mode"
-                                  helpText="Click posts in the preview to hide/unhide"
-                                  checked={isPaid && isHideMode}
-                                  disabled={!isPaid}
-                                  onChange={(val) => {
-                                    if (!isPaid) {
-                                      shopify?.toast?.show("Hide mode is a PRO feature", { isError: true });
-                                      navigate("/app/plans");
-                                      return;
-                                    }
-                                    setIsHideMode(val);
-                                    if (val) {
-                                      setIsTagMode(false);
-                                      shopify?.toast?.show("👆 Hide Mode ON — Click any post in the preview to hide it");
-                                    } else {
-                                      shopify?.toast?.show("Hide Mode turned off");
-                                    }
-                                  }}
-                                />
-                                <Checkbox
-                                  label="Shoppable Hotspot Pins"
-                                  helpText="Tag Shopify products on photo coordinates for 1-click cart checkout"
-                                  checked={isPaid && config.postFeed.shoppablePins !== false}
-                                  disabled={!isPaid}
-                                  onChange={(val) => {
-                                    if (!isPaid) {
-                                      shopify?.toast?.show("Shoppable Pins is a PRO feature", { isError: true });
-                                      navigate("/app/plans");
-                                      return;
-                                    }
-                                    updateConfig("postFeed", "shoppablePins", val);
-                                  }}
-                                />
-                                <Checkbox
-                                  label="Tag Products Mode"
-                                  helpText="Click any post in preview to drop product pins"
-                                  checked={isPaid && isTagMode}
-                                  disabled={!isPaid}
-                                  onChange={(val) => {
-                                    if (!isPaid) {
-                                      shopify?.toast?.show("Product tagging is a PRO feature", { isError: true });
-                                      navigate("/app/plans");
-                                      return;
-                                    }
-                                    setIsTagMode(val);
-                                    if (val) {
-                                      setIsHideMode(false);
-                                      shopify?.toast?.show("🏷️ Tag Mode ON — Click any post in the preview to tag products");
-                                    } else {
-                                      shopify?.toast?.show("Tag Mode turned off");
-                                    }
-                                  }}
-                                />
-                              </div>
-                            </BlockStack>
-                          </Collapsible>
-                        </BlockStack>
-                      </Card>
-
-                      {/* Layout Architecture */}
-                      <Card>
-                        <BlockStack gap="400">
-                          <InlineStack align="space-between" blockAlign="center">
-                            <Text variant="headingSm" as="h3">
-                              Layout & Grid Architecture
-                            </Text>
-                            <Button
-                              variant="plain"
-                              icon={isPostLayoutExpanded ? ChevronUpIcon : ChevronDownIcon}
-                              onClick={() => setIsPostLayoutExpanded(!isPostLayoutExpanded)}
-                            />
-                          </InlineStack>
-
-                          <Collapsible open={isPostLayoutExpanded} id="post-layout-collapsible">
-                            <BlockStack gap="300">
-                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                                <Select
-                                  label="Desktop Columns"
-                                  options={[
-                                    { label: "3 Columns", value: "3" },
-                                    { label: "4 Columns", value: "4" },
-                                    { label: `5 Columns ${!isPaid ? "(PRO)" : ""}`, value: "5" },
-                                    { label: `6 Columns ${!isPaid ? "(PRO)" : ""}`, value: "6" },
-                                  ]}
-                                  value={String(config.postFeed.desktopColumns)}
-                                  onChange={(val) => {
-                                    const num = parseInt(val);
-                                    if (!isPaid && num > 4) {
-                                      shopify?.toast?.show("Unlock PRO for more than 4 columns", { isError: true });
-                                      navigate("/app/plans");
-                                      return;
-                                    }
-                                    updateConfig("postFeed", "desktopColumns", num);
-                                  }}
-                                />
-                                <Select
-                                  label="Mobile Columns"
-                                  options={[
-                                    { label: "1 Column", value: "1" },
-                                    { label: "2 Columns", value: "2" },
-                                    { label: "3 Columns", value: "3" },
-                                  ]}
-                                  value={String(config.postFeed.mobileColumns)}
-                                  onChange={(val) => updateConfig("postFeed", "mobileColumns", parseInt(val))}
-                                />
-                              </div>
-
-                              {!config.postFeed.load && (
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                                  <Select
-                                    label="Desktop Total Posts"
-                                    options={[4, 6, 8, 12, 16, 20, 24].map((n) => ({
-                                      label: `${n} Posts ${!isPaid && n > 12 ? "(PRO)" : ""}`,
-                                      value: String(n),
-                                    }))}
-                                    value={String(config.postFeed.desktopLimit || 8)}
-                                    onChange={(val) => {
-                                      const num = parseInt(val);
-                                      if (!isPaid && num > 12) {
-                                        shopify?.toast?.show("Unlock PRO for more than 12 posts", { isError: true });
-                                        navigate("/app/plans");
-                                        return;
-                                      }
-                                      updateConfig("postFeed", "desktopLimit", num);
-                                    }}
-                                  />
-                                  <Select
-                                    label="Mobile Total Posts"
-                                    options={[3, 4, 6, 8, 12].map((n) => ({
-                                      label: `${n} Posts`,
-                                      value: String(n),
-                                    }))}
-                                    value={String(config.postFeed.mobileLimit || 4)}
-                                    onChange={(val) => updateConfig("postFeed", "mobileLimit", parseInt(val))}
-                                  />
-                                </div>
-                              )}
-
-                              <RangeSlider
-                                label={`Visual Gap (${config.postFeed.gap}px)`}
-                                value={config.postFeed.gap}
-                                min={0}
-                                max={40}
-                                onChange={(val) => updateConfig("postFeed", "gap", val)}
-                              />
-
-                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                                <RangeSlider
-                                  label={`Top Padding (${config.postFeed.paddingTop}px)`}
-                                  value={config.postFeed.paddingTop}
-                                  min={0}
-                                  max={100}
-                                  onChange={(val) => updateConfig("postFeed", "paddingTop", val)}
-                                />
-                                <RangeSlider
-                                  label={`Bottom Padding (${config.postFeed.paddingBottom}px)`}
-                                  value={config.postFeed.paddingBottom}
-                                  min={0}
-                                  max={100}
-                                  onChange={(val) => updateConfig("postFeed", "paddingBottom", val)}
-                                />
-                              </div>
-
-                              <Select
-                                label="Image Aspect Ratio"
-                                options={[
-                                  { label: "Auto (Original)", value: "auto" },
-                                  { label: "1:1 (Square)", value: "1/1" },
-                                  { label: "3:4 (Portrait)", value: "3/4" },
-                                  { label: "3:2 (Landscape)", value: "3/2" },
-                                  { label: "9:16 (Story)", value: "9/16" },
-                                ]}
-                                value={config.postFeed.aspectRatio || "auto"}
-                                onChange={(val) => updateConfig("postFeed", "aspectRatio", val)}
-                              />
-                            </BlockStack>
-                          </Collapsible>
-                        </BlockStack>
-                      </Card>
-
-                      {/* Branding & Typography */}
-                      <Card>
-                        <BlockStack gap="400">
-                          <InlineStack align="space-between" blockAlign="center">
-                            <Text variant="headingSm" as="h3">
-                              Branding & Typography
-                            </Text>
-                            <Button
-                              variant="plain"
-                              icon={isPostBrandingExpanded ? ChevronUpIcon : ChevronDownIcon}
-                              onClick={() => setIsPostBrandingExpanded(!isPostBrandingExpanded)}
-                            />
-                          </InlineStack>
-
-                          <Collapsible open={isPostBrandingExpanded} id="post-branding-collapsible">
-                            <BlockStack gap="300">
-                              <Select
-                                label="Layout Alignment"
-                                options={[
-                                  { label: "Centered", value: "center" },
-                                  { label: "Left Aligned", value: "left" },
-                                  { label: "Right Aligned", value: "right" },
-                                ]}
-                                value={config.postFeed.alignment}
-                                onChange={(val) => updateConfig("postFeed", "alignment", val)}
-                              />
-
-                              <Text variant="bodyMd" fontWeight="semibold">
-                                Typography Presets
-                              </Text>
-                              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
-                                {FEED_TYPOGRAPHY_PRESETS.map((preset) => {
-                                  const isSelected = isPresetMatch(config.postFeed, preset);
-                                  return (
-                                    <Box
-                                      key={preset.name}
-                                      padding="200"
-                                      borderWidth="025"
-                                      borderColor={isSelected ? "border-brand" : "border"}
-                                      borderRadius="200"
-                                      background={isSelected ? "bg-surface-brand-active" : "bg-surface-secondary"}
-                                      onClick={() => {
-                                        setConfig((prev) => ({
-                                          ...prev,
-                                          postFeed: {
-                                            ...prev.postFeed,
-                                            heading: preset.textHeading,
-                                            subheading: preset.textSubheading,
-                                            typography: {
-                                              heading: { ...preset.heading },
-                                              subheading: { ...preset.subheading },
-                                            },
-                                          },
-                                        }));
-                                      }}
-                                      style={{ cursor: "pointer" }}
-                                    >
-                                      <Text variant="bodySm" fontWeight="bold">
-                                        {preset.name}
-                                      </Text>
-                                      <Text variant="bodyXs" tone="subdued">
-                                        {preset.desc}
-                                      </Text>
-                                    </Box>
-                                  );
-                                })}
-                              </div>
-
-                              <TextField
-                                label="Feed Heading"
-                                value={config.postFeed.heading}
-                                onChange={(val) => updateConfig("postFeed", "heading", val)}
-                                autoComplete="off"
-                              />
-
-                              <TextField
-                                label="Feed Subheading"
-                                value={config.postFeed.subheading}
-                                onChange={(val) => updateConfig("postFeed", "subheading", val)}
-                                autoComplete="off"
-                              />
-                            </BlockStack>
-                          </Collapsible>
-                        </BlockStack>
-                      </Card>
-                    </BlockStack>
-                  ) : (
-                    /* ── Stories & Layouts Settings ── */
-                    <BlockStack gap="400">
-                      <Card>
-                        <BlockStack gap="200">
-                          <Text variant="headingSm" as="h3">
-                            Show Media Type
-                          </Text>
-                          <ButtonGroup variant="segmented">
-                            <Button
-                              pressed={config.stories.mediaTypeFilter === "all" || !config.stories.mediaTypeFilter}
-                              onClick={() => updateConfig("stories", "mediaTypeFilter", "all")}
-                            >
-                              All Media
-                            </Button>
-                            <Button
-                              pressed={config.stories.mediaTypeFilter === "images"}
-                              onClick={() => updateConfig("stories", "mediaTypeFilter", "images")}
-                            >
-                              Images Only
-                            </Button>
-                            <Button
-                              pressed={config.stories.mediaTypeFilter === "videos"}
-                              onClick={() => updateConfig("stories", "mediaTypeFilter", "videos")}
-                            >
-                              Videos & Reels
-                            </Button>
-                          </ButtonGroup>
-                        </BlockStack>
-                      </Card>
-
-                      <Card>
-                        <BlockStack gap="400">
-                          <InlineStack align="space-between" blockAlign="center">
-                            <Text variant="headingSm" as="h3">
-                              Story Highlight Modules
-                            </Text>
-                            <Button
-                              variant="plain"
-                              icon={isStoryModulesExpanded ? ChevronUpIcon : ChevronDownIcon}
-                              onClick={() => setIsStoryModulesExpanded(!isStoryModulesExpanded)}
-                            />
-                          </InlineStack>
-
-                          <Collapsible open={isStoryModulesExpanded} id="story-modules-collapsible">
-                            <BlockStack gap="300">
-                              <Checkbox
-                                label="Enable Stories Highlight Widget"
-                                helpText="Render circular story circles at the top of your page"
-                                checked={config.stories.enable}
-                                onChange={(val) => updateConfig("stories", "enable", val)}
-                              />
-                              <Checkbox
-                                label="Show Highlight Labels"
-                                helpText="Display post titles under story circles"
-                                checked={config.stories.showLabels}
-                                onChange={(val) => updateConfig("stories", "showLabels", val)}
-                              />
-                              <Checkbox
-                                label="Enable Discount Promo Offer"
-                                helpText="Promote a coupon popup when merchants open stories"
-                                checked={config.stories.promoEnable}
-                                onChange={(val) => updateConfig("stories", "promoEnable", val)}
-                              />
-                              {config.stories.promoEnable && (
-                                <TextField
-                                  label="Promo Offer Label"
-                                  value={config.stories.promoLabel}
-                                  onChange={(val) => updateConfig("stories", "promoLabel", val)}
-                                  autoComplete="off"
-                                />
-                              )}
-                              <Checkbox
-                                label="Smart Carousel Swiper"
-                                helpText="Auto-swipe highlight circles horizontally"
-                                checked={config.stories.carousel}
-                                onChange={(val) => updateConfig("stories", "carousel", val)}
-                              />
-                            </BlockStack>
-                          </Collapsible>
-                        </BlockStack>
-                      </Card>
-
-                      <Card>
-                        <BlockStack gap="400">
-                          <InlineStack align="space-between" blockAlign="center">
-                            <Text variant="headingSm" as="h3">
-                              Story Branding & Typography
-                            </Text>
-                            <Button
-                              variant="plain"
-                              icon={isStoryBrandingExpanded ? ChevronUpIcon : ChevronDownIcon}
-                              onClick={() => setIsStoryBrandingExpanded(!isStoryBrandingExpanded)}
-                            />
-                          </InlineStack>
-
-                          <Collapsible open={isStoryBrandingExpanded} id="story-branding-collapsible">
-                            <BlockStack gap="300">
-                              <Checkbox
-                                label="Show Story Header Title"
-                                checked={config.stories.showHeader}
-                                onChange={(val) => updateConfig("stories", "showHeader", val)}
-                              />
-                              {config.stories.showHeader && (
-                                <>
-                                  <TextField
-                                    label="Story Heading"
-                                    value={config.stories.heading}
-                                    onChange={(val) => updateConfig("stories", "heading", val)}
-                                    autoComplete="off"
-                                  />
-                                  <TextField
-                                    label="Story Subtext"
-                                    value={config.stories.subheading}
-                                    onChange={(val) => updateConfig("stories", "subheading", val)}
-                                    autoComplete="off"
-                                  />
-                                </>
-                              )}
-                              <RangeSlider
-                                label={`Top Padding (${config.stories.paddingTop}px)`}
-                                value={config.stories.paddingTop}
-                                min={0}
-                                max={100}
-                                onChange={(val) => updateConfig("stories", "paddingTop", val)}
-                              />
-                              <RangeSlider
-                                label={`Bottom Padding (${config.stories.paddingBottom}px)`}
-                                value={config.stories.paddingBottom}
-                                min={0}
-                                max={100}
-                                onChange={(val) => updateConfig("stories", "paddingBottom", val)}
-                              />
-                            </BlockStack>
-                          </Collapsible>
-                        </BlockStack>
-                      </Card>
-                    </BlockStack>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <button
+                  onClick={() => setIsWelcomeExpanded(true)}
+                  style={{
+                    background: "#f8fafc",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: "6px",
+                    padding: "5px 12px",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#334155",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  <span>View tasks</span>
+                  <Icon source={ChevronDownIcon} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Full / Expanded Setup Guide View */
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <h2 style={{ fontSize: "15px", fontWeight: "700", color: "#0f172a", margin: "0 0 3px 0" }}>
+                      Setup guide
+                    </h2>
+                    {allTasksDone && (
+                      <span style={{ fontSize: "11px", fontWeight: "700", color: "#16a34a", background: "#dcfce7", padding: "1px 6px", borderRadius: "10px" }}>
+                        ✓ Completed
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 6px 0" }}>
+                    Use this guide to visualize your store with Instagram feeds
+                  </p>
+                  <div style={{ fontSize: "12.5px", color: "#475569", marginBottom: "6px" }}>
+                    {(isConnected ? 1 : 0) + (loaderData.dynamicAppEmbedEnabled ? 1 : 0) + 1} of 3 tasks completed
+                  </div>
+                  <div style={{ width: "240px", height: "6px", background: "#e2e8f0", borderRadius: "999px", overflow: "hidden" }}>
+                    <div
+                      style={{
+                        width: `${(((isConnected ? 1 : 0) + (loaderData.dynamicAppEmbedEnabled ? 1 : 0) + 1) / 3) * 100}%`,
+                        height: "100%",
+                        background: "#1e293b",
+                        borderRadius: "999px",
+                        transition: "width 0.3s ease",
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  {allTasksDone && (
+                    <button
+                      onClick={() => setIsWelcomeExpanded(false)}
+                      style={{
+                        background: "#f8fafc",
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "6px",
+                        padding: "4px 10px",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        color: "#475569",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Compact
+                    </button>
                   )}
-                </Box>
-              </Card>
-            </Layout.Section>
+                  <button
+                    onClick={() => setIsWelcomeExpanded(!isWelcomeExpanded)}
+                    style={{ background: "transparent", border: "none", cursor: "pointer", color: "#64748b", padding: "4px" }}
+                    aria-label="Toggle setup guide"
+                  >
+                    <Icon source={isWelcomeExpanded ? ChevronUpIcon : ChevronDownIcon} />
+                  </button>
+                </div>
+              </div>
 
-            {/* ── Right Column: Live Storefront Preview ── */}
-            <Layout.Section variant="oneThird">
-              <div style={{ position: "sticky", top: "20px" }}>
-                <Card>
+              <Collapsible open={isWelcomeExpanded} id="setup-guide-collapsible">
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
+              {/* Task 1: Connect your Instagram account */}
+              <div
+                style={{
+                  background: isConnected ? "transparent" : "#f8fafc",
+                  border: isConnected ? "none" : "1px solid #f1f5f9",
+                  borderRadius: "8px",
+                  padding: isConnected ? "6px 0" : "16px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                  {isConnected ? (
+                    <div
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        background: "#16a34a",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        flexShrink: 0,
+                        marginTop: "2px",
+                      }}
+                    >
+                      ✓
+                    </div>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: "2px" }}>
+                      <circle cx="12" cy="12" r="9" stroke="#94a3b8" strokeWidth="2" strokeDasharray="3 3" />
+                    </svg>
+                  )}
+
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "14px", fontWeight: "700", color: "#0f172a" }}>
+                      Connect your Instagram account
+                    </div>
+                    <div style={{ fontSize: "13px", color: "#64748b", marginTop: "2px" }}>
+                      {isConnected
+                        ? `Connected to @${instaData?.username || config.instagramHandle} (${instaData?.media?.data?.length || 0} posts synced)`
+                        : "Connect your Instagram account with the app"}
+                    </div>
+
+                    {!isConnected ? (
+                      <div style={{ marginTop: "12px", maxWidth: "480px" }}>
+                        <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                          <input
+                            type="text"
+                            placeholder="e.g. yourbrand or instagram.com/yourbrand"
+                            value={config.instagramHandle}
+                            onChange={(e) => {
+                              let val = e.target.value;
+                              if (val.includes("instagram.com/")) {
+                                try {
+                                  const url = new URL(val.startsWith("http") ? val : `https://${val}`);
+                                  const parts = url.pathname.split("/").filter(Boolean);
+                                  if (parts.length > 0) val = parts[0];
+                                } catch {
+                                  const parts = val.replace(/\/$/, "").split("/");
+                                  val = parts[parts.length - 1].split("?")[0];
+                                }
+                              }
+                              val = val.replace("@", "").split("?")[0].trim();
+                              setConfig((prev) => ({ ...prev, instagramHandle: val }));
+                              setConnectError(null);
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: "8px 12px",
+                              border: "1px solid #cbd5e1",
+                              borderRadius: "6px",
+                              fontSize: "13px",
+                              outline: "none",
+                            }}
+                          />
+                          <button
+                            onClick={() => {
+                              if (!config.instagramHandle.trim()) {
+                                shopify?.toast?.show("Please enter an Instagram handle", { isError: true });
+                                return;
+                              }
+                              const fd = new FormData();
+                              fd.append("handle", config.instagramHandle);
+                              fetcher.submit(fd, { method: "post" });
+                            }}
+                            disabled={isSyncing}
+                            style={{
+                              background: "#262626",
+                              color: "#ffffff",
+                              border: "none",
+                              borderRadius: "6px",
+                              padding: "8px 16px",
+                              fontSize: "13px",
+                              fontWeight: "600",
+                              cursor: isSyncing ? "not-allowed" : "pointer",
+                              opacity: isSyncing ? 0.7 : 1,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {isSyncing ? "Connecting..." : "Connect Instagram account"}
+                          </button>
+                        </div>
+
+                        {connectError && (
+                          <div style={{ color: "#dc2626", fontSize: "12.5px", marginTop: "4px", marginBottom: "6px" }}>
+                            {linkifyText(connectError)}
+                          </div>
+                        )}
+
+                        <div style={{ fontSize: "12px", color: "#64748b", marginTop: "6px" }}>
+                          <a
+                            href="https://help.instagram.com/502981923235522/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "#64748b", textDecoration: "underline" }}
+                          >
+                            ❓ How to solve Instagram connection error: "400 session invalid"?
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                        <button
+                          onClick={() => {
+                            const fd = new FormData();
+                            fd.append("handle", config.instagramHandle);
+                            fetcher.submit(fd, { method: "post" });
+                          }}
+                          disabled={isSyncing}
+                          style={{
+                            background: "#ffffff",
+                            border: "1px solid #cbd5e1",
+                            borderRadius: "6px",
+                            padding: "4px 10px",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {isSyncing ? "Syncing..." : "Re-sync"}
+                        </button>
+                        <button
+                          onClick={handleDisconnect}
+                          style={{
+                            background: "#ffffff",
+                            border: "1px solid #fecaca",
+                            color: "#dc2626",
+                            borderRadius: "6px",
+                            padding: "4px 10px",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Disconnect
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+
+
+              {/* Task 2: Customize the feed layout */}
+              <div
+                onClick={() => {
+                  const configurator = document.getElementById("unified-configurator-card");
+                  if (configurator) configurator.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "4px 0",
+                  cursor: "pointer",
+                }}
+              >
+                <div
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    background: "#16a34a",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    flexShrink: 0,
+                  }}
+                >
+                  ✓
+                </div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>
+                  Customize the feed layout
+                </div>
+              </div>
+
+              {/* Task 4: Show feed on your store */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "4px 0",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  {loaderData.dynamicAppEmbedEnabled ? (
+                    <div
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        background: "#16a34a",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        flexShrink: 0,
+                      }}
+                    >
+                      ✓
+                    </div>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="9" stroke="#94a3b8" strokeWidth="2" strokeDasharray="3 3" />
+                    </svg>
+                  )}
+                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>
+                    Show feed on your store
+                  </div>
+                </div>
+                {!loaderData.dynamicAppEmbedEnabled && (
+                  <button
+                    onClick={() => {
+                      const url = `https://${loaderData.shop}/admin/themes/${loaderData.themeId}/editor?context=apps&activateAppId=${loaderData.clientId}/app-embed&activateAppEmbed=${loaderData.clientId}/app-embed`;
+                      window.open(url, "_blank");
+                    }}
+                    style={{
+                      background: "#ffffff",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "6px",
+                      padding: "4px 10px",
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Enable in Theme →
+                  </button>
+                )}
+              </div>
+
+              <div style={{ marginTop: "10px", fontSize: "13px", color: "#64748b" }}>
+                Learn more{" "}
+                <a href="/app/guide" style={{ color: "#2563eb", textDecoration: "underline" }}>
+                  how to use AI Instafeed Expert
+                </a>
+              </div>
+            </div>
+          </Collapsible>
+        </>
+      )}
+    </div>
+
+
+
+        {/* ── Feed Analytics Section ── */}
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: "10px",
+            padding: "20px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "16px",
+              flexWrap: "wrap",
+              gap: "10px",
+            }}
+          >
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <h2 style={{ fontSize: "15px", fontWeight: "700", color: "#0f172a", margin: 0 }}>
+                  Feed Analytics
+                </h2>
+                <span
+                  style={{
+                    background: "#eff6ff",
+                    color: "#2563eb",
+                    fontSize: "11px",
+                    fontWeight: "700",
+                    padding: "2px 8px",
+                    borderRadius: "12px",
+                    border: "1px solid #dbeafe",
+                  }}
+                >
+                  Live Tracking
+                </span>
+              </div>
+              <p style={{ fontSize: "13px", color: "#64748b", margin: "3px 0 0 0" }}>
+                Track impressions, shoppable hotspot clicks, and customer engagement across your store.
+              </p>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "12.5px", color: "#64748b", fontWeight: "500" }}>Timeframe:</span>
+              <select
+                value={analyticsRange}
+                onChange={(e) => setAnalyticsRange(e.target.value)}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
+                  background: "#ffffff",
+                  fontSize: "12.5px",
+                  color: "#1e293b",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                {rangeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "12px" }}>
+            {/* Tile 1: Storefront Views */}
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #f1f5f9",
+                borderRadius: "8px",
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <div style={{ fontSize: "13px", color: "#64748b", borderBottom: "1px dotted #94a3b8" }}>
+                  Storefront Views
+                </div>
+                <span style={{ fontSize: "14px" }}>👀</span>
+              </div>
+              <div style={{ fontSize: "28px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.5px" }}>
+                {(filteredAnalytics.totalViews ?? 0).toLocaleString()}
+              </div>
+              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
+                Total feed impressions
+              </div>
+            </div>
+
+            {/* Tile 2: Product Clicks */}
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #f1f5f9",
+                borderRadius: "8px",
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <div style={{ fontSize: "13px", color: "#64748b", borderBottom: "1px dotted #94a3b8" }}>
+                  Product Clicks
+                </div>
+                <span
+                  style={{
+                    background: Number(filteredAnalytics.ctr) > 0 ? "#dcfce7" : "#f1f5f9",
+                    color: Number(filteredAnalytics.ctr) > 0 ? "#16a34a" : "#64748b",
+                    fontSize: "10.5px",
+                    fontWeight: "700",
+                    padding: "2px 6px",
+                    borderRadius: "10px",
+                  }}
+                >
+                  {filteredAnalytics.ctr ?? "0.0"}% CTR
+                </span>
+              </div>
+              <div style={{ fontSize: "28px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.5px" }}>
+                {(filteredAnalytics.totalClicks ?? 0).toLocaleString()}
+              </div>
+              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
+                Shoppable tag taps
+              </div>
+            </div>
+
+            {/* Tile 3: Shoppable Posts */}
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #f1f5f9",
+                borderRadius: "8px",
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <div style={{ fontSize: "13px", color: "#64748b", borderBottom: "1px dotted #94a3b8" }}>
+                  Shoppable Posts
+                </div>
+                <span
+                  style={{
+                    background: (filteredAnalytics.taggedCount ?? 0) > 0 ? "#e0e7ff" : "#f1f5f9",
+                    color: (filteredAnalytics.taggedCount ?? 0) > 0 ? "#4338ca" : "#64748b",
+                    fontSize: "10.5px",
+                    fontWeight: "700",
+                    padding: "2px 6px",
+                    borderRadius: "10px",
+                  }}
+                >
+                  {(filteredAnalytics.taggedCount ?? 0) > 0 ? "🛍️ Tagged" : "0 tagged"}
+                </span>
+              </div>
+              <div style={{ fontSize: "28px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.5px" }}>
+                {filteredAnalytics.taggedCount ?? (Object.keys(config.taggedProducts || {}).length)}
+              </div>
+              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
+                Tagged posts
+              </div>
+            </div>
+
+            {/* Tile 4: Theme Integration */}
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #f1f5f9",
+                borderRadius: "8px",
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <div style={{ fontSize: "13px", color: "#64748b", borderBottom: "1px dotted #94a3b8" }}>
+                  Theme Integration
+                </div>
+                <span
+                  style={{
+                    background: loaderData.dynamicAppEmbedEnabled ? "#dcfce7" : "#fef3c7",
+                    color: loaderData.dynamicAppEmbedEnabled ? "#16a34a" : "#b45309",
+                    fontSize: "10.5px",
+                    fontWeight: "700",
+                    padding: "2px 6px",
+                    borderRadius: "10px",
+                  }}
+                >
+                  {loaderData.dynamicAppEmbedEnabled ? "✓ Active" : "Action Needed"}
+                </span>
+              </div>
+              <div style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.3px", marginTop: "6px" }}>
+                {loaderData.dynamicAppEmbedEnabled ? "Live in Store" : "Embed Disabled"}
+              </div>
+              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
+                {isConnected ? `Synced @${instaData?.username || config.instagramHandle}` : "Account unlinked"}
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* ── 3. Main Dashboard Layout (Configurator & Live Preview) ── */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(340px, 42%) minmax(480px, 58%)",
+            gap: "24px",
+            alignItems: "flex-start",
+            width: "100%",
+          }}
+          className="instafeed-main-dashboard-grid"
+        >
+          {/* ── Left Column: Unified Single-Tab Configurator ── */}
+          <div id="unified-configurator-card" style={{ minWidth: 0 }}>
+            <UnifiedConfigurator
+              config={config}
+              updateConfig={updateConfig}
+              setConfig={setConfig}
+              isPaid={isPaid}
+              isHideMode={isHideMode}
+              setIsHideMode={setIsHideMode}
+              isTagMode={isTagMode}
+              setIsTagMode={setIsTagMode}
+              showStorySection={showStorySection}
+              totalPostsCount={totalPostsCount}
+              shopify={shopify}
+              navigate={navigate}
+              onApplyTemplate={handleApplyTemplate}
+              handleSaveConfig={handleSaveConfig}
+              isSaving={isSaving}
+              hasUnsavedChanges={hasUnsavedChanges}
+            />
+          </div>
+
+          {/* ── Right Column: Live Storefront Preview (Expanded Width & Sticky) ── */}
+          <div
+            id="feed-preview-container"
+            style={{
+              position: "sticky",
+              top: "20px",
+              zIndex: 25,
+              minWidth: 0,
+            }}
+          >
+            <Card>
                   <BlockStack gap="300">
                     <InlineStack align="space-between" blockAlign="center">
                       <Text variant="headingSm" as="h3">
@@ -2678,7 +3740,27 @@ export default function Index() {
                       </ButtonGroup>
                     </InlineStack>
 
-                    {isHideMode && activeTab === "post" && (
+                    {!isConnected && (
+                      <Box padding="200" background="bg-surface-secondary" borderRadius="150">
+                        <InlineStack align="space-between" blockAlign="center">
+                          <Text variant="bodyXs" tone="subdued">
+                            ✨ <strong>Sample Lookbook Preview:</strong> Connect your Instagram account to sync your actual posts.
+                          </Text>
+                          <Button
+                            size="micro"
+                            variant="plain"
+                            onClick={() => {
+                              const el = document.getElementById("welcome-widget-card");
+                              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }}
+                          >
+                            Connect →
+                          </Button>
+                        </InlineStack>
+                      </Box>
+                    )}
+
+                    {isHideMode && (
                       <Banner tone="info">
                         <strong>Hide Mode Active:</strong> Click any post in the preview below to toggle hidden status.
                       </Banner>
@@ -2719,109 +3801,55 @@ export default function Index() {
                             style={{ height: "calc(100% - 36px)", overflowY: "auto", paddingBottom: "20px" }}
                             onScroll={(e) => handleScroll(e, "vertical")}
                           >
-                            {activeTab === "post" ? (
-                              <div
-                                style={{
-                                  paddingTop: `${config.postFeed.paddingTop}px`,
-                                  paddingBottom: `${config.postFeed.paddingBottom}px`,
-                                }}
-                              >
-                                {config.postFeed.header && (config.postFeed.heading?.trim() || config.postFeed.subheading?.trim()) && (
-                                  <div style={{ padding: "8px 12px 0", textAlign: config.postFeed.alignment }}>
-                                    {config.postFeed.heading?.trim() && (
-                                      <h4
-                                        style={{
-                                          fontSize: `${config.postFeed.typography.heading.size}px`,
-                                          fontWeight: config.postFeed.typography.heading.weight,
-                                          color: config.postFeed.typography.heading.color,
-                                          margin: "0 0 4px 0",
-                                        }}
-                                      >
-                                        {formatDynamicAccountText(config.postFeed.heading)}
-                                      </h4>
-                                    )}
-                                    {config.postFeed.subheading?.trim() && (
-                                      <p
-                                        style={{
-                                          fontSize: `${config.postFeed.typography.subheading.size}px`,
-                                          color: config.postFeed.typography.subheading.color,
-                                          margin: 0,
-                                        }}
-                                      >
-                                        {formatDynamicAccountText(config.postFeed.subheading)}
-                                      </p>
-                                    )}
-                                  </div>
-                                )}
-
-                                {config.postFeed.carousel ? (
-                                  <div className="carousel-wrapper" style={{ padding: `${config.postFeed.gap}px 0`, position: "relative" }}>
-                                    <button
-                                      className="carousel-nav prev"
-                                      onClick={() => scrollCarousel(mobileCarouselRef, "prev")}
-                                      style={{ width: "24px", height: "24px", left: "4px" }}
-                                    >
-                                      <Icon source={ChevronLeftIcon} />
-                                    </button>
-                                    <div
-                                      className="carousel-container"
-                                      ref={mobileCarouselRef}
+                            <div
+                              style={{
+                                paddingTop: `${config.postFeed.paddingTop}px`,
+                                paddingBottom: `${config.postFeed.paddingBottom}px`,
+                              }}
+                            >
+                              {/* 1. Header: Title & Description */}
+                              {config.postFeed.header && (config.postFeed.heading?.trim() || config.postFeed.subheading?.trim()) && (
+                                <div style={{ padding: "8px 12px 0", textAlign: config.postFeed.alignment }}>
+                                  {config.postFeed.heading?.trim() && (
+                                    <h4
                                       style={{
-                                        padding: `0 ${config.postFeed.gap}px`,
-                                        "--carousel-gap": `${config.postFeed.gap}px`,
-                                        "--carousel-item-width": `calc((100% - ${(config.postFeed.mobileColumns - 1) * config.postFeed.gap}px) / ${config.postFeed.mobileColumns})`,
+                                        fontSize: `${config.postFeed.typography.heading.size}px`,
+                                        fontWeight: config.postFeed.typography.heading.weight,
+                                        color: config.postFeed.typography.heading.color,
+                                        margin: "0 0 4px 0",
                                       }}
                                     >
-                                      {simulatedInfiniteMedia.map((item, i) => renderCarouselCard(item, i))}
-                                    </div>
-                                    <button
-                                      className="carousel-nav next"
-                                      onClick={() => scrollCarousel(mobileCarouselRef, "next")}
-                                      style={{ width: "24px", height: "24px", right: "4px" }}
-                                    >
-                                      <Icon source={ChevronRightIcon} />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <div
-                                    style={{
-                                      display: "grid",
-                                      gridTemplateColumns: `repeat(${config.postFeed.mobileColumns}, 1fr)`,
-                                      gap: `${config.postFeed.gap}px`,
-                                      padding: `12px ${config.postFeed.gap}px`,
-                                    }}
-                                  >
-                                    {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
-                                  </div>
-                                )}
-
-                                {config.postFeed.showFollowButton !== false && renderFollowButton()}
-                              </div>
-                            ) : (
-                              /* Story Preview */
-                              <div
-                                style={{
-                                  paddingTop: `${config.stories.paddingTop}px`,
-                                  paddingBottom: `${config.stories.paddingBottom}px`,
-                                }}
-                              >
-                                {config.stories.showHeader && (
-                                  <div style={{ padding: "8px 12px", textAlign: config.stories.alignment }}>
-                                    <h4 style={{ margin: "0 0 4px 0", fontSize: "16px", fontWeight: "700" }}>
-                                      {formatDynamicAccountText(config.stories.heading)}
+                                      {formatDynamicAccountText(config.postFeed.heading)}
                                     </h4>
-                                    <p style={{ margin: 0, fontSize: "11px", color: "#6b7280" }}>
-                                      {formatDynamicAccountText(config.stories.subheading)}
+                                  )}
+                                  {config.postFeed.subheading?.trim() && (
+                                    <p
+                                      style={{
+                                        fontSize: `${config.postFeed.typography.subheading.size}px`,
+                                        color: config.postFeed.typography.subheading.color,
+                                        margin: 0,
+                                      }}
+                                    >
+                                      {formatDynamicAccountText(config.postFeed.subheading)}
                                     </p>
-                                  </div>
-                                )}
-                                <div style={{ display: "flex", gap: "8px", padding: "8px 10px", overflowX: "auto" }}>
-                                  {config.stories.promoEnable !== false && renderPromoStoryItem()}
-                                  {baseMedia.slice(0, 8).map((item, i) => renderStoryItem(item, i))}
+                                  )}
                                 </div>
-                                {config.stories.showFollowButton === true && renderFollowButton()}
-                              </div>
-                            )}
+                              )}
+
+                              {/* 2. Story Highlights Bar (images by default, threshold >= 6 posts) */}
+                              {showStorySection && storyMedia.length > 0 && (
+                                <div style={{ display: "flex", gap: "8px", padding: "10px 10px 6px", overflowX: "auto" }}>
+                                  {config.stories.promoEnable !== false && renderPromoStoryItem()}
+                                  {storyMedia.slice(0, 8).map((item, i) => renderStoryItem(item, i))}
+                                </div>
+                              )}
+
+                              {/* 3. Feed Display (Grid, Carousel, Masonry, Highlight, Reels, Marquee) */}
+                              {renderPreviewFeed(true)}
+
+                              {/* 4. Follow Button */}
+                              {config.postFeed.showFollowButton !== false && renderFollowButton()}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -2838,99 +3866,58 @@ export default function Index() {
                           maxHeight: "560px",
                         }}
                       >
-                        {activeTab === "post" ? (
-                          <div>
-                            {config.postFeed.header && (
-                              <div style={{ textAlign: config.postFeed.alignment, marginBottom: "12px" }}>
-                                <h4
-                                  style={{
-                                    fontSize: `${config.postFeed.typography.heading.size}px`,
-                                    fontWeight: config.postFeed.typography.heading.weight,
-                                    color: config.postFeed.typography.heading.color,
-                                    margin: "0 0 4px 0",
-                                  }}
-                                >
-                                  {formatDynamicAccountText(config.postFeed.heading)}
-                                </h4>
-                                <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, color: config.postFeed.typography.subheading.color, margin: 0 }}>
-                                  {formatDynamicAccountText(config.postFeed.subheading)}
-                                </p>
-                              </div>
-                            )}
-
-                            {config.postFeed.carousel ? (
-                              <div className="carousel-wrapper" style={{ padding: `${config.postFeed.gap}px 0`, position: "relative" }}>
-                                <button
-                                  className="carousel-nav prev"
-                                  onClick={() => scrollCarousel(desktopCarouselRef, "prev")}
-                                  style={{ width: "32px", height: "32px", left: "0px" }}
-                                >
-                                  <Icon source={ChevronLeftIcon} />
-                                </button>
-                                <div
-                                  className="carousel-container"
-                                  ref={desktopCarouselRef}
-                                  style={{
-                                    padding: `0 ${config.postFeed.gap}px`,
-                                    "--carousel-gap": `${config.postFeed.gap}px`,
-                                    "--carousel-item-width": `calc((100% - ${(config.postFeed.desktopColumns - 1) * config.postFeed.gap}px) / ${config.postFeed.desktopColumns})`,
-                                  }}
-                                >
-                                  {simulatedInfiniteMedia.map((item, i) => renderCarouselCard(item, i))}
-                                </div>
-                                <button
-                                  className="carousel-nav next"
-                                  onClick={() => scrollCarousel(desktopCarouselRef, "next")}
-                                  style={{ width: "32px", height: "32px", right: "0px" }}
-                                >
-                                  <Icon source={ChevronRightIcon} />
-                                </button>
-                              </div>
-                            ) : (
-                              <div
+                        <div>
+                          {/* 1. Header: Title & Description */}
+                          {config.postFeed.header && (
+                            <div style={{ textAlign: config.postFeed.alignment, marginBottom: "12px" }}>
+                              <h4
                                 style={{
-                                  display: "grid",
-                                  gridTemplateColumns: `repeat(${config.postFeed.desktopColumns}, 1fr)`,
-                                  gap: `${config.postFeed.gap}px`,
+                                  fontSize: `${config.postFeed.typography.heading.size}px`,
+                                  fontWeight: config.postFeed.typography.heading.weight,
+                                  color: config.postFeed.typography.heading.color,
+                                  margin: "0 0 4px 0",
                                 }}
                               >
-                                {simulatedInfiniteMedia.map((item, i) => renderMediaCard(item, i))}
-                              </div>
-                            )}
-
-                            {config.postFeed.showFollowButton !== false && renderFollowButton()}
-                          </div>
-                        ) : (
-                          <div style={{ textAlign: config.stories.alignment }}>
-                            {config.stories.showHeader && (
-                              <div style={{ marginBottom: "12px" }}>
-                                <h4 style={{ margin: "0 0 4px 0", fontSize: "18px", fontWeight: "700" }}>
-                                  {formatDynamicAccountText(config.stories.heading)}
-                                </h4>
-                                <p style={{ margin: 0, fontSize: "12px", color: "#6b7280" }}>
-                                  {formatDynamicAccountText(config.stories.subheading)}
-                                </p>
-                              </div>
-                            )}
-                            <div style={{ display: "flex", gap: "12px", justifyContent: config.stories.alignment === "center" ? "center" : "flex-start", overflowX: "auto", padding: "8px 0" }}>
-                              {config.stories.promoEnable !== false && renderPromoStoryItem()}
-                              {baseMedia.slice(0, 10).map((item, i) => renderStoryItem(item, i))}
+                                {formatDynamicAccountText(config.postFeed.heading)}
+                              </h4>
+                              <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, color: config.postFeed.typography.subheading.color, margin: 0 }}>
+                                {formatDynamicAccountText(config.postFeed.subheading)}
+                              </p>
                             </div>
-                            {config.stories.showFollowButton === true && renderFollowButton()}
-                          </div>
-                        )}
+                          )}
+
+                          {/* 2. Story Highlights Bar (images by default, threshold >= 6 posts) */}
+                          {showStorySection && storyMedia.length > 0 && (
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "12px",
+                                justifyContent: config.postFeed.alignment === "center" ? "center" : "flex-start",
+                                overflowX: "auto",
+                                padding: "6px 0 14px",
+                              }}
+                            >
+                              {config.stories.promoEnable !== false && renderPromoStoryItem()}
+                              {storyMedia.slice(0, 10).map((item, i) => renderStoryItem(item, i))}
+                            </div>
+                          )}
+
+                          {/* 3. Feed Display (Grid, Carousel, Masonry, Highlight, Reels, Marquee) */}
+                          {renderPreviewFeed(false)}
+
+                          {/* 4. Follow Button */}
+                          {config.postFeed.showFollowButton !== false && renderFollowButton()}
+                        </div>
                       </div>
                     )}
                   </BlockStack>
                 </Card>
-              </div>
-            </Layout.Section>
-          </Layout>
-        )}
+          </div>
+        </div>
 
         {/* ── High-Fidelity Instagram Modal Dialog with Shoppable Pins ── */}
         {selectedPost && (() => {
-          const postTags = config.taggedProducts?.[selectedPost.id || selectedPost.media_url] || [];
+          const postTags = config.taggedProducts?.[selectedPost.id || selectedPost.media_url] || selectedPost.taggedProducts || [];
           return (
             <Modal
               open={Boolean(selectedPost)}
@@ -3431,6 +4418,138 @@ export default function Index() {
                   </div>
                 </div>
               </div>
+            </Modal.Section>
+          </Modal>
+        )}
+
+        {/* ── Templates Library Modal ── */}
+        <Modal
+          open={isTemplatesModalOpen}
+          onClose={() => setIsTemplatesModalOpen(false)}
+          title="Instagram Feed Design Templates"
+          size="large"
+          primaryAction={{
+            content: "Close",
+            onAction: () => setIsTemplatesModalOpen(false),
+          }}
+        >
+          <Modal.Section>
+            <BlockStack gap="400">
+              <InlineStack align="space-between" blockAlign="center" wrap>
+                <Text variant="bodyMd" tone="subdued">
+                  Select any pre-designed template to immediately apply it to your feed. You can fine-tune all settings anytime.
+                </Text>
+                <ButtonGroup variant="segmented">
+                  <Button
+                    pressed={templateFilter === "all"}
+                    onClick={() => setTemplateFilter("all")}
+                  >
+                    All ({FEED_TEMPLATES.length})
+                  </Button>
+                  <Button
+                    pressed={templateFilter === "highlight"}
+                    onClick={() => setTemplateFilter("highlight")}
+                  >
+                    Highlight
+                  </Button>
+                  <Button
+                    pressed={templateFilter === "carousel"}
+                    onClick={() => setTemplateFilter("carousel")}
+                  >
+                    Sliders
+                  </Button>
+                  <Button
+                    pressed={templateFilter === "grid"}
+                    onClick={() => setTemplateFilter("grid")}
+                  >
+                    Grids
+                  </Button>
+                  <Button
+                    pressed={templateFilter === "reels"}
+                    onClick={() => setTemplateFilter("reels")}
+                  >
+                    Reels & Marquee
+                  </Button>
+                </ButtonGroup>
+              </InlineStack>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(215px, 1fr))",
+                  gap: "14px",
+                }}
+              >
+                {FEED_TEMPLATES.filter((t) => {
+                  if (templateFilter === "all") return true;
+                  if (templateFilter === "highlight") return t.type === "highlight";
+                  if (templateFilter === "carousel") return t.type === "carousel";
+                  if (templateFilter === "grid") return t.type === "grid";
+                  if (templateFilter === "reels") return t.type === "reels" || t.type === "marquee";
+                  return true;
+                }).map((tpl) => (
+                  <TemplateCard
+                    key={tpl.id}
+                    template={tpl}
+                    onApply={handleApplyTemplate}
+                    onPreview={handlePreviewTemplate}
+                  />
+                ))}
+              </div>
+            </BlockStack>
+          </Modal.Section>
+        </Modal>
+
+        {/* ── Single Template Preview Modal ── */}
+        {previewingTemplate && (
+          <Modal
+            open={Boolean(previewingTemplate)}
+            onClose={() => setPreviewingTemplate(null)}
+            title={`Preview: ${previewingTemplate.name}`}
+            size="large"
+            primaryAction={{
+              content: "Try It Now",
+              onAction: () => handleApplyTemplate(previewingTemplate),
+            }}
+            secondaryActions={[
+              {
+                content: "Back to Templates",
+                onAction: () => setPreviewingTemplate(null),
+              },
+            ]}
+          >
+            <Modal.Section>
+              <BlockStack gap="400">
+                <InlineStack align="space-between" blockAlign="center" wrap>
+                  <div>
+                    <Text variant="headingSm" as="h3" fontWeight="bold">
+                      {previewingTemplate.name}
+                    </Text>
+                    <Text variant="bodySm" tone="subdued">
+                      {previewingTemplate.desc}
+                    </Text>
+                  </div>
+                  <Badge tone="info">
+                    Layout: {previewingTemplate.type.toUpperCase()}
+                  </Badge>
+                </InlineStack>
+
+                <Box
+                  padding="400"
+                  background="bg-surface-secondary"
+                  borderRadius="300"
+                  borderWidth="025"
+                  borderColor="border"
+                >
+                  <div style={{ maxWidth: "560px", margin: "0 auto" }}>
+                    <TemplateMockupThumbnail template={previewingTemplate} />
+                  </div>
+                </Box>
+
+                <Banner tone="info">
+                  Clicking <strong>Try It Now</strong> will immediately configure this layout and update your live preview. You can customize colors, headers, and product tags anytime afterwards.
+                </Banner>
+              </BlockStack>
             </Modal.Section>
           </Modal>
         )}

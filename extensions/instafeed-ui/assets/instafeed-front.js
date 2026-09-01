@@ -286,6 +286,30 @@
     }
 
     _handleClick(e) {
+      const storyItem = e.target.closest(".ai-story-item");
+      if (storyItem) {
+        trackEvent('click');
+        if (storyItem.classList.contains("ai-promo-item")) {
+          return;
+        }
+        const isPopup = this.config?.stories?.openPopup !== false;
+        if (!isPopup) return;
+        e.preventDefault();
+        const itemId = storyItem.getAttribute("data-id");
+        this.dispatchEvent(new CustomEvent("instafeed:open-modal", {
+          bubbles: true,
+          composed: true,
+          detail: {
+            id: itemId,
+            source: "story",
+            media: this.storyMedia || this.mediaData || cachedGridMedia || [],
+            config: this.config || cachedConfig || {},
+            cssUrl: this.getAttribute("css-url") || getCssUrl()
+          }
+        }));
+        return;
+      }
+
       const gridItem = e.target.closest(".ai-grid-item");
       if (gridItem) {
         trackEvent('click');
@@ -311,7 +335,7 @@
       this.config = config;
       this.mediaData = mediaData;
 
-      const c          = config.postFeed;
+      const c          = config.postFeed || {};
       const isMobile   = window.innerWidth <= 768;
       const columns    = isMobile ? c.mobileColumns : c.desktopColumns;
       const baseLimit  = isMobile ? (c.mobileLimit || 4) : (c.desktopLimit || 8);
@@ -325,8 +349,38 @@
         }
       }
 
+      // Smart Media Separation: Story media (images default) & Feed media (videos default)
+      const totalPosts = mediaData.length;
+      const showStories = (totalPosts >= 6 || totalPosts === 0) && config.stories?.enable !== false;
+      let storyMedia = [];
+      if (showStories) {
+        storyMedia = mediaData.filter(i => {
+          const t = (i.media_type || "").toUpperCase();
+          return t === "IMAGE" || t === "CAROUSEL_ALBUM" || t === "ALBUM";
+        });
+        if (storyMedia.length === 0) storyMedia = mediaData; // fallback
+        this.storyMedia = storyMedia;
+      }
+
+      // Feed Media: Filter for videos/reels by default with fallback to all media if 0 videos
+      const feedFilter = c.mediaTypeFilter || "videos";
+      let candidateFeed = mediaData;
+      if (feedFilter === "videos") {
+        const vids = mediaData.filter(i => {
+          const t = (i.media_type || "").toUpperCase();
+          return t === "VIDEO" || t === "REEL" || (i.media_url && i.media_url.toLowerCase().includes(".mp4"));
+        });
+        candidateFeed = vids.length > 0 ? vids : mediaData;
+      } else if (feedFilter === "images") {
+        const imgs = mediaData.filter(i => {
+          const t = (i.media_type || "").toUpperCase();
+          return t === "IMAGE" || t === "CAROUSEL_ALBUM" || t === "ALBUM";
+        });
+        candidateFeed = imgs.length > 0 ? imgs : mediaData;
+      }
+
       const gap        = c.gap;
-      const mediaItems = getMedia(mediaData, limit);
+      const mediaItems = getMedia(candidateFeed, limit);
       const trackId    = 'ai-fw-grid-track-' + Date.now();
       const hSize      = c.typography?.heading?.size ? (c.typography.heading.size + (isMobile ? 0 : 2)) : 18;
       const subSize    = c.typography?.subheading?.size ? (c.typography.subheading.size + (isMobile ? 0 : 1)) : 12;
@@ -339,8 +393,9 @@
 
       let html = styleLink + '<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;padding-top:' + (c.paddingTop ?? 32) + 'px;padding-bottom:' + (c.paddingBottom ?? 32) + 'px;">';
 
+      // 1. Header: Title & Description
       if (c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) {
-        html += '<div style="text-align:' + c.alignment + ';margin-bottom:24px;">';
+        html += '<div style="text-align:' + c.alignment + ';margin-bottom:20px;">';
         if (c.heading && c.heading.trim()) {
           html += '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 8px 0;line-height:1.2;">' + esc(formatDynamicAccountText(c.heading, config.instagramHandle)) + '</h2>';
         }
@@ -350,7 +405,54 @@
         html += '</div>';
       }
 
-      if (c.carousel) {
+      // 2. Story Highlights Bar (images by default, threshold >= 6 posts)
+      if (showStories && storyMedia.length > 0) {
+        const s = config.stories || {};
+        const sRingColor = s.ringColor || c.typography?.heading?.color || "#e1306c";
+        const sActiveRing = s.activeRing !== false;
+        const sTrackId = 'ai-story-subtrack-' + Date.now();
+        const displayStories = getMedia(storyMedia, 10);
+        
+        html += '<div class="ai-fw-carousel-wrapper" style="position:relative;width:100%;margin-bottom:20px;">'
+              + '<div id="' + sTrackId + '" class="ai-fw-track" style="display:flex;width:100%;justify-content:center;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:4px 4px 16px;">';
+        
+        if (s.promoEnable !== false) {
+          const promoLabelText = s.promoLabel || "Special Offer";
+          html += '<div class="ai-story-item ai-promo-item" style="flex-shrink:0;width:84px;min-width:84px;text-align:center;cursor:pointer;overflow:visible;">'
+                + '<a href="javascript:void(0)" style="text-decoration:none;display:block;width:100%;">'
+                + '<div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border:' + (sActiveRing ? 'none' : '2px solid ' + sRingColor) + ';background:white;margin:0 auto;position:relative;">'
+                + (sActiveRing ? '<svg class="ai-story-ring-svg ' + (s.pulseRing === true ? 'ai-story-ring-pulse' : '') + '" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"><circle class="ai-story-ring-circle" cx="50" cy="50" r="47.5" stroke="' + sRingColor + '" /></svg>' : '')
+                + '<div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%);display:flex;align-items:center;justify-content:center;position:relative;z-index:1;">'
+                + '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>'
+                + '</div></div>'
+                + '<div style="margin-top:6px;text-align:center;width:100%;"><span class="ai-promo-pill" style="display:inline-block;padding:3px 10px;border:1.5px solid ' + sRingColor + ';color:' + sRingColor + ';font-size:10px;font-weight:700;border-radius:12px;white-space:nowrap;line-height:1.2;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.06);">' + esc(promoLabelText) + '</span></div>'
+                + '</a></div>';
+        }
+
+        displayStories.forEach((item, i) => {
+          const thumb = item.thumbnail_url || item.media_url || "";
+          const rawLabel = item.caption ? item.caption.split(/\s+/)[0] : 'Story ' + (i + 1);
+          const cleanLabel = rawLabel.replace(/[:,\.\-\s]+$/, '');
+          const labelHtml = (s.showLabels === true) ? '<div class="ai-story-label" style="margin-top:6px;font-size:11.5px;color:#000;font-weight:500;text-align:center;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;">' + esc(cleanLabel) + '</div>' : '';
+
+          html += '<div class="ai-story-item" data-id="' + (item.id || (item.media_url ? item.media_url.slice(-20) : '')) + '" style="flex-shrink:0;width:76px;text-align:center;cursor:pointer;overflow:visible;">'
+                + '<a href="javascript:void(0)" style="text-decoration:none;display:block;width:100%;">'
+                + '<div class="ai-story-ring-wrapper" style="width:64px;height:64px;border-radius:50%;padding:3px;border:' + (sActiveRing ? 'none' : '2px solid ' + sRingColor) + ';background:white;margin:0 auto;position:relative;">'
+                + (sActiveRing ? '<svg class="ai-story-ring-svg ' + (s.pulseRing === true ? 'ai-story-ring-pulse' : '') + '" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"><circle class="ai-story-ring-circle" cx="50" cy="50" r="47.5" stroke="' + sRingColor + '" /></svg>' : '')
+                + '<div class="ai-story-image-container" style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#f1f5f9;position:relative;z-index:1;">'
+                + (thumb ? '<img loading="lazy" src="' + esc(thumb) + '" alt="Story highlight" style="width:100%;height:100%;object-fit:cover;display:block;">' : '<div class="ai-skeleton-tile"></div>')
+                + '</div></div>'
+                + labelHtml
+                + '</a></div>';
+        });
+
+        html += '</div></div>';
+      }
+
+      // 3. Feed Display Modes: Grid, Carousel, Masonry, Highlight, Reels, Marquee
+      const layoutMode = c.layoutMode || (c.carousel ? "carousel" : "grid");
+
+      if (layoutMode === "carousel") {
         const itemWidth = 'calc((100% - ' + ((columns - 1) * gap) + 'px) / ' + columns + ')';
         const navBtnStyle = 'outline:none!important;-webkit-appearance:none!important;appearance:none!important;color:#1e293b!important;';
         html += '<div class="ai-fw-carousel-wrapper" style="position:relative;width:100%;">'
@@ -366,7 +468,54 @@
         html += '</div>'
               + '<div class="ai-fw-nav ai-fw-next" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Next" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M8 16l4-4-4-4"/></svg></div>'
               + '</div>';
+      } else if (layoutMode === "masonry") {
+        html += '<div class="ai-layout-masonry" style="column-count:' + columns + ';--ai-gap:' + gap + 'px;">';
+        mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, '100%'); });
+        html += '</div>';
+
+        if (c.load && mediaData.length > limit) {
+          html += '<div id="ai-infinite-sentinel" style="height:40px;width:100%;display:flex;align-items:center;justify-content:center;margin-top:20px;">'
+                + '<div style="width:20px;height:20px;border:2px solid #ddd;border-top-color:#6366f1;border-radius:50%;animation:ai-spin 0.8s linear infinite;"></div>'
+                + '</div>';
+        }
+      } else if (layoutMode === "highlight") {
+        const highlightCols = isMobile ? 2 : Math.max(columns, 4);
+        html += '<div class="ai-layout-highlight" style="grid-template-columns:repeat(' + highlightCols + ',1fr);gap:' + gap + 'px;">';
+        mediaItems.forEach((item, index) => {
+          const isHero = index === 0;
+          html += this.renderMediaCard(item, c, '100%', isHero ? 'ai-highlight-hero' : '');
+        });
+        html += '</div>';
+
+        if (c.load && mediaData.length > limit) {
+          html += '<div id="ai-infinite-sentinel" style="height:40px;width:100%;display:flex;align-items:center;justify-content:center;margin-top:20px;">'
+                + '<div style="width:20px;height:20px;border:2px solid #ddd;border-top-color:#6366f1;border-radius:50%;animation:ai-spin 0.8s linear infinite;"></div>'
+                + '</div>';
+        }
+      } else if (layoutMode === "reels") {
+        const reelWidth = isMobile ? 'calc((100% - ' + gap + 'px) / 2)' : 'calc((100% - ' + ((columns - 1) * gap) + 'px) / ' + columns + ')';
+        const navBtnStyle = 'outline:none!important;-webkit-appearance:none!important;appearance:none!important;color:#1e293b!important;';
+        html += '<div class="ai-layout-reels ai-fw-carousel-wrapper" style="position:relative;width:100%;">'
+              + '<div class="ai-fw-nav ai-fw-prev" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Previous" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg></div>'
+              + '<div class="ai-fw-track" id="' + trackId + '" style="display:flex;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:' + gap + 'px;padding:' + gap + 'px 0;">';
+        mediaItems.forEach((item) => {
+          const reelConfig = { ...c, aspectRatio: "9/16", autoplay: c.autoplay !== false };
+          html += this.renderMediaCard(item, reelConfig, reelWidth);
+        });
+        html += '</div>'
+              + '<div class="ai-fw-nav ai-fw-next" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Next" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M8 16l4-4-4-4"/></svg></div>'
+              + '</div>';
+      } else if (layoutMode === "marquee") {
+        const itemWidth = isMobile ? '160px' : '220px';
+        const speed = c.marqueeSpeed || 32;
+        html += '<div class="ai-marquee-wrapper" style="--ai-gap:' + gap + 'px;--ai-marquee-speed:' + speed + 's;margin:' + gap + 'px 0;">'
+              + '<div class="ai-marquee-track">';
+        // Render items and duplicate once to achieve seamless infinite loop
+        mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, itemWidth, 'ai-marquee-item'); });
+        mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, itemWidth, 'ai-marquee-item'); });
+        html += '</div></div>';
       } else {
+        // Default Grid layout
         html += '<div id="ai-grid-body" style="display:grid;grid-template-columns:repeat(' + columns + ',1fr);justify-content:center;gap:' + gap + 'px;">';
         mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, '100%'); });
         html += '</div>';
@@ -405,7 +554,7 @@
       }
     }
 
-    renderMediaCard(item, c, width) {
+    renderMediaCard(item, c, width, extraClass = "") {
       const rawType   = (item.media_type || "").toUpperCase();
       const isVideo   = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
       const isAlbum   = rawType === "CAROUSEL_ALBUM" || rawType === "ALBUM";
@@ -457,8 +606,8 @@
         </div>` : "";
 
       return `
-        <div class="ai-grid-wrapper" style="flex-shrink:0; width:${width}; box-sizing:border-box; display:flex;">
-          <div class="ai-grid-item" data-id="${item.id || item.media_url.slice(-20)}" 
+        <div class="ai-grid-wrapper ${extraClass}" style="flex-shrink:0; width:${width}; box-sizing:border-box; display:flex;">
+          <div class="ai-grid-item ${extraClass}" data-id="${item.id || (item.media_url ? item.media_url.slice(-20) : '')}" 
                style="text-decoration:none; display:flex; flex-direction:column; cursor:pointer; width:100%; height:100%; background:#f1f5f9; position:relative; border:1px solid #e2e8f0; border-radius:0; box-sizing:border-box; ${itemStyle}">
               ${inner}
               ${shoppableBadge}
