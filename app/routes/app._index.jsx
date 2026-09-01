@@ -461,6 +461,7 @@ const DEFAULT_CONFIG = {
     removeWatermark: false,
     showInstagramIcon: true,
     showFollowButton: true,
+    followButtonPosition: "bottom",
     hiddenPostIds: [],
     paddingTop: 32,
     paddingBottom: 32,
@@ -672,6 +673,7 @@ const FEED_TEMPLATES = [
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: true,
+        followButtonPosition: "header",
       },
       stories: { enable: false },
     },
@@ -696,6 +698,7 @@ const FEED_TEMPLATES = [
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: true,
+        followButtonPosition: "header",
       },
       stories: { enable: false },
     },
@@ -720,6 +723,7 @@ const FEED_TEMPLATES = [
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: true,
+        followButtonPosition: "header",
       },
       stories: { enable: false },
     },
@@ -1707,10 +1711,23 @@ function UnifiedConfigurator({
             <BlockStack gap="300">
               <Checkbox
                 label="Follow on Instagram Button"
-                helpText="Adds an attractive follow button at the bottom of the feed"
+                helpText="Display a branded Instagram follow button"
                 checked={config.postFeed.showFollowButton !== false}
                 onChange={(val) => updateConfig("postFeed", "showFollowButton", val)}
               />
+
+              {config.postFeed.showFollowButton !== false && (
+                <Select
+                  label="Button Placement"
+                  options={[
+                    { label: "In the header (alongside profile title)", value: "header" },
+                    { label: "At the bottom (below the feed)", value: "bottom" },
+                  ]}
+                  value={config.postFeed.followButtonPosition || (config.appliedTemplateId?.includes("profile") ? "header" : "bottom")}
+                  onChange={(val) => updateConfig("postFeed", "followButtonPosition", val)}
+                  helpText="Profile designs display the follow button in the header by default."
+                />
+              )}
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
                 <Button
@@ -2978,11 +2995,11 @@ export default function Index() {
     );
   };
 
-  const renderFollowButton = () => {
+  const renderFollowButton = (inHeader = false) => {
     const handle = (instaData?.username || config.instagramHandle || "").replace("@", "").trim();
     if (!handle) return null;
     return (
-      <div style={{ textAlign: "center", marginTop: "16px", marginBottom: "8px" }}>
+      <div style={{ textAlign: inHeader ? config.postFeed.alignment : "center", marginTop: inHeader ? "10px" : "18px", marginBottom: inHeader ? "6px" : "8px" }}>
         <a
           href={`https://instagram.com/${handle}`}
           target="_blank"
@@ -2992,13 +3009,14 @@ export default function Index() {
             display: "inline-flex",
             alignItems: "center",
             gap: "6px",
-            padding: "5px 12px",
+            padding: inHeader ? "4px 12px" : "6px 14px",
             borderRadius: "16px",
             background: "linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)",
             color: "#ffffff",
             fontWeight: "700",
-            fontSize: "11px",
+            fontSize: inHeader ? "10.5px" : "11.5px",
             textDecoration: "none",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
@@ -3766,150 +3784,158 @@ export default function Index() {
                       </Banner>
                     )}
 
-                    {/* Mobile Frame Simulator */}
-                    {previewDevice === "mobile" ? (
-                      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-                        <div
-                          style={{
-                            width: "280px",
-                            height: "560px",
-                            background: "white",
-                            borderRadius: "36px",
-                            border: "10px solid #1e293b",
-                            boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
-                            position: "relative",
-                            overflow: "hidden",
-                            flexShrink: 0,
-                          }}
-                        >
+                    {/* Frame Simulators */}
+                    {(() => {
+                      const followButtonPos = config.postFeed.followButtonPosition || (config.appliedTemplateId?.includes("profile") ? "header" : (config.postFeed.heading?.startsWith("@") ? "header" : "bottom"));
+                      const showHeaderFollow = config.postFeed.showFollowButton !== false && followButtonPos === "header";
+                      const showBottomFollow = config.postFeed.showFollowButton !== false && followButtonPos === "bottom";
+
+                      return previewDevice === "mobile" ? (
+                        <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
                           <div
                             style={{
-                              height: "36px",
-                              padding: "10px 16px 0",
-                              display: "flex",
-                              justifyContent: "space-between",
-                              fontSize: "10px",
-                              fontWeight: "700",
+                              width: "280px",
+                              height: "560px",
                               background: "white",
+                              borderRadius: "36px",
+                              border: "10px solid #1e293b",
+                              boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
+                              position: "relative",
+                              overflow: "hidden",
+                              flexShrink: 0,
                             }}
                           >
-                            <span>9:41</span>
-                            <div>📶 🔋</div>
-                          </div>
-
-                          <div
-                            style={{ height: "calc(100% - 36px)", overflowY: "auto", paddingBottom: "20px" }}
-                            onScroll={(e) => handleScroll(e, "vertical")}
-                          >
                             <div
                               style={{
-                                paddingTop: `${config.postFeed.paddingTop}px`,
-                                paddingBottom: `${config.postFeed.paddingBottom}px`,
+                                height: "36px",
+                                padding: "10px 16px 0",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                fontSize: "10px",
+                                fontWeight: "700",
+                                background: "white",
                               }}
                             >
-                              {/* 1. Header: Title & Description */}
-                              {config.postFeed.header && (config.postFeed.heading?.trim() || config.postFeed.subheading?.trim()) && (
-                                <div style={{ padding: "8px 12px 0", textAlign: config.postFeed.alignment }}>
-                                  {config.postFeed.heading?.trim() && (
-                                    <h4
-                                      style={{
-                                        fontSize: `${config.postFeed.typography.heading.size}px`,
-                                        fontWeight: config.postFeed.typography.heading.weight,
-                                        color: config.postFeed.typography.heading.color,
-                                        margin: "0 0 4px 0",
-                                      }}
-                                    >
-                                      {formatDynamicAccountText(config.postFeed.heading)}
-                                    </h4>
-                                  )}
-                                  {config.postFeed.subheading?.trim() && (
-                                    <p
-                                      style={{
-                                        fontSize: `${config.postFeed.typography.subheading.size}px`,
-                                        color: config.postFeed.typography.subheading.color,
-                                        margin: 0,
-                                      }}
-                                    >
-                                      {formatDynamicAccountText(config.postFeed.subheading)}
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* 2. Story Highlights Bar (images by default, threshold >= 6 posts) */}
-                              {showStorySection && storyMedia.length > 0 && (
-                                <div style={{ display: "flex", gap: "8px", padding: "10px 10px 6px", overflowX: "auto" }}>
-                                  {config.stories.promoEnable !== false && renderPromoStoryItem()}
-                                  {storyMedia.slice(0, 8).map((item, i) => renderStoryItem(item, i))}
-                                </div>
-                              )}
-
-                              {/* 3. Feed Display (Grid, Carousel, Masonry, Highlight, Reels, Marquee) */}
-                              {renderPreviewFeed(true)}
-
-                              {/* 4. Follow Button */}
-                              {config.postFeed.showFollowButton !== false && renderFollowButton()}
+                              <span>9:41</span>
+                              <div>📶 🔋</div>
                             </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Desktop Frame Simulator */
-                      <div
-                        style={{
-                          width: "100%",
-                          background: "white",
-                          borderRadius: "12px",
-                          border: "1px solid #e2e8f0",
-                          padding: "16px",
-                          overflowY: "auto",
-                          maxHeight: "560px",
-                        }}
-                      >
-                        <div>
-                          {/* 1. Header: Title & Description */}
-                          {config.postFeed.header && (
-                            <div style={{ textAlign: config.postFeed.alignment, marginBottom: "12px" }}>
-                              <h4
+
+                            <div
+                              style={{ height: "calc(100% - 36px)", overflowY: "auto", paddingBottom: "20px" }}
+                              onScroll={(e) => handleScroll(e, "vertical")}
+                            >
+                              <div
                                 style={{
-                                  fontSize: `${config.postFeed.typography.heading.size}px`,
-                                  fontWeight: config.postFeed.typography.heading.weight,
-                                  color: config.postFeed.typography.heading.color,
-                                  margin: "0 0 4px 0",
+                                  paddingTop: `${config.postFeed.paddingTop}px`,
+                                  paddingBottom: `${config.postFeed.paddingBottom}px`,
                                 }}
                               >
-                                {formatDynamicAccountText(config.postFeed.heading)}
-                              </h4>
-                              <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, color: config.postFeed.typography.subheading.color, margin: 0 }}>
-                                {formatDynamicAccountText(config.postFeed.subheading)}
-                              </p>
+                                {/* 1. Header: Title & Description & Contextual Follow Button */}
+                                {config.postFeed.header && (config.postFeed.heading?.trim() || config.postFeed.subheading?.trim()) && (
+                                  <div style={{ padding: "8px 12px 0", textAlign: config.postFeed.alignment }}>
+                                    {config.postFeed.heading?.trim() && (
+                                      <h4
+                                        style={{
+                                          fontSize: `${config.postFeed.typography.heading.size}px`,
+                                          fontWeight: config.postFeed.typography.heading.weight,
+                                          color: config.postFeed.typography.heading.color,
+                                          margin: "0 0 4px 0",
+                                        }}
+                                      >
+                                        {formatDynamicAccountText(config.postFeed.heading)}
+                                      </h4>
+                                    )}
+                                    {config.postFeed.subheading?.trim() && (
+                                      <p
+                                        style={{
+                                          fontSize: `${config.postFeed.typography.subheading.size}px`,
+                                          color: config.postFeed.typography.subheading.color,
+                                          margin: 0,
+                                        }}
+                                      >
+                                        {formatDynamicAccountText(config.postFeed.subheading)}
+                                      </p>
+                                    )}
+                                    {showHeaderFollow && renderFollowButton(true)}
+                                  </div>
+                                )}
+
+                                {/* 2. Story Highlights Bar (images by default, threshold >= 6 posts) */}
+                                {showStorySection && storyMedia.length > 0 && (
+                                  <div style={{ display: "flex", gap: "8px", padding: "10px 10px 6px", overflowX: "auto" }}>
+                                    {config.stories.promoEnable !== false && renderPromoStoryItem()}
+                                    {storyMedia.slice(0, 8).map((item, i) => renderStoryItem(item, i))}
+                                  </div>
+                                )}
+
+                                {/* 3. Feed Display (Grid, Carousel, Masonry, Highlight, Reels, Marquee) */}
+                                {renderPreviewFeed(true)}
+
+                                {/* 4. Bottom Follow Button (when configured for bottom) */}
+                                {showBottomFollow && renderFollowButton(false)}
+                              </div>
                             </div>
-                          )}
-
-                          {/* 2. Story Highlights Bar (images by default, threshold >= 6 posts) */}
-                          {showStorySection && storyMedia.length > 0 && (
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "12px",
-                                justifyContent: config.postFeed.alignment === "center" ? "center" : "flex-start",
-                                overflowX: "auto",
-                                padding: "6px 0 14px",
-                              }}
-                            >
-                              {config.stories.promoEnable !== false && renderPromoStoryItem()}
-                              {storyMedia.slice(0, 10).map((item, i) => renderStoryItem(item, i))}
-                            </div>
-                          )}
-
-                          {/* 3. Feed Display (Grid, Carousel, Masonry, Highlight, Reels, Marquee) */}
-                          {renderPreviewFeed(false)}
-
-                          {/* 4. Follow Button */}
-                          {config.postFeed.showFollowButton !== false && renderFollowButton()}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        /* Desktop Frame Simulator */
+                        <div
+                          style={{
+                            width: "100%",
+                            background: "white",
+                            borderRadius: "12px",
+                            border: "1px solid #e2e8f0",
+                            padding: "16px",
+                            overflowY: "auto",
+                            maxHeight: "560px",
+                          }}
+                        >
+                          <div>
+                            {/* 1. Header: Title & Description & Contextual Follow Button */}
+                            {config.postFeed.header && (
+                              <div style={{ textAlign: config.postFeed.alignment, marginBottom: "12px" }}>
+                                <h4
+                                  style={{
+                                    fontSize: `${config.postFeed.typography.heading.size}px`,
+                                    fontWeight: config.postFeed.typography.heading.weight,
+                                    color: config.postFeed.typography.heading.color,
+                                    margin: "0 0 4px 0",
+                                  }}
+                                >
+                                  {formatDynamicAccountText(config.postFeed.heading)}
+                                </h4>
+                                <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, color: config.postFeed.typography.subheading.color, margin: 0 }}>
+                                  {formatDynamicAccountText(config.postFeed.subheading)}
+                                </p>
+                                {showHeaderFollow && renderFollowButton(true)}
+                              </div>
+                            )}
+
+                            {/* 2. Story Highlights Bar (images by default, threshold >= 6 posts) */}
+                            {showStorySection && storyMedia.length > 0 && (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: "12px",
+                                  justifyContent: config.postFeed.alignment === "center" ? "center" : "flex-start",
+                                  overflowX: "auto",
+                                  padding: "6px 0 14px",
+                                }}
+                              >
+                                {config.stories.promoEnable !== false && renderPromoStoryItem()}
+                                {storyMedia.slice(0, 10).map((item, i) => renderStoryItem(item, i))}
+                              </div>
+                            )}
+
+                            {/* 3. Feed Display (Grid, Carousel, Masonry, Highlight, Reels, Marquee) */}
+                            {renderPreviewFeed(false)}
+
+                            {/* 4. Bottom Follow Button (when configured for bottom) */}
+                            {showBottomFollow && renderFollowButton(false)}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </BlockStack>
                 </Card>
           </div>
