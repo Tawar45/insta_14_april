@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
-import prisma from "../db.server";
 import { fetchShopConfig, fetchShopInstaData, fetchAllInstagramMedia } from "../instagramApi.server";
 import { withRateLimit, trackApiResponse } from "../rateLimiter.server";
 import { invalidateResource, cacheGetOrSet } from "../cache.server";
@@ -275,40 +274,6 @@ export const loader = async ({ request }) => {
     clientId
   );
 
-  // ── Storefront Analytics ──────────────────────────────────────────────────
-  let rawMetrics = [];
-  let totalViews = 0;
-  let totalClicks = 0;
-  try {
-    const metrics = await prisma.feedMetric.findMany({
-      where: { shop },
-      orderBy: { date: "desc" },
-      take: 365,
-    });
-    rawMetrics = metrics.map((m) => ({
-      date: m.date,
-      views: m.views || 0,
-      clicks: m.clicks || 0,
-    }));
-
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-    for (const m of rawMetrics) {
-      if (m.date >= thirtyDaysAgo) {
-        totalViews += m.views;
-        totalClicks += m.clicks;
-      }
-    }
-  } catch (e) {
-    console.error("Failed to load storefront metrics:", e.message);
-  }
-
-  const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
-
-  let taggedCount = 0;
-  if (config?.postTags && typeof config.postTags === "object") {
-    taggedCount = Object.values(config.postTags).filter((pins) => Array.isArray(pins) && pins.length > 0).length;
-  }
-
   return {
     config: config ? JSON.stringify(config) : null,
     instaData: instaData ? JSON.stringify(instaData) : null,
@@ -320,13 +285,6 @@ export const loader = async ({ request }) => {
     clientId,
     dynamicAppEmbedEnabled,
     dynamicSections,
-    rawMetrics,
-    analytics: {
-      totalViews,
-      totalClicks,
-      ctr,
-      taggedCount,
-    },
   };
 };
 
@@ -2140,7 +2098,6 @@ export default function Index() {
 
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [analyticsRange, setAnalyticsRange] = useState("30");
   const [isHideMode, setIsHideMode] = useState(false);
   const [isTagMode, setIsTagMode] = useState(false);
   const [taggingPost, setTaggingPost] = useState(null);
@@ -2208,43 +2165,6 @@ export default function Index() {
       shopify?.toast?.show(saveFetcher.data.error, { isError: true });
     }
   }, [saveFetcher.data, shopify]);
-
-  const rangeOptions = useMemo(
-    () => [
-      { label: "Last 7 days", value: "7" },
-      { label: "Last 30 days", value: "30" },
-      { label: "Last 60 days (2 months)", value: "60" },
-      { label: "Last 90 days (3 months)", value: "90" },
-      { label: "All time", value: "all" },
-    ],
-    []
-  );
-
-  const filteredAnalytics = useMemo(() => {
-    const raw = loaderData.rawMetrics || [];
-    let cutoffDate = "";
-    if (analyticsRange !== "all") {
-      const days = parseInt(analyticsRange, 10) || 30;
-      cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-    }
-
-    let views = 0;
-    let clicks = 0;
-    for (const m of raw) {
-      if (!cutoffDate || m.date >= cutoffDate) {
-        views += m.views || 0;
-        clicks += m.clicks || 0;
-      }
-    }
-
-    const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : "0.0";
-    return {
-      totalViews: views,
-      totalClicks: clicks,
-      ctr,
-      taggedCount: loaderData.analytics?.taggedCount ?? 0,
-    };
-  }, [loaderData.rawMetrics, analyticsRange, loaderData.analytics?.taggedCount]);
 
   const [isPostModulesExpanded, setIsPostModulesExpanded] = useState(true);
   const [isPostLayoutExpanded, setIsPostLayoutExpanded] = useState(false);
@@ -3635,195 +3555,6 @@ export default function Index() {
 
 
 
-        {/* ── Feed Analytics Section ── */}
-        <div
-          style={{
-            background: "#ffffff",
-            border: "1px solid #e2e8f0",
-            borderRadius: "10px",
-            padding: "20px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "16px",
-              flexWrap: "wrap",
-              gap: "10px",
-            }}
-          >
-            <h2 style={{ fontSize: "15px", fontWeight: "700", color: "#0f172a", margin: 0 }}>
-              Feed Analytics
-            </h2>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "12.5px", color: "#64748b", fontWeight: "500" }}>Timeframe:</span>
-              <select
-                value={analyticsRange}
-                onChange={(e) => setAnalyticsRange(e.target.value)}
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
-                  background: "#ffffff",
-                  fontSize: "12.5px",
-                  color: "#1e293b",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  outline: "none",
-                }}
-              >
-                {rangeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "12px" }}>
-            {/* Tile 1: Storefront Views */}
-            <div
-              style={{
-                background: "#f8fafc",
-                border: "1px solid #f1f5f9",
-                borderRadius: "8px",
-                padding: "16px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <div style={{ fontSize: "13px", color: "#64748b", borderBottom: "1px dotted #94a3b8" }}>
-                  Storefront Views
-                </div>
-                <span style={{ fontSize: "14px" }}>👀</span>
-              </div>
-              <div style={{ fontSize: "28px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.5px" }}>
-                {(filteredAnalytics.totalViews ?? 0).toLocaleString()}
-              </div>
-              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
-                Total feed impressions
-              </div>
-            </div>
-
-            {/* Tile 2: Product Clicks */}
-            <div
-              style={{
-                background: "#f8fafc",
-                border: "1px solid #f1f5f9",
-                borderRadius: "8px",
-                padding: "16px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <div style={{ fontSize: "13px", color: "#64748b", borderBottom: "1px dotted #94a3b8" }}>
-                  Product Clicks
-                </div>
-                <span
-                  style={{
-                    background: Number(filteredAnalytics.ctr) > 0 ? "#dcfce7" : "#f1f5f9",
-                    color: Number(filteredAnalytics.ctr) > 0 ? "#16a34a" : "#64748b",
-                    fontSize: "10.5px",
-                    fontWeight: "700",
-                    padding: "2px 6px",
-                    borderRadius: "10px",
-                  }}
-                >
-                  {filteredAnalytics.ctr ?? "0.0"}% CTR
-                </span>
-              </div>
-              <div style={{ fontSize: "28px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.5px" }}>
-                {(filteredAnalytics.totalClicks ?? 0).toLocaleString()}
-              </div>
-              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
-                Shoppable tag taps
-              </div>
-            </div>
-
-            {/* Tile 3: Shoppable Posts */}
-            <div
-              style={{
-                background: "#f8fafc",
-                border: "1px solid #f1f5f9",
-                borderRadius: "8px",
-                padding: "16px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <div style={{ fontSize: "13px", color: "#64748b", borderBottom: "1px dotted #94a3b8" }}>
-                  Shoppable Posts
-                </div>
-                <span
-                  style={{
-                    background: (filteredAnalytics.taggedCount ?? 0) > 0 ? "#e0e7ff" : "#f1f5f9",
-                    color: (filteredAnalytics.taggedCount ?? 0) > 0 ? "#4338ca" : "#64748b",
-                    fontSize: "10.5px",
-                    fontWeight: "700",
-                    padding: "2px 6px",
-                    borderRadius: "10px",
-                  }}
-                >
-                  {(filteredAnalytics.taggedCount ?? 0) > 0 ? "🛍️ Tagged" : "0 tagged"}
-                </span>
-              </div>
-              <div style={{ fontSize: "28px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.5px" }}>
-                {filteredAnalytics.taggedCount ?? (Object.keys(config.taggedProducts || {}).length)}
-              </div>
-              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
-                Tagged posts
-              </div>
-            </div>
-
-            {/* Tile 4: Theme Integration */}
-            <div
-              style={{
-                background: "#f8fafc",
-                border: "1px solid #f1f5f9",
-                borderRadius: "8px",
-                padding: "16px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <div style={{ fontSize: "13px", color: "#64748b", borderBottom: "1px dotted #94a3b8" }}>
-                  Theme Integration
-                </div>
-                <span
-                  style={{
-                    background: loaderData.dynamicAppEmbedEnabled ? "#dcfce7" : "#fef3c7",
-                    color: loaderData.dynamicAppEmbedEnabled ? "#16a34a" : "#b45309",
-                    fontSize: "10.5px",
-                    fontWeight: "700",
-                    padding: "2px 6px",
-                    borderRadius: "10px",
-                  }}
-                >
-                  {loaderData.dynamicAppEmbedEnabled ? "✓ Active" : "Action Needed"}
-                </span>
-              </div>
-              <div style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.3px", marginTop: "6px" }}>
-                {loaderData.dynamicAppEmbedEnabled ? "Live in Store" : "Embed Disabled"}
-              </div>
-              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
-                {isConnected ? `Synced @${instaData?.username || config.instagramHandle}` : "Account unlinked"}
-              </div>
-            </div>
-          </div>
-        </div>
         {/* ── 3. Main Dashboard Layout (Configurator & Live Preview) ── */}
         <div
           style={{
