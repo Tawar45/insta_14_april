@@ -107,14 +107,14 @@ const CarouselMediaIcon = () => (
 // ─────────────────────────────────────────────────────────────────────────────
 async function getCachedThemeEmbedStatus(shop, themeId, accessToken, clientId) {
   if (!themeId || themeId === "current" || !accessToken) {
-    return { dynamicAppEmbedEnabled: false, dynamicSections: { grid: false, story: false } };
+    return { dynamicAppEmbedEnabled: false, dynamicSections: { grid: false } };
   }
   const cacheKey = `theme_embed_status:${shop}:${themeId}`;
   return cacheGetOrSet(
     cacheKey,
     async () => {
       let dynamicAppEmbedEnabled = false;
-      let dynamicSections = { grid: false, story: false };
+      let dynamicSections = { grid: false };
       try {
         const apiVersion = "2024-01";
         const assetKeys = [
@@ -172,7 +172,6 @@ async function getCachedThemeEmbedStatus(shop, themeId, accessToken, clientId) {
                       sectionObj.type.includes(clientId))
                   ) {
                     if (sectionObj.type.includes("feed-grid")) dynamicSections.grid = true;
-                    if (sectionObj.type.includes("story-layout")) dynamicSections.story = true;
                   }
 
                   if (sectionObj.blocks) {
@@ -185,7 +184,6 @@ async function getCachedThemeEmbedStatus(shop, themeId, accessToken, clientId) {
                           blockObj.type.includes(clientId))
                       ) {
                         if (blockObj.type.includes("feed-grid")) dynamicSections.grid = true;
-                        if (blockObj.type.includes("story-layout")) dynamicSections.story = true;
                       }
                     }
                   }
@@ -391,6 +389,7 @@ export const action = async ({ request }) => {
 // DEFAULT CONFIG & PRESETS
 // ─────────────────────────────────────────────────────────────────────────────
 const DEFAULT_CONFIG = {
+  appliedTemplateId: "grid-profile",
   instagramHandle: "",
   aiCommentModeration: false,
   appSetup: { mainExt: false, sectionExt: false },
@@ -398,39 +397,39 @@ const DEFAULT_CONFIG = {
     header: true,
     metrics: true,
     load: false,
-    carousel: true,
-    layoutMode: "carousel",
+    carousel: false,
+    layoutMode: "grid",
     marqueeSpeed: 32,
     autoplay: true,
     modalSound: false,
     modalNavigation: true,
-    heading: "SHOP OUR INSTAGRAM",
-    subheading: "Tag us @account to get featured in our gallery!",
+    heading: "Welcome To @account",
+    subheading: "Follow our journey · Fresh drops & store updates every week",
     typography: {
       heading: { size: 18, weight: "800", color: "#111827" },
       subheading: { size: 12, weight: "500", color: "#6b7280" },
     },
-    alignment: "center",
+    alignment: "left",
     desktopColumns: 4,
     mobileColumns: 2,
     desktopLimit: 8,
     mobileLimit: 4,
     gap: 8,
-    aspectRatio: "auto",
+    aspectRatio: "1/1",
     removeWatermark: false,
     showInstagramIcon: true,
     showFollowButton: true,
-    followButtonPosition: "bottom",
+    followButtonPosition: "header",
     hiddenPostIds: [],
     paddingTop: 16,
     paddingBottom: 16,
-    mediaTypeFilter: "videos",
+    mediaTypeFilter: "all",
     sortBy: "latest",
     shoppablePins: true,
   },
   taggedProducts: {},
   stories: {
-    enable: true,
+    enable: false,
     promoEnable: true,
     promoLabel: "Get 10% Off",
     promoDesc: "Take a screenshot of a product you wish to buy and tag us on Instagram for a 10% discount code!",
@@ -540,22 +539,23 @@ const MOCK_THUMBS = [
 ];
 
 const FEED_TEMPLATES = [
+  // ── Tier 1: Clean Essentials ───────────────────────────────────────────────
   {
-    id: "highlight-eurus",
-    name: "Highlight Eurus layout",
-    desc: "1 large hero post on the left with 4 square tiles on the right.",
-    type: "highlight",
+    id: "grid-layout",
+    name: "Grid layout",
+    desc: "Symmetrical clean grid with uniform rows and columns.",
+    type: "grid",
     config: {
       postFeed: {
-        layoutMode: "highlight",
+        layoutMode: "grid",
         carousel: false,
         header: true,
-        heading: "Shop The Highlights",
-        subheading: "Hand-picked favorites and top trending styles this week",
+        heading: "Shop Our Instagram",
+        subheading: "Click on any photo to instantly shop the look",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 6,
+        gap: 8,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
@@ -591,21 +591,22 @@ const FEED_TEMPLATES = [
     },
   },
   {
-    id: "grid-layout",
-    name: "Grid layout",
-    desc: "Symmetrical clean grid with uniform rows and columns.",
-    type: "grid",
+    id: "highlight-eurus",
+    name: "Highlight Eurus layout",
+    desc: "1 large hero post on the left with 4 square tiles on the right.",
+    type: "highlight",
     config: {
       postFeed: {
-        layoutMode: "grid",
+        layoutMode: "highlight",
         carousel: false,
         header: true,
-        heading: "Shop Our Instagram",
-        subheading: "Click on any photo to instantly shop the look",
+        heading: "Shop The Highlights",
+        subheading: "Hand-picked favorites and top trending styles this week",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 8,
+        desktopLimit: 5,
+        gap: 6,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
@@ -615,22 +616,24 @@ const FEED_TEMPLATES = [
       stories: { enable: false },
     },
   },
+
+  // ── Tier 2: Profile Header Designs ─────────────────────────────────────────
   {
-    id: "highlight-profile",
-    name: "Highlight with profile layout",
-    desc: "Instagram profile header banner with 2x2 highlight grid.",
-    type: "highlight",
+    id: "grid-profile",
+    name: "Grid with profile layout",
+    desc: "Profile header banner paired with a clean symmetrical grid.",
+    type: "grid",
     config: {
       postFeed: {
-        layoutMode: "highlight",
+        layoutMode: "grid",
         carousel: false,
         header: true,
-        heading: "Follow @account",
-        subheading: "Official Instagram · Discover our weekly featured story",
-        alignment: "center",
+        heading: "Welcome To @account",
+        subheading: "Follow our journey · Fresh drops & store updates every week",
+        alignment: "left",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 6,
+        gap: 8,
         aspectRatio: "1/1",
         metrics: true,
         mediaTypeFilter: "all",
@@ -652,7 +655,7 @@ const FEED_TEMPLATES = [
         header: true,
         heading: "Connect With @account",
         subheading: "Join our community · Swipe through our daily moments",
-        alignment: "center",
+        alignment: "left",
         desktopColumns: 4,
         mobileColumns: 2,
         gap: 8,
@@ -666,58 +669,61 @@ const FEED_TEMPLATES = [
     },
   },
   {
-    id: "grid-profile",
-    name: "Grid with profile layout",
-    desc: "Profile header banner paired with a clean symmetrical grid.",
-    type: "grid",
-    config: {
-      postFeed: {
-        layoutMode: "grid",
-        carousel: false,
-        header: true,
-        heading: "Welcome To @account",
-        subheading: "Follow our journey · Fresh drops & store updates every week",
-        alignment: "center",
-        desktopColumns: 4,
-        mobileColumns: 2,
-        gap: 8,
-        aspectRatio: "1/1",
-        metrics: true,
-        mediaTypeFilter: "all",
-        showFollowButton: true,
-        followButtonPosition: "header",
-      },
-      stories: { enable: false },
-    },
-  },
-  {
-    id: "highlight-full",
-    name: "Highlight layout with full features",
-    desc: "Story highlights bar, 2x2 highlight grid, hover metrics & follow button.",
+    id: "highlight-profile",
+    name: "Highlight with profile layout",
+    desc: "Instagram profile header banner with 2x2 highlight grid.",
     type: "highlight",
     config: {
       postFeed: {
         layoutMode: "highlight",
         carousel: false,
         header: true,
-        heading: "Featured Stories & Highlights",
-        subheading: "Tap highlights above to explore deals, reviews & new arrivals",
-        alignment: "center",
+        heading: "Follow @account",
+        subheading: "Official Instagram · Discover our weekly featured story",
+        alignment: "left",
         desktopColumns: 4,
         mobileColumns: 2,
+        desktopLimit: 5,
         gap: 6,
         aspectRatio: "1/1",
         metrics: true,
-        mediaTypeFilter: "videos",
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+        followButtonPosition: "header",
+      },
+      stories: { enable: false },
+    },
+  },
+
+  // ── Tier 3: Full Feature Layouts with Stories ──────────────────────────────
+  {
+    id: "grid-full",
+    name: "Grid layout with full features",
+    desc: "Circular story highlights with complete shoppable grid & product tags.",
+    type: "grid",
+    config: {
+      postFeed: {
+        layoutMode: "grid",
+        carousel: false,
+        header: true,
+        heading: "As Seen On Social",
+        subheading: "Browse our highlights & shop complete customer styles",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 8,
+        aspectRatio: "1/1",
+        metrics: true,
+        mediaTypeFilter: "all",
         showFollowButton: true,
         followButtonPosition: "bottom",
       },
       stories: {
         enable: true,
         promoEnable: true,
-        promoLabel: "Special Offer",
+        promoLabel: "New Drop",
         activeRing: true,
-        ringColor: "#e1306c",
+        ringColor: "#833ab4",
         showLabels: false,
       },
     },
@@ -755,37 +761,40 @@ const FEED_TEMPLATES = [
     },
   },
   {
-    id: "grid-full",
-    name: "Grid layout with full features",
-    desc: "Circular story highlights with complete shoppable grid & product tags.",
-    type: "grid",
+    id: "highlight-full",
+    name: "Highlight layout with full features",
+    desc: "Story highlights bar, 2x2 highlight grid, hover metrics & follow button.",
+    type: "highlight",
     config: {
       postFeed: {
-        layoutMode: "grid",
+        layoutMode: "highlight",
         carousel: false,
         header: true,
-        heading: "As Seen On Social",
-        subheading: "Browse our highlights & shop complete customer styles",
+        heading: "Featured Stories & Highlights",
+        subheading: "Tap highlights above to explore deals, reviews & new arrivals",
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
-        gap: 8,
+        desktopLimit: 5,
+        gap: 6,
         aspectRatio: "1/1",
         metrics: true,
-        mediaTypeFilter: "all",
+        mediaTypeFilter: "videos",
         showFollowButton: true,
         followButtonPosition: "bottom",
       },
       stories: {
         enable: true,
         promoEnable: true,
-        promoLabel: "New Drop",
+        promoLabel: "Special Offer",
         activeRing: true,
-        ringColor: "#833ab4",
+        ringColor: "#e1306c",
         showLabels: false,
       },
     },
   },
+
+  // ── Tier 4: Trending & Creative Formats ────────────────────────────────────
   {
     id: "reels-wall",
     name: "Reels video wall layout",
@@ -813,6 +822,31 @@ const FEED_TEMPLATES = [
     },
   },
   {
+    id: "masonry-lookbook",
+    name: "Masonry Lookbook layout",
+    desc: "Dynamic Pinterest-style staggered waterfall columns.",
+    type: "masonry",
+    config: {
+      postFeed: {
+        layoutMode: "masonry",
+        carousel: false,
+        header: true,
+        heading: "Our Visual Lookbook",
+        subheading: "Get inspired by community aesthetics, fit checks & styling ideas",
+        alignment: "center",
+        desktopColumns: 4,
+        mobileColumns: 2,
+        gap: 8,
+        aspectRatio: "auto",
+        metrics: true,
+        mediaTypeFilter: "all",
+        showFollowButton: true,
+        followButtonPosition: "bottom",
+      },
+      stories: { enable: false },
+    },
+  },
+  {
     id: "marquee-ticker",
     name: "Marquee ticker layout",
     desc: "Continuous infinite auto-scrolling social ticker ribbon.",
@@ -833,31 +867,6 @@ const FEED_TEMPLATES = [
         metrics: true,
         mediaTypeFilter: "all",
         showFollowButton: false,
-        followButtonPosition: "bottom",
-      },
-      stories: { enable: false },
-    },
-  },
-  {
-    id: "masonry-lookbook",
-    name: "Masonry Lookbook layout",
-    desc: "Dynamic Pinterest-style staggered waterfall columns.",
-    type: "masonry",
-    config: {
-      postFeed: {
-        layoutMode: "masonry",
-        carousel: false,
-        header: true,
-        heading: "Our Visual Lookbook",
-        subheading: "Get inspired by community aesthetics, fit checks & styling ideas",
-        alignment: "center",
-        desktopColumns: 4,
-        mobileColumns: 2,
-        gap: 8,
-        aspectRatio: "auto",
-        metrics: true,
-        mediaTypeFilter: "all",
-        showFollowButton: true,
         followButtonPosition: "bottom",
       },
       stories: { enable: false },
@@ -1321,8 +1330,9 @@ function UnifiedConfigurator({
   }, [selectedCategory]);
 
   const isTemplateMatch = (template) => {
-    if (config.appliedTemplateId) {
-      return config.appliedTemplateId === template.id;
+    const activeId = config.appliedTemplateId || "grid-profile";
+    if (activeId) {
+      return activeId === template.id;
     }
     const p = template.config.postFeed;
     const s = template.config.stories;
@@ -1333,7 +1343,10 @@ function UnifiedConfigurator({
 
     // Differentiate profile templates from standard templates
     const isTplProfile = template.id.includes("profile");
-    const isConfigProfile = config.postFeed?.heading === "@account" || config.postFeed?.heading?.startsWith("@");
+    const isConfigProfile =
+      config.postFeed?.followButtonPosition === "header" ||
+      config.postFeed?.alignment === "left" ||
+      config.postFeed?.heading?.toLowerCase().includes("account");
     if (isTplProfile !== isConfigProfile) return false;
 
     return true;
@@ -1777,36 +1790,34 @@ function UnifiedConfigurator({
                 />
               </div>
 
-              {!config.postFeed.load && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                  <Select
-                    label="Desktop Posts Limit"
-                    options={[4, 6, 8, 12, 16, 20, 24].map((n) => ({
-                      label: `${n} Posts ${!isPaid && n > 12 ? "(PRO)" : ""}`,
-                      value: String(n),
-                    }))}
-                    value={String(config.postFeed.desktopLimit || 8)}
-                    onChange={(val) => {
-                      const num = parseInt(val);
-                      if (!isPaid && num > 12) {
-                        shopify?.toast?.show("Unlock PRO for more than 12 posts", { isError: true });
-                        navigate("/app/plans");
-                        return;
-                      }
-                      updateConfig("postFeed", "desktopLimit", num);
-                    }}
-                  />
-                  <Select
-                    label="Mobile Posts Limit"
-                    options={[3, 4, 6, 8, 12].map((n) => ({
-                      label: `${n} Posts`,
-                      value: String(n),
-                    }))}
-                    value={String(config.postFeed.mobileLimit || 4)}
-                    onChange={(val) => updateConfig("postFeed", "mobileLimit", parseInt(val))}
-                  />
-                </div>
-              )}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <Select
+                  label="Desktop Posts Limit"
+                  options={[4, 6, 8, 12, 16, 20, 24].map((n) => ({
+                    label: `${n} Posts ${!isPaid && n > 12 ? "(PRO)" : ""}`,
+                    value: String(n),
+                  }))}
+                  value={String(config.postFeed.desktopLimit || 8)}
+                  onChange={(val) => {
+                    const num = parseInt(val);
+                    if (!isPaid && num > 12) {
+                      shopify?.toast?.show("Unlock PRO for more than 12 posts", { isError: true });
+                      navigate("/app/plans");
+                      return;
+                    }
+                    updateConfig("postFeed", "desktopLimit", num);
+                  }}
+                />
+                <Select
+                  label="Mobile Posts Limit"
+                  options={[3, 4, 6, 8, 12].map((n) => ({
+                    label: `${n} Posts`,
+                    value: String(n),
+                  }))}
+                  value={String(config.postFeed.mobileLimit || 4)}
+                  onChange={(val) => updateConfig("postFeed", "mobileLimit", parseInt(val))}
+                />
+              </div>
 
               <RangeSlider
                 label={`Spacing (${config.postFeed.gap}px)`}
@@ -2243,7 +2254,7 @@ export default function Index() {
 
   const setupStep1 = isConnected;
   const setupStep2 = !!loaderData.dynamicAppEmbedEnabled;
-  const setupStep3 = !!(loaderData.dynamicSections?.grid || loaderData.dynamicSections?.story);
+  const setupStep3 = !!loaderData.dynamicSections?.grid;
   const welcomeCompletedSteps = (setupStep1 ? 1 : 0) + (setupStep2 ? 1 : 0) + (setupStep3 ? 1 : 0);
   const allTasksDone = isConnected && !!loaderData.dynamicAppEmbedEnabled;
   const isAllSetupComplete = allTasksDone;
@@ -2427,23 +2438,31 @@ export default function Index() {
     return list;
   }, [baseMedia, config.postFeed.mediaTypeFilter, config.postFeed.sortBy, isPaid]);
 
-  const simulatedInfiniteMedia = useMemo(() => {
-    if (config.postFeed.carousel) return filteredGridMedia;
-    const limit = previewDevice === "mobile" ? config.postFeed.mobileLimit || 4 : config.postFeed.desktopLimit || 8;
-    const effectiveLimit = limit + extraLoadCount;
-    return filteredGridMedia.slice(0, effectiveLimit);
-  }, [filteredGridMedia, config.postFeed.carousel, previewDevice, config.postFeed.mobileLimit, config.postFeed.desktopLimit, extraLoadCount]);
+  const isCarouselLayout = config.postFeed.layoutStyle === "carousel" || config.postFeed.carousel === true;
 
-  const hasMoreToShow = simulatedInfiniteMedia.length < filteredGridMedia.length;
+  const simulatedInfiniteMedia = useMemo(() => {
+    // Only carousel displays all items for infinite horizontal swipe/scroll; all other layouts show strictly limited posts
+    if (isCarouselLayout) {
+      return filteredGridMedia;
+    }
+    if (config.postFeed.layoutMode === "highlight") {
+      // Highlight layout: 1 hero (span 2x2) + 4 tiles = 5 posts total (remove trailing 3 posts)
+      return filteredGridMedia.slice(0, 5);
+    }
+    const limit = previewDevice === "mobile" ? (config.postFeed.mobileLimit || 4) : (config.postFeed.desktopLimit || 8);
+    return filteredGridMedia.slice(0, limit);
+  }, [filteredGridMedia, isCarouselLayout, previewDevice, config.postFeed.mobileLimit, config.postFeed.desktopLimit, config.postFeed.layoutMode]);
+
+  const hasMoreToShow = isCarouselLayout && (simulatedInfiniteMedia.length < filteredGridMedia.length);
 
   const handleScroll = useCallback(
-    (e, orientation = "vertical") => {
-      const { scrollTop, scrollHeight, clientHeight, scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
+    (e, orientation = "horizontal") => {
+      // Infinite scroll is strictly enabled on carousel horizontally
+      if (!isCarouselLayout || orientation !== "horizontal") return;
+
+      const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
       const threshold = 150;
-      const nearEnd =
-        orientation === "vertical"
-          ? scrollHeight - scrollTop - clientHeight < threshold
-          : scrollWidth - scrollLeft - clientWidth < threshold;
+      const nearEnd = scrollWidth - scrollLeft - clientWidth < threshold;
 
       if (nearEnd && hasMoreToShow && !isInfiniteLoading) {
         setIsInfiniteLoading(true);
@@ -2453,7 +2472,7 @@ export default function Index() {
         }, 100);
       }
     },
-    [isInfiniteLoading, previewDevice, hasMoreToShow]
+    [isCarouselLayout, isInfiniteLoading, previewDevice, hasMoreToShow]
   );
 
   const scrollCarousel = useCallback((ref, direction) => {
@@ -2792,6 +2811,7 @@ export default function Index() {
 
     if (layout === "highlight") {
       const highlightCols = isMobile ? 2 : Math.max(cols, 4);
+      const highlightMedia = simulatedInfiniteMedia.slice(0, 5);
       return (
         <div
           style={{
@@ -2801,7 +2821,7 @@ export default function Index() {
             padding: isMobile ? `4px ${gap}px` : "0",
           }}
         >
-          {simulatedInfiniteMedia.map((item, i) => {
+          {highlightMedia.map((item, i) => {
             const isHero = i === 0;
             return (
               <div
@@ -3703,6 +3723,18 @@ export default function Index() {
                       const followButtonPos = config.postFeed.followButtonPosition || (config.appliedTemplateId?.includes("profile") ? "header" : (config.postFeed.heading?.startsWith("@") ? "header" : "bottom"));
                       const showHeaderFollow = config.postFeed.showFollowButton !== false && followButtonPos === "header";
                       const showBottomFollow = config.postFeed.showFollowButton !== false && followButtonPos === "bottom";
+                      const isProfileLayout = Boolean(
+                        config.appliedTemplateId?.includes("profile") ||
+                        (followButtonPos === "header" && (
+                          config.postFeed.heading?.startsWith("@") ||
+                          config.postFeed.heading?.toLowerCase().includes("@account") ||
+                          config.postFeed.heading?.toLowerCase().includes("follow @") ||
+                          config.postFeed.heading?.toLowerCase().includes("connect with @") ||
+                          config.postFeed.heading?.toLowerCase().includes("welcome to @")
+                        ))
+                      );
+                      const profilePic = instaData?.profile_picture_url || instaData?.user?.profile_picture_url || "";
+                      const handle = (instaData?.username || config.instagramHandle || "").replace("@", "").trim();
 
                       return previewDevice === "mobile" ? (
                         <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
@@ -3736,7 +3768,6 @@ export default function Index() {
 
                             <div
                               style={{ height: "calc(100% - 36px)", overflowY: "auto", paddingBottom: "8px" }}
-                              onScroll={(e) => handleScroll(e, "vertical")}
                             >
                               <div
                                 style={{
@@ -3745,33 +3776,156 @@ export default function Index() {
                                 }}
                               >
                                 {/* 1. Header: Title & Description & Contextual Follow Button */}
-                                {(config.postFeed.header || showHeaderFollow) && (
-                                  <div style={{ padding: "4px 8px 0", textAlign: config.postFeed.alignment }}>
-                                    {config.postFeed.header && config.postFeed.heading?.trim() && (
-                                      <h4
+                                {isProfileLayout ? (
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      padding: "4px 8px 6px",
+                                      gap: "8px",
+                                    }}
+                                  >
+                                    {/* Left: Avatar + Heading & Subheading */}
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
+                                      <div
                                         style={{
-                                          fontSize: `${config.postFeed.typography.heading.size}px`,
-                                          fontWeight: config.postFeed.typography.heading.weight,
-                                          color: config.postFeed.typography.heading.color,
-                                          margin: "0 0 2px 0",
+                                          width: "34px",
+                                          height: "34px",
+                                          minWidth: "34px",
+                                          minHeight: "34px",
+                                          borderRadius: "50%",
+                                          overflow: "hidden",
+                                          flexShrink: 0,
+                                          background: "linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)",
+                                          padding: "2px",
+                                          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          boxSizing: "border-box",
                                         }}
                                       >
-                                        {formatDynamicAccountText(config.postFeed.heading)}
-                                      </h4>
+                                        {profilePic ? (
+                                          <img
+                                            src={profilePic}
+                                            alt={handle || "Profile"}
+                                            style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block" }}
+                                          />
+                                        ) : (
+                                          <div
+                                            style={{
+                                              width: "100%",
+                                              height: "100%",
+                                              borderRadius: "50%",
+                                              background: "#ffffff",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              justifyContent: "center",
+                                            }}
+                                          >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#833ab4">
+                                              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                            </svg>
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <div style={{ textAlign: "left", minWidth: 0, flex: 1 }}>
+                                        {config.postFeed.header && config.postFeed.heading?.trim() && (
+                                          <h4
+                                            style={{
+                                              fontSize: `${Math.min(config.postFeed.typography.heading.size, 13)}px`,
+                                              fontWeight: config.postFeed.typography.heading.weight || "700",
+                                              color: config.postFeed.typography.heading.color,
+                                              margin: 0,
+                                              lineHeight: 1.25,
+                                              whiteSpace: "nowrap",
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                            }}
+                                          >
+                                            {formatDynamicAccountText(config.postFeed.heading)}
+                                          </h4>
+                                        )}
+                                        {config.postFeed.header && config.postFeed.subheading?.trim() && (
+                                          <p
+                                            style={{
+                                              fontSize: `${Math.min(config.postFeed.typography.subheading.size, 10.5)}px`,
+                                              color: config.postFeed.typography.subheading.color,
+                                              margin: "2px 0 0 0",
+                                              lineHeight: 1.3,
+                                              whiteSpace: "nowrap",
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                            }}
+                                          >
+                                            {formatDynamicAccountText(config.postFeed.subheading)}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Right: Follow Button */}
+                                    {showHeaderFollow && (
+                                      <div style={{ flexShrink: 0, marginLeft: "auto" }}>
+                                        <a
+                                          href={`https://instagram.com/${handle}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="ai-follow-btn"
+                                          style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "5px",
+                                            padding: "4px 9px",
+                                            borderRadius: "16px",
+                                            background: "linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)",
+                                            color: "#ffffff",
+                                            fontWeight: "700",
+                                            fontSize: "9.5px",
+                                            textDecoration: "none",
+                                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                            whiteSpace: "nowrap",
+                                          }}
+                                        >
+                                          <svg width="11" height="11" viewBox="0 0 24 24" fill="white">
+                                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                          </svg>
+                                          <span>Follow</span>
+                                        </a>
+                                      </div>
                                     )}
-                                    {config.postFeed.header && config.postFeed.subheading?.trim() && (
-                                      <p
-                                        style={{
-                                          fontSize: `${config.postFeed.typography.subheading.size}px`,
-                                          color: config.postFeed.typography.subheading.color,
-                                          margin: 0,
-                                        }}
-                                      >
-                                        {formatDynamicAccountText(config.postFeed.subheading)}
-                                      </p>
-                                    )}
-                                    {showHeaderFollow && renderFollowButton(true)}
                                   </div>
+                                ) : (
+                                  (config.postFeed.header || showHeaderFollow) && (
+                                    <div style={{ padding: "4px 8px 0", textAlign: config.postFeed.alignment }}>
+                                      {config.postFeed.header && config.postFeed.heading?.trim() && (
+                                        <h4
+                                          style={{
+                                            fontSize: `${config.postFeed.typography.heading.size}px`,
+                                            fontWeight: config.postFeed.typography.heading.weight,
+                                            color: config.postFeed.typography.heading.color,
+                                            margin: "0 0 2px 0",
+                                          }}
+                                        >
+                                          {formatDynamicAccountText(config.postFeed.heading)}
+                                        </h4>
+                                      )}
+                                      {config.postFeed.header && config.postFeed.subheading?.trim() && (
+                                        <p
+                                          style={{
+                                            fontSize: `${config.postFeed.typography.subheading.size}px`,
+                                            color: config.postFeed.typography.subheading.color,
+                                            margin: 0,
+                                          }}
+                                        >
+                                          {formatDynamicAccountText(config.postFeed.subheading)}
+                                        </p>
+                                      )}
+                                      {showHeaderFollow && renderFollowButton(true)}
+                                    </div>
+                                  )
                                 )}
 
                                 {/* 2. Story Highlights Bar (images by default, threshold >= 6 posts) */}
@@ -3806,27 +3960,151 @@ export default function Index() {
                         >
                           <div>
                             {/* 1. Header: Title & Description & Contextual Follow Button */}
-                            {(config.postFeed.header || showHeaderFollow) && (
-                              <div style={{ textAlign: config.postFeed.alignment, marginBottom: "8px" }}>
-                                {config.postFeed.header && config.postFeed.heading?.trim() && (
-                                  <h4
+                            {isProfileLayout ? (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  padding: "4px 4px 12px",
+                                  gap: "14px",
+                                  marginBottom: "8px",
+                                }}
+                              >
+                                {/* Left: Avatar + Heading & Subheading */}
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, flex: 1 }}>
+                                  <div
                                     style={{
-                                      fontSize: `${config.postFeed.typography.heading.size}px`,
-                                      fontWeight: config.postFeed.typography.heading.weight,
-                                      color: config.postFeed.typography.heading.color,
-                                      margin: "0 0 4px 0",
+                                      width: "42px",
+                                      height: "42px",
+                                      minWidth: "42px",
+                                      minHeight: "42px",
+                                      borderRadius: "50%",
+                                      overflow: "hidden",
+                                      flexShrink: 0,
+                                      background: "linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)",
+                                      padding: "2px",
+                                      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      boxSizing: "border-box",
                                     }}
                                   >
-                                    {formatDynamicAccountText(config.postFeed.heading)}
-                                  </h4>
+                                    {profilePic ? (
+                                      <img
+                                        src={profilePic}
+                                        alt={handle || "Profile"}
+                                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block" }}
+                                      />
+                                    ) : (
+                                      <div
+                                        style={{
+                                          width: "100%",
+                                          height: "100%",
+                                          borderRadius: "50%",
+                                          background: "#ffffff",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                        }}
+                                      >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#833ab4">
+                                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                        </svg>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div style={{ textAlign: "left", minWidth: 0, flex: 1 }}>
+                                    {config.postFeed.header && config.postFeed.heading?.trim() && (
+                                      <h4
+                                        style={{
+                                          fontSize: `${config.postFeed.typography.heading.size}px`,
+                                          fontWeight: config.postFeed.typography.heading.weight || "700",
+                                          color: config.postFeed.typography.heading.color,
+                                          margin: "0 0 2px 0",
+                                          lineHeight: 1.25,
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                        }}
+                                      >
+                                        {formatDynamicAccountText(config.postFeed.heading)}
+                                      </h4>
+                                    )}
+                                    {config.postFeed.header && config.postFeed.subheading?.trim() && (
+                                      <p
+                                        style={{
+                                          fontSize: `${config.postFeed.typography.subheading.size}px`,
+                                          color: config.postFeed.typography.subheading.color,
+                                          margin: 0,
+                                          lineHeight: 1.3,
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                        }}
+                                      >
+                                        {formatDynamicAccountText(config.postFeed.subheading)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Right: Follow Button */}
+                                {showHeaderFollow && (
+                                  <div style={{ flexShrink: 0, marginLeft: "auto" }}>
+                                    <a
+                                      href={`https://instagram.com/${handle}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="ai-follow-btn"
+                                      style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "6px",
+                                        padding: "5px 14px",
+                                        borderRadius: "18px",
+                                        background: "linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)",
+                                        color: "#ffffff",
+                                        fontWeight: "700",
+                                        fontSize: "11px",
+                                        textDecoration: "none",
+                                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
+                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                      </svg>
+                                      <span>Follow</span>
+                                    </a>
+                                  </div>
                                 )}
-                                {config.postFeed.header && config.postFeed.subheading?.trim() && (
-                                  <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, color: config.postFeed.typography.subheading.color, margin: 0 }}>
-                                    {formatDynamicAccountText(config.postFeed.subheading)}
-                                  </p>
-                                )}
-                                {showHeaderFollow && renderFollowButton(true)}
                               </div>
+                            ) : (
+                              (config.postFeed.header || showHeaderFollow) && (
+                                <div style={{ textAlign: config.postFeed.alignment, marginBottom: "8px" }}>
+                                  {config.postFeed.header && config.postFeed.heading?.trim() && (
+                                    <h4
+                                      style={{
+                                        fontSize: `${config.postFeed.typography.heading.size}px`,
+                                        fontWeight: config.postFeed.typography.heading.weight,
+                                        color: config.postFeed.typography.heading.color,
+                                        margin: "0 0 4px 0",
+                                      }}
+                                    >
+                                      {formatDynamicAccountText(config.postFeed.heading)}
+                                    </h4>
+                                  )}
+                                  {config.postFeed.header && config.postFeed.subheading?.trim() && (
+                                    <p style={{ fontSize: `${config.postFeed.typography.subheading.size}px`, color: config.postFeed.typography.subheading.color, margin: 0 }}>
+                                      {formatDynamicAccountText(config.postFeed.subheading)}
+                                    </p>
+                                  )}
+                                  {showHeaderFollow && renderFollowButton(true)}
+                                </div>
+                              )
                             )}
 
                             {/* 2. Story Highlights Bar (images by default, threshold >= 6 posts) */}
@@ -4392,10 +4670,10 @@ export default function Index() {
                     All ({FEED_TEMPLATES.length})
                   </Button>
                   <Button
-                    pressed={templateFilter === "highlight"}
-                    onClick={() => setTemplateFilter("highlight")}
+                    pressed={templateFilter === "grid"}
+                    onClick={() => setTemplateFilter("grid")}
                   >
-                    Highlight
+                    Grids
                   </Button>
                   <Button
                     pressed={templateFilter === "carousel"}
@@ -4404,10 +4682,10 @@ export default function Index() {
                     Sliders
                   </Button>
                   <Button
-                    pressed={templateFilter === "grid"}
-                    onClick={() => setTemplateFilter("grid")}
+                    pressed={templateFilter === "highlight"}
+                    onClick={() => setTemplateFilter("highlight")}
                   >
-                    Grids
+                    Highlight
                   </Button>
                   <Button
                     pressed={templateFilter === "reels"}

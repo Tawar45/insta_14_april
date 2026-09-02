@@ -19,6 +19,7 @@
   let cachedConfig = null;
   let cachedGridMedia = [];
   let cachedStoryMedia = [];
+  let cachedInstaData = null;
 
   function trackEvent(eventType) {
     try {
@@ -268,11 +269,12 @@
       this.infiniteObserver = null;
       this.config = null;
       this.mediaData = null;
+      this.instaData = null;
     }
 
     connectedCallback() {
       if (cachedConfig && cachedGridMedia) {
-        this.render(cachedConfig, cachedGridMedia);
+        this.render(cachedConfig, cachedGridMedia, cachedInstaData);
       }
       this._handleClickBound = this._handleClickBound || this._handleClick.bind(this);
       this.shadowRoot.addEventListener("click", this._handleClickBound);
@@ -331,17 +333,25 @@
       }
     }
 
-    render(config, mediaData) {
+    render(config, mediaData, instaData) {
       this.config = config;
       this.mediaData = mediaData;
+      if (instaData !== undefined) {
+        this.instaData = instaData;
+      } else if (!this.instaData && cachedInstaData) {
+        this.instaData = cachedInstaData;
+      }
 
       const c          = config.postFeed || {};
       const isMobile   = window.innerWidth <= 768;
       const columns    = isMobile ? c.mobileColumns : c.desktopColumns;
       const baseLimit  = isMobile ? (c.mobileLimit || 4) : (c.desktopLimit || 8);
-      const limit      = c.load ? Math.max(baseLimit, this.currentDisplayLimit) : baseLimit;
+      const layoutMode = c.layoutStyle || (c.carousel ? "carousel" : "grid");
+      const isCarousel = layoutMode === "carousel";
+      // Infinite scroll only on carousel; all other layouts display strictly limited posts
+      const limit      = isCarousel ? Math.max(baseLimit, this.currentDisplayLimit || baseLimit) : baseLimit;
 
-      if (!c.load) {
+      if (!isCarousel) {
         this.currentDisplayLimit = 0;
         if (this.infiniteObserver) {
           this.infiniteObserver.disconnect();
@@ -394,12 +404,63 @@
       let html = styleLink + '<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;padding-top:' + (c.paddingTop ?? 32) + 'px;padding-bottom:' + (c.paddingBottom ?? 32) + 'px;">';
 
       // 1. Header: Title & Description & Contextual Follow Button
-      const igHandle = (config.instagramHandle || "").replace("@", "").trim();
+      const igHandle = (config.instagramHandle || (this.instaData && this.instaData.username) || "").replace("@", "").trim();
       const followPosition = c.followButtonPosition || (config.appliedTemplateId?.includes("profile") ? "header" : (c.heading?.startsWith("@") ? "header" : "bottom"));
       const showFollowInHeader = igHandle && c.showFollowButton !== false && followPosition === "header";
       const showFollowAtBottom = igHandle && c.showFollowButton !== false && followPosition === "bottom";
 
-      if ((c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) || showFollowInHeader) {
+      const isProfileLayout = Boolean(
+        config.appliedTemplateId?.includes("profile") ||
+        (followPosition === "header" && (
+          c.heading?.startsWith("@") ||
+          c.heading?.toLowerCase().includes("@account") ||
+          c.heading?.toLowerCase().includes("follow @") ||
+          c.heading?.toLowerCase().includes("connect with @") ||
+          c.heading?.toLowerCase().includes("welcome to @")
+        ))
+      );
+
+      if (isProfileLayout && ((c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) || showFollowInHeader)) {
+        const profilePic = (this.instaData && (this.instaData.profile_picture_url || (this.instaData.user && this.instaData.user.profile_picture_url))) || "";
+
+        html += '<div class="ai-profile-header-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;width:100%;box-sizing:border-box;">';
+
+        // Left side: Profile Avatar + Text Content (heading + subheading)
+        html += '<div class="ai-profile-header-left" style="display:flex;align-items:center;gap:14px;min-width:0;flex:1;">';
+
+        // Avatar circle
+        html += '<div class="ai-profile-avatar-wrap" style="width:46px;height:46px;min-width:46px;min-height:46px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);padding:2px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+        if (profilePic) {
+          html += '<img src="' + esc(profilePic) + '" alt="' + esc(igHandle || 'Instagram Profile') + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">';
+        } else {
+          html += '<div style="width:100%;height:100%;border-radius:50%;background:#ffffff;display:flex;align-items:center;justify-content:center;">'
+                + '<svg width="20" height="20" viewBox="0 0 24 24" fill="#833ab4"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
+                + '</div>';
+        }
+        html += '</div>';
+
+        // Content on Left
+        html += '<div class="ai-profile-header-text" style="text-align:left;min-width:0;flex:1;">';
+        if (c.header && c.heading && c.heading.trim()) {
+          html += '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 2px 0;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(formatDynamicAccountText(c.heading, config.instagramHandle || (this.instaData && this.instaData.username))) + '</h2>';
+        }
+        if (c.header && c.subheading && c.subheading.trim()) {
+          html += '<p style="font-size:' + subSize + 'px;font-weight:' + (c.typography?.subheading?.weight || '500') + ';color:' + (c.typography?.subheading?.color || '#666') + ';margin:0;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(formatDynamicAccountText(c.subheading, config.instagramHandle || (this.instaData && this.instaData.username))) + '</p>';
+        }
+        html += '</div>';
+        html += '</div>'; // End Left side
+
+        // Right side: Follow Button
+        if (showFollowInHeader) {
+          html += '<div class="ai-profile-header-right" style="flex-shrink:0;margin-left:auto;">'
+                + '<a href="https://instagram.com/' + esc(igHandle) + '" target="_blank" rel="noopener noreferrer" class="ai-follow-btn" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:18px;background:linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);color:#ffffff;font-weight:700;font-size:11.5px;text-decoration:none;box-shadow:0 2px 4px rgba(0,0,0,0.1);white-space:nowrap;">'
+                + '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
+                + '<span>Follow on Instagram</span>'
+                + '</a></div>';
+        }
+
+        html += '</div>';
+      } else if ((c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) || showFollowInHeader) {
         html += '<div style="text-align:' + c.alignment + ';margin-bottom:20px;">';
         if (c.header && c.heading && c.heading.trim()) {
           html += '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 8px 0;line-height:1.2;">' + esc(formatDynamicAccountText(c.heading, config.instagramHandle)) + '</h2>';
@@ -456,8 +517,6 @@
       }
 
       // 3. Feed Display Modes: Grid, Carousel, Masonry, Highlight, Reels, Marquee
-      const layoutMode = c.layoutMode || (c.carousel ? "carousel" : "grid");
-
       if (layoutMode === "carousel") {
         const itemWidth = 'calc((100% - ' + ((columns - 1) * gap) + 'px) / ' + columns + ')';
         const navBtnStyle = 'outline:none!important;-webkit-appearance:none!important;appearance:none!important;color:#1e293b!important;';
@@ -466,7 +525,7 @@
               + '<div class="ai-fw-track" id="' + trackId + '" style="display:flex;justify-content:center;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:' + gap + 'px;padding:' + gap + 'px 0;">';
         mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, itemWidth); });
         
-        if (c.load && mediaData.length > limit) {
+        if (mediaData.length > limit) {
           html += '<div id="ai-infinite-sentinel" style="flex-shrink:0;width:60px;display:flex;align-items:center;justify-content:center;">'
                 + '<div style="width:20px;height:20px;border:2px solid #ddd;border-top-color:#6366f1;border-radius:50%;animation:ai-spin 0.8s linear infinite;"></div>'
                 + '</div>';
@@ -479,27 +538,17 @@
         const masonryConfig = { ...c, aspectRatio: "auto" };
         mediaItems.forEach((item) => { html += this.renderMediaCard(item, masonryConfig, '100%'); });
         html += '</div>';
-
-        if (c.load && mediaData.length > limit) {
-          html += '<div id="ai-infinite-sentinel" style="height:40px;width:100%;display:flex;align-items:center;justify-content:center;margin-top:20px;">'
-                + '<div style="width:20px;height:20px;border:2px solid #ddd;border-top-color:#6366f1;border-radius:50%;animation:ai-spin 0.8s linear infinite;"></div>'
-                + '</div>';
-        }
       } else if (layoutMode === "highlight") {
         const highlightCols = isMobile ? 2 : Math.max(columns, 4);
         html += '<div class="ai-layout-highlight" style="grid-template-columns:repeat(' + highlightCols + ',1fr);gap:' + gap + 'px;">';
-        mediaItems.forEach((item, index) => {
+        // Highlight layout: 1 large hero (2x2) + 4 square tiles = exactly 5 posts (remove last 3 posts)
+        const highlightItems = mediaItems.slice(0, 5);
+        highlightItems.forEach((item, index) => {
           const isHero = index === 0;
           const heroConfig = isHero ? { ...c, aspectRatio: "1/1" } : c;
           html += this.renderMediaCard(item, heroConfig, '100%', isHero ? 'ai-highlight-hero' : '');
         });
         html += '</div>';
-
-        if (c.load && mediaData.length > limit) {
-          html += '<div id="ai-infinite-sentinel" style="height:40px;width:100%;display:flex;align-items:center;justify-content:center;margin-top:20px;">'
-                + '<div style="width:20px;height:20px;border:2px solid #ddd;border-top-color:#6366f1;border-radius:50%;animation:ai-spin 0.8s linear infinite;"></div>'
-                + '</div>';
-        }
       } else if (layoutMode === "reels") {
         const reelWidth = isMobile ? 'calc((100% - ' + gap + 'px) / 2)' : 'calc((100% - ' + ((columns - 1) * gap) + 'px) / ' + columns + ')';
         const navBtnStyle = 'outline:none!important;-webkit-appearance:none!important;appearance:none!important;color:#1e293b!important;';
@@ -527,12 +576,6 @@
         html += '<div id="ai-grid-body" style="display:grid;grid-template-columns:repeat(' + columns + ',1fr);justify-content:center;gap:' + gap + 'px;">';
         mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, '100%'); });
         html += '</div>';
-        
-        if (c.load && mediaData.length > limit) {
-          html += '<div id="ai-infinite-sentinel" style="height:40px;width:100%;display:flex;align-items:center;justify-content:center;margin-top:20px;">'
-                + '<div style="width:20px;height:20px;border:2px solid #ddd;border-top-color:#6366f1;border-radius:50%;animation:ai-spin 0.8s linear infinite;"></div>'
-                + '</div>';
-        }
       }
 
       if (!c.removeWatermark) {
@@ -556,7 +599,7 @@
       this.shadowRoot.innerHTML = html;
       bindCarouselNav(this.shadowRoot);
 
-      if (c.load && mediaData.length > limit) {
+      if (isCarousel && mediaData.length > limit) {
         this.setupInfiniteScroll(config, mediaData);
       }
     }
@@ -619,7 +662,10 @@
       if (!sentinel) return;
       if (this.infiniteObserver) this.infiniteObserver.disconnect();
 
-      const c = config.postFeed;
+      const c = config.postFeed || {};
+      const layoutMode = c.layoutStyle || (c.carousel ? "carousel" : "grid");
+      if (layoutMode !== "carousel") return;
+
       const isMobile = window.innerWidth <= 768;
       const initialLimit = isMobile ? (c.mobileLimit || 4) : (c.desktopLimit || 8);
       if (this.currentDisplayLimit < initialLimit) {
@@ -627,7 +673,7 @@
       }
 
       const track = this.shadowRoot.querySelector('.ai-fw-track');
-      const observerRoot = (c.carousel && track) ? track : null;
+      if (!track) return;
 
       this.infiniteObserver = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting) {
@@ -640,13 +686,16 @@
             if (s) s.style.display = 'none';
           }
         }
-      }, { root: observerRoot, rootMargin: '150px', threshold: 0.1 });
+      }, { root: track, rootMargin: '150px', threshold: 0.1 });
 
       this.infiniteObserver.observe(sentinel);
     }
 
     appendMoreItems(config, mediaData, limit) {
-      const c = config.postFeed;
+      const c = config.postFeed || {};
+      const layoutMode = c.layoutStyle || (c.carousel ? "carousel" : "grid");
+      if (layoutMode !== "carousel") return;
+
       const isMobile = window.innerWidth <= 768;
       const columns = isMobile ? c.mobileColumns : c.desktopColumns;
       const gap = c.gap;
@@ -654,33 +703,22 @@
       const prevLimit = Math.max(0, limit - batchSize);
       const newItems = mediaData.slice(prevLimit, limit);
 
-      if (c.carousel) {
-        const itemWidth = 'calc((100% - ' + ((columns - 1) * gap) + 'px) / ' + columns + ')';
-        const track = this.shadowRoot.querySelector('.ai-fw-track');
-        const sentinel = this.shadowRoot.querySelector('#ai-infinite-sentinel');
-        if (!track) { this.render(config, mediaData); return; }
-        newItems.forEach(item => {
-          const wrap = document.createElement('div');
-          wrap.innerHTML = this.renderMediaCard(item, c, itemWidth);
-          const el = wrap.firstElementChild;
-          if (el) {
-            if (sentinel && sentinel.parentNode === track) {
-              track.insertBefore(el, sentinel);
-            } else {
-              track.appendChild(el);
-            }
+      const itemWidth = 'calc((100% - ' + ((columns - 1) * gap) + 'px) / ' + columns + ')';
+      const track = this.shadowRoot.querySelector('.ai-fw-track');
+      const sentinel = this.shadowRoot.querySelector('#ai-infinite-sentinel');
+      if (!track) { this.render(config, mediaData); return; }
+      newItems.forEach(item => {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = this.renderMediaCard(item, c, itemWidth);
+        const el = wrap.firstElementChild;
+        if (el) {
+          if (sentinel && sentinel.parentNode === track) {
+            track.insertBefore(el, sentinel);
+          } else {
+            track.appendChild(el);
           }
-        });
-      } else {
-        const gridBody = this.shadowRoot.querySelector('#ai-grid-body');
-        if (!gridBody) { this.render(config, mediaData); return; }
-        newItems.forEach(item => {
-          const wrap = document.createElement('div');
-          wrap.innerHTML = this.renderMediaCard(item, c, '100%');
-          const el = wrap.firstElementChild;
-          if (el) gridBody.appendChild(el);
-        });
-      }
+        }
+      });
 
       if (limit >= mediaData.length) {
         const sentinel = this.shadowRoot.querySelector('#ai-infinite-sentinel');
@@ -1568,7 +1606,7 @@
         lastIsMobile = isMobile;
         document.querySelectorAll("instafeed-grid").forEach(grid => {
           if (grid.config && grid.mediaData) {
-            grid.render(grid.config, grid.mediaData);
+            grid.render(grid.config, grid.mediaData, grid.instaData);
           }
         });
         document.querySelectorAll("instafeed-story").forEach(story => {
@@ -1638,10 +1676,11 @@
     cachedConfig = config;
     cachedGridMedia = gridMedia;
     cachedStoryMedia = storyMedia;
+    cachedInstaData = instaData;
 
     // Update active components
-    grids.forEach(grid => grid.render(config, gridMedia));
-    stories.forEach(story => story.render(config, storyMedia));
+    grids.forEach(grid => grid.render(config, gridMedia, instaData));
+    stories.forEach(story => story.render(config, storyMedia, instaData));
 
     // Setup viewport impression tracking
     setTimeout(setupViewIntersectionObserver, 300);

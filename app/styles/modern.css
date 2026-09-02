@@ -1409,4 +1409,23 @@ input[type="color"].premium-input {
   justify-content: center !important;
 }
 
+/* ── Story Widget: No Hover Scale & No Shadow ─────────────────────────────── */
+.ai-story-item,
+.ai-story-ring-wrapper,
+.ai-story-image-container,
+.ai-story-ring-svg {
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.ai-story-item:hover,
+.ai-story-item:hover .ai-story-ring-wrapper,
+.ai-story-item:hover .ai-story-image-container,
+.ai-story-item:hover .ai-story-ring-svg {
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
 
