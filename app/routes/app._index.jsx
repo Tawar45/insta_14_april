@@ -555,6 +555,8 @@ const FEED_TEMPLATES = [
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
+        desktopLimit: 8,
+        mobileLimit: 4,
         gap: 8,
         aspectRatio: "1/1",
         metrics: true,
@@ -580,6 +582,8 @@ const FEED_TEMPLATES = [
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
+        desktopLimit: 8,
+        mobileLimit: 6,
         gap: 8,
         aspectRatio: "1/1",
         metrics: true,
@@ -606,6 +610,7 @@ const FEED_TEMPLATES = [
         desktopColumns: 4,
         mobileColumns: 2,
         desktopLimit: 5,
+        mobileLimit: 5,
         gap: 6,
         aspectRatio: "1/1",
         metrics: true,
@@ -633,6 +638,8 @@ const FEED_TEMPLATES = [
         alignment: "left",
         desktopColumns: 4,
         mobileColumns: 2,
+        desktopLimit: 8,
+        mobileLimit: 4,
         gap: 8,
         aspectRatio: "1/1",
         metrics: true,
@@ -658,6 +665,8 @@ const FEED_TEMPLATES = [
         alignment: "left",
         desktopColumns: 4,
         mobileColumns: 2,
+        desktopLimit: 8,
+        mobileLimit: 6,
         gap: 8,
         aspectRatio: "1/1",
         metrics: true,
@@ -684,6 +693,7 @@ const FEED_TEMPLATES = [
         desktopColumns: 4,
         mobileColumns: 2,
         desktopLimit: 5,
+        mobileLimit: 5,
         gap: 6,
         aspectRatio: "1/1",
         metrics: true,
@@ -711,6 +721,8 @@ const FEED_TEMPLATES = [
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
+        desktopLimit: 8,
+        mobileLimit: 4,
         gap: 8,
         aspectRatio: "1/1",
         metrics: true,
@@ -743,6 +755,8 @@ const FEED_TEMPLATES = [
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
+        desktopLimit: 8,
+        mobileLimit: 6,
         gap: 8,
         aspectRatio: "1/1",
         metrics: true,
@@ -776,6 +790,7 @@ const FEED_TEMPLATES = [
         desktopColumns: 4,
         mobileColumns: 2,
         desktopLimit: 5,
+        mobileLimit: 5,
         gap: 6,
         aspectRatio: "1/1",
         metrics: true,
@@ -810,6 +825,8 @@ const FEED_TEMPLATES = [
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
+        desktopLimit: 8,
+        mobileLimit: 4,
         gap: 8,
         aspectRatio: "9/16",
         metrics: true,
@@ -836,6 +853,8 @@ const FEED_TEMPLATES = [
         alignment: "center",
         desktopColumns: 4,
         mobileColumns: 2,
+        desktopLimit: 8,
+        mobileLimit: 4,
         gap: 8,
         aspectRatio: "auto",
         metrics: true,
@@ -861,6 +880,8 @@ const FEED_TEMPLATES = [
         alignment: "center",
         desktopColumns: 6,
         mobileColumns: 3,
+        desktopLimit: 12,
+        mobileLimit: 6,
         gap: 8,
         marqueeSpeed: 30,
         aspectRatio: "1/1",
@@ -1706,15 +1727,32 @@ function UnifiedConfigurator({
                         borderRadius="200"
                         background={isSelected ? "bg-surface-brand-active" : "bg-surface-secondary"}
                         onClick={() => {
-                          setConfig((prev) => ({
-                            ...prev,
-                            postFeed: {
-                              ...prev.postFeed,
-                              layoutMode: layout.id,
-                              carousel: layout.id === "carousel",
-                              ...(layout.id === "reels" ? { mediaTypeFilter: "videos", aspectRatio: "9/16" } : {}),
-                            },
-                          }));
+                          setConfig((prev) => {
+                            const isHighlight = layout.id === "highlight";
+                            const isCarousel = layout.id === "carousel";
+                            const isReels = layout.id === "reels";
+                            const isMarquee = layout.id === "marquee";
+                            const cols = isHighlight ? 4 : (isMarquee ? 6 : (prev.postFeed?.desktopColumns || 4));
+                            const mCols = isHighlight ? 2 : (isMarquee ? 3 : (prev.postFeed?.mobileColumns || 2));
+                            const dLimit = isHighlight ? 5 : (isMarquee ? 12 : cols * 2);
+                            const mLimit = isHighlight ? 5 : (isCarousel ? 6 : mCols * 2);
+
+                            return {
+                              ...prev,
+                              postFeed: {
+                                ...prev.postFeed,
+                                layoutMode: layout.id,
+                                carousel: isCarousel,
+                                desktopColumns: cols,
+                                mobileColumns: mCols,
+                                desktopLimit: dLimit,
+                                mobileLimit: mLimit,
+                                ...(isReels ? { mediaTypeFilter: "videos", aspectRatio: "9/16" } : {}),
+                                ...(isHighlight ? { aspectRatio: "1/1" } : {}),
+                              },
+                            };
+                          });
+                          setHasUnsavedChanges(true);
                         }}
                         style={{ cursor: "pointer", textAlign: "center" }}
                       >
@@ -1777,7 +1815,20 @@ function UnifiedConfigurator({
                     value: String(n),
                   }))}
                   value={String(config.postFeed.desktopColumns || 4)}
-                  onChange={(val) => updateConfig("postFeed", "desktopColumns", parseInt(val))}
+                  onChange={(val) => {
+                    const cols = parseInt(val);
+                    const currentLimit = config.postFeed.desktopLimit || 8;
+                    const nextLimit = (config.postFeed.layoutMode !== "highlight" && currentLimit % cols !== 0) ? cols * 2 : currentLimit;
+                    setConfig((prev) => ({
+                      ...prev,
+                      postFeed: {
+                        ...prev.postFeed,
+                        desktopColumns: cols,
+                        desktopLimit: nextLimit,
+                      },
+                    }));
+                    setHasUnsavedChanges(true);
+                  }}
                 />
                 <Select
                   label="Mobile Columns"
@@ -1786,7 +1837,20 @@ function UnifiedConfigurator({
                     value: String(n),
                   }))}
                   value={String(config.postFeed.mobileColumns || 2)}
-                  onChange={(val) => updateConfig("postFeed", "mobileColumns", parseInt(val))}
+                  onChange={(val) => {
+                    const cols = parseInt(val);
+                    const currentLimit = config.postFeed.mobileLimit || 4;
+                    const nextLimit = (config.postFeed.layoutMode !== "highlight" && currentLimit % cols !== 0) ? cols * 2 : currentLimit;
+                    setConfig((prev) => ({
+                      ...prev,
+                      postFeed: {
+                        ...prev.postFeed,
+                        mobileColumns: cols,
+                        mobileLimit: nextLimit,
+                      },
+                    }));
+                    setHasUnsavedChanges(true);
+                  }}
                 />
               </div>
 
@@ -2126,12 +2190,17 @@ export default function Index() {
 
     setTimeout(() => {
       const templateFollowPos = template.config.postFeed?.followButtonPosition || (template.id.includes("profile") ? "header" : "bottom");
+      const isHighlight = template.config.postFeed?.layoutMode === "highlight" || template.type === "highlight";
+      const targetDesktopLimit = template.config.postFeed?.desktopLimit || (isHighlight ? 5 : ((template.config.postFeed?.desktopColumns || 4) * 2));
+      const targetMobileLimit = template.config.postFeed?.mobileLimit || (isHighlight ? 5 : ((template.config.postFeed?.mobileColumns || 2) * 2));
       setConfig((prev) => ({
         ...prev,
         appliedTemplateId: template.id,
         postFeed: {
           ...prev.postFeed,
           ...(template.config.postFeed || {}),
+          desktopLimit: targetDesktopLimit,
+          mobileLimit: targetMobileLimit,
           followButtonPosition: templateFollowPos,
           typography: {
             ...prev.postFeed.typography,
@@ -2810,15 +2879,18 @@ export default function Index() {
     }
 
     if (layout === "highlight") {
-      const highlightCols = isMobile ? 2 : Math.max(cols, 4);
+      const highlightCols = isMobile ? 2 : 4;
       const highlightMedia = simulatedInfiniteMedia.slice(0, 5);
       return (
         <div
           style={{
             display: "grid",
             gridTemplateColumns: `repeat(${highlightCols}, 1fr)`,
+            gridAutoRows: isMobile ? "auto" : "1fr",
             gap: `${gap}px`,
             padding: isMobile ? `4px ${gap}px` : "0",
+            width: "100%",
+            boxSizing: "border-box",
           }}
         >
           {highlightMedia.map((item, i) => {
@@ -2831,12 +2903,13 @@ export default function Index() {
                     ? {
                         gridColumn: "span 2",
                         gridRow: isMobile ? "span 1" : "span 2",
+                        width: "100%",
                         height: "100%",
                       }
-                    : { height: "100%" }
+                    : { width: "100%", height: "100%" }
                 }
               >
-                {renderMediaCard(item, i, isHero ? "1/1" : undefined, isHero ? { height: "100%" } : {})}
+                {renderMediaCard(item, i, "1/1", { width: "100%", height: "100%" })}
               </div>
             );
           })}

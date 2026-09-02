@@ -539,14 +539,14 @@
         mediaItems.forEach((item) => { html += this.renderMediaCard(item, masonryConfig, '100%'); });
         html += '</div>';
       } else if (layoutMode === "highlight") {
-        const highlightCols = isMobile ? 2 : Math.max(columns, 4);
+        const highlightCols = isMobile ? 2 : 4;
         html += '<div class="ai-layout-highlight" style="grid-template-columns:repeat(' + highlightCols + ',1fr);gap:' + gap + 'px;">';
         // Highlight layout: 1 large hero (2x2) + 4 square tiles = exactly 5 posts (remove last 3 posts)
         const highlightItems = mediaItems.slice(0, 5);
+        const highlightConfig = { ...c, aspectRatio: "1/1" };
         highlightItems.forEach((item, index) => {
           const isHero = index === 0;
-          const heroConfig = isHero ? { ...c, aspectRatio: "1/1" } : c;
-          html += this.renderMediaCard(item, heroConfig, '100%', isHero ? 'ai-highlight-hero' : '');
+          html += this.renderMediaCard(item, highlightConfig, '100%', isHero ? 'ai-highlight-hero' : '');
         });
         html += '</div>';
       } else if (layoutMode === "reels") {

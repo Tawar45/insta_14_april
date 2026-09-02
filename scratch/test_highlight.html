@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../app/styles/modern.css">
+  <style>
+    body { font-family: sans-serif; background: #f8fafc; padding: 20px; }
+    .preview-container { max-width: 600px; margin: 0 auto; background: white; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; }
+  </style>
+</head>
+<body>
+  <h2>Perfect Highlight Layout (1:1 Ratio for Hero & 4 Tiles)</h2>
+  <div class="preview-container">
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 8px; padding: 0; width: 100%; box-sizing: border-box;">
+      <!-- Hero (spans 2 cols, 2 rows) -->
+      <div style="grid-column: span 2; grid-row: span 2; width: 100%; height: 100%;">
+        <div class="grid-item" style="aspect-ratio: 1/1; background: #e0e7ff; border: 1px solid #e2e8f0; width: 100%; height: 100%; position: relative; overflow: hidden; box-sizing: border-box;">
+          <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&h=600&fit=crop" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+        </div>
+      </div>
+      <!-- 4 Small items (1:1 each) -->
+      <div style="width: 100%; height: 100%;">
+        <div class="grid-item" style="aspect-ratio: 1/1; background: #f1f5f9; border: 1px solid #e2e8f0; width: 100%; height: 100%; position: relative; overflow: hidden; box-sizing: border-box;">
+          <img src="https://images.unsplash.com/photo-1556760544-74068565f05c?w=300&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+        </div>
+      </div>
+      <div style="width: 100%; height: 100%;">
+        <div class="grid-item" style="aspect-ratio: 1/1; background: #f1f5f9; border: 1px solid #e2e8f0; width: 100%; height: 100%; position: relative; overflow: hidden; box-sizing: border-box;">
+          <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+        </div>
+      </div>
+      <div style="width: 100%; height: 100%;">
+        <div class="grid-item" style="aspect-ratio: 1/1; background: #f1f5f9; border: 1px solid #e2e8f0; width: 100%; height: 100%; position: relative; overflow: hidden; box-sizing: border-box;">
+          <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=300&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+        </div>
+      </div>
+      <div style="width: 100%; height: 100%;">
+        <div class="grid-item" style="aspect-ratio: 1/1; background: #f1f5f9; border: 1px solid #e2e8f0; width: 100%; height: 100%; position: relative; overflow: hidden; box-sizing: border-box;">
+          <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
