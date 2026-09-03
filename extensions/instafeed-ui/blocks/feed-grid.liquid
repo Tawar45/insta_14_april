@@ -1,13 +1,22 @@
 {% comment %}
   AI Instafeed — Feed Grid Block
-  Self-contained: loads CSS + JS directly so it works with or without the app-embed block.
+  Self-contained: loads CSS + JS directly with zero-network server-side hydration.
 {% endcomment %}
 
 <style>
   [data-block-handle="feed-grid"] {
     width: 100% !important;
   }
+  instafeed-grid:not(:defined) {
+    display: block;
+    min-height: 220px;
+    width: 100%;
+    background: transparent;
+  }
 </style>
+
+<link rel="preload" href="{{ 'instafeed-front.css' | asset_url }}" as="style">
+<link rel="stylesheet" href="{{ 'instafeed-front.css' | asset_url }}">
 
 {% assign config_meta = app.metafields.ai_instafeed.config.value | default: shop.metafields.ai_instafeed.config.value %}
 {% assign insta_meta = app.metafields.ai_instafeed.insta_data.value | default: shop.metafields.ai_instafeed.insta_data.value %}

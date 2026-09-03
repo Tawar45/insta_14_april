@@ -1,4 +1,17 @@
+<link rel="preload" href="{{ 'instafeed-front.css' | asset_url }}" as="style">
 <link rel="stylesheet" href="{{ 'instafeed-front.css' | asset_url }}">
+
+{% assign config_meta = app.metafields.ai_instafeed.config.value | default: shop.metafields.ai_instafeed.config.value %}
+{% assign insta_meta = app.metafields.ai_instafeed.insta_data.value | default: shop.metafields.ai_instafeed.insta_data.value %}
+{% if config_meta != blank %}
+<script class="ai-instafeed-initial-data" type="application/json">
+  {
+    "config": {{ config_meta | json }},
+    "instaData": {% if insta_meta != blank %}{{ insta_meta | json }}{% else %}null{% endif %}
+  }
+</script>
+{% endif %}
+
 <script src="{{ 'instafeed-front.js' | asset_url }}" defer></script>
 
 {% schema %}

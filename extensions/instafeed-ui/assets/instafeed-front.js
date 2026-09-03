@@ -14,12 +14,34 @@
   const MAX_FEED_ITEMS = 500;
   const PROXY_URL = "/apps/instafeed/data";
   const ANALYTICS_URL = "/apps/instafeed/analytics";
+  const STORAGE_KEY = "ai_instafeed_cache_v2";
+  const CACHE_TTL_MS = 15 * 60 * 1000; // 15 mins
 
   let hasTrackedView = false;
   let cachedConfig = null;
   let cachedGridMedia = [];
   let cachedStoryMedia = [];
   let cachedInstaData = null;
+
+  function getStoredCache() {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.config && (Date.now() - parsed.timestamp < CACHE_TTL_MS)) {
+        return parsed;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function setStoredCache(config, instaData) {
+    try {
+      const payload = JSON.stringify({ config, instaData, timestamp: Date.now() });
+      sessionStorage.setItem(STORAGE_KEY, payload);
+      localStorage.setItem(STORAGE_KEY, payload);
+    } catch (_) {}
+  }
 
   function trackEvent(eventType) {
     try {
@@ -84,17 +106,17 @@
   ];
 
   function getMedia(mediaData, count) {
-    if (mediaData.length > 0) {
+    if (mediaData && mediaData.length > 0) {
       return mediaData.slice(0, Math.min(count, MAX_FEED_ITEMS));
     }
     const base = [];
     for (let i = 0; i < count; i++) {
       base.push({
         id: 'placeholder_' + i,
-        media_url: PLACEHOLDERS[i % PLACEHOLDERS.length],
+        media_url: '',
         media_type: "IMAGE",
-        like_count: Math.floor(Math.random() * 200) + 50,
-        comments_count: Math.floor(Math.random() * 20) + 2,
+        like_count: 0,
+        comments_count: 0,
         permalink: "#"
       });
     }
@@ -523,7 +545,7 @@
         html += '<div class="ai-fw-carousel-wrapper" style="position:relative;width:100%;">'
               + '<div class="ai-fw-nav ai-fw-prev" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Previous" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg></div>'
               + '<div class="ai-fw-track" id="' + trackId + '" style="display:flex;justify-content:center;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:' + gap + 'px;padding:' + gap + 'px 0;">';
-        mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, itemWidth); });
+        mediaItems.forEach((item, index) => { html += this.renderMediaCard(item, c, itemWidth, '', index); });
         
         if (mediaData.length > limit) {
           html += '<div id="ai-infinite-sentinel" style="flex-shrink:0;width:60px;display:flex;align-items:center;justify-content:center;">'
@@ -536,7 +558,7 @@
       } else if (layoutMode === "masonry") {
         html += '<div class="ai-layout-masonry" style="column-count:' + columns + ';--ai-gap:' + gap + 'px;">';
         const masonryConfig = { ...c, aspectRatio: "auto" };
-        mediaItems.forEach((item) => { html += this.renderMediaCard(item, masonryConfig, '100%'); });
+        mediaItems.forEach((item, index) => { html += this.renderMediaCard(item, masonryConfig, '100%', '', index); });
         html += '</div>';
       } else if (layoutMode === "highlight") {
         const highlightCols = isMobile ? 2 : 4;
@@ -546,7 +568,7 @@
         const highlightConfig = { ...c, aspectRatio: "1/1" };
         highlightItems.forEach((item, index) => {
           const isHero = index === 0;
-          html += this.renderMediaCard(item, highlightConfig, '100%', isHero ? 'ai-highlight-hero' : '');
+          html += this.renderMediaCard(item, highlightConfig, '100%', isHero ? 'ai-highlight-hero' : '', index);
         });
         html += '</div>';
       } else if (layoutMode === "reels") {
@@ -555,9 +577,9 @@
         html += '<div class="ai-layout-reels ai-fw-carousel-wrapper" style="position:relative;width:100%;">'
               + '<div class="ai-fw-nav ai-fw-prev" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Previous" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg></div>'
               + '<div class="ai-fw-track" id="' + trackId + '" style="display:flex;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;gap:' + gap + 'px;padding:' + gap + 'px 0;">';
-        mediaItems.forEach((item) => {
+        mediaItems.forEach((item, index) => {
           const reelConfig = { ...c, aspectRatio: "9/16", autoplay: c.autoplay !== false };
-          html += this.renderMediaCard(item, reelConfig, reelWidth);
+          html += this.renderMediaCard(item, reelConfig, reelWidth, '', index);
         });
         html += '</div>'
               + '<div class="ai-fw-nav ai-fw-next" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Next" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M8 16l4-4-4-4"/></svg></div>'
@@ -568,13 +590,13 @@
         html += '<div class="ai-marquee-wrapper" style="--ai-gap:' + gap + 'px;--ai-marquee-speed:' + speed + 's;margin:' + gap + 'px 0;">'
               + '<div class="ai-marquee-track">';
         // Render items and duplicate once to achieve seamless infinite loop
-        mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, itemWidth, 'ai-marquee-item'); });
-        mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, itemWidth, 'ai-marquee-item'); });
+        mediaItems.forEach((item, index) => { html += this.renderMediaCard(item, c, itemWidth, 'ai-marquee-item', index); });
+        mediaItems.forEach((item, index) => { html += this.renderMediaCard(item, c, itemWidth, 'ai-marquee-item', index + mediaItems.length); });
         html += '</div></div>';
       } else {
         // Default Grid layout
         html += '<div id="ai-grid-body" style="display:grid;grid-template-columns:repeat(' + columns + ',1fr);justify-content:center;gap:' + gap + 'px;">';
-        mediaItems.forEach((item) => { html += this.renderMediaCard(item, c, '100%'); });
+        mediaItems.forEach((item, index) => { html += this.renderMediaCard(item, c, '100%', '', index); });
         html += '</div>';
       }
 
@@ -604,27 +626,35 @@
       }
     }
 
-    renderMediaCard(item, c, width, extraClass = "") {
+    renderMediaCard(item, c, width, extraClass = "", index = 0) {
       const rawType   = (item.media_type || "").toUpperCase();
       const isVideo   = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
       const isAlbum   = rawType === "CAROUSEL_ALBUM" || rawType === "ALBUM";
       const thumbUrl  = item.thumbnail_url || "";
       const posterAttr = thumbUrl ? ` poster="${esc(thumbUrl)}"` : "";
+      const isPriority = index < 4;
+      const loadAttr  = isPriority ? 'loading="eager" fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"';
+
       let inner = "";
-      if (isVideo) {
+      if (isVideo && item.media_url) {
         if (c.autoplay) {
           inner = `<video src="${esc(item.media_url)}"${posterAttr} autoplay muted loop playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
         } else if (thumbUrl) {
-          inner = `<img loading="lazy" src="${esc(thumbUrl)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-        } else if (item.media_url) {
-          inner = `<video src="${esc(item.media_url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+          inner = `<img ${loadAttr} src="${esc(thumbUrl)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
         } else {
-          inner = `<div class="ai-skeleton-tile"></div>`;
+          inner = `<video src="${esc(item.media_url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
         }
       } else if (item.media_url) {
-        inner = `<img loading="lazy" src="${esc(item.media_url)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+        inner = `<img ${loadAttr} src="${esc(item.media_url)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
       } else {
-        inner = `<div class="ai-skeleton-tile"></div>`;
+        inner = `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);color:#94a3b8;gap:6px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <span style="font-size:10.5px;font-weight:600;color:#94a3b8;">Post #${(index || 0) + 1}</span>
+        </div>`;
       }
       const metrics = c.metrics ? `
         <div style="display:flex;align-items:center;gap:6px;">
@@ -1566,11 +1596,9 @@
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   async function init() {
-    const grids = document.querySelectorAll("instafeed-grid");
-    const stories = document.querySelectorAll("instafeed-story");
-
-    // Check if initial payload was pre-rendered by Liquid block
     let loadedFromPayload = false;
+
+    // 1. Check if initial payload was pre-rendered by Liquid block (Zero-Network)
     const initialScript = document.querySelector(".ai-instafeed-initial-data");
     if (initialScript) {
       try {
@@ -1582,9 +1610,23 @@
       } catch (e) {}
     }
 
-    // If no pre-rendered payload was rendered, fetch from proxy
+    // 2. Instant client-side render from Storage Cache (<10ms)
+    if (!loadedFromPayload) {
+      const cached = getStoredCache();
+      if (cached && cached.config) {
+        applyDataAndRender(cached.config, cached.instaData);
+        loadedFromPayload = true;
+      }
+    }
+
+    // 3. If no pre-rendered payload and no valid cache, fetch from proxy asynchronously
     if (!loadedFromPayload) {
       await loadAndRender();
+    } else {
+      // Background revalidation if running on cache
+      setTimeout(() => {
+        loadAndRender(true);
+      }, 1000);
     }
 
     // Re-bind on theme editor events
@@ -1623,6 +1665,9 @@
     const stories = document.querySelectorAll("instafeed-story");
 
     if (!config) return;
+
+    // Save to storage cache for instant subsequent loads
+    setStoredCache(config, instaData);
 
     let mediaData = instaData?.media?.data || [];
     
@@ -1686,7 +1731,7 @@
     setTimeout(setupViewIntersectionObserver, 300);
   }
 
-  async function loadAndRender() {
+  async function loadAndRender(silent = false) {
     try {
       const res = await fetch(PROXY_URL, {
         credentials: "same-origin",

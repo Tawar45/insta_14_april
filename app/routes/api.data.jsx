@@ -232,9 +232,40 @@ export const loader = async ({ request }) => {
       })();
     }
 
-    // ── 6. Return response with Edge / CDN Cache Headers ─────────────────────
+    // ── 6. Minify payload and return response with Edge / CDN Cache Headers ──
+    const minifiedData = instaData ? {
+      id: instaData.id,
+      username: instaData.username,
+      profile_picture_url: instaData.profile_picture_url,
+      biography: instaData.biography,
+      followers_count: instaData.followers_count,
+      media_count: instaData.media_count,
+      _crawledAt: instaData._crawledAt,
+      media: {
+        data: (instaData.media?.data || []).map((item) => ({
+          id: item.id,
+          media_type: item.media_type,
+          media_url: item.media_url,
+          thumbnail_url: item.thumbnail_url || undefined,
+          permalink: item.permalink,
+          caption: item.caption ? item.caption.slice(0, 300) : undefined,
+          like_count: item.like_count || 0,
+          comments_count: item.comments_count || 0,
+          timestamp: item.timestamp,
+          children: item.children?.data ? {
+            data: item.children.data.map((child) => ({
+              id: child.id,
+              media_type: child.media_type,
+              media_url: child.media_url,
+              thumbnail_url: child.thumbnail_url || undefined,
+            })),
+          } : undefined,
+        })),
+      },
+    } : null;
+
     return Response.json(
-      { config, instaData },
+      { config, instaData: minifiedData },
       {
         status: 200,
         headers: {
