@@ -50,6 +50,7 @@ import {
   PlayIcon,
   PlusIcon,
   CheckCircleIcon,
+  EditIcon,
 } from "@shopify/polaris-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1325,6 +1326,7 @@ function UnifiedConfigurator({
   isSaving,
   hasUnsavedChanges,
   setIsSetupModalOpen,
+  onCloseEditor,
 }) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isCustomizingExpanded, setIsCustomizingExpanded] = useState(false);
@@ -1385,13 +1387,20 @@ function UnifiedConfigurator({
               Choose Design
             </Text>
 
-            <Button
-              variant="primary"
-              onClick={handleSaveConfig}
-              loading={isSaving}
-            >
-              Save
-            </Button>
+            <InlineStack gap="200" blockAlign="center">
+              {onCloseEditor && (
+                <Button size="slim" onClick={onCloseEditor}>
+                  Close
+                </Button>
+              )}
+              <Button
+                variant="primary"
+                onClick={handleSaveConfig}
+                loading={isSaving}
+              >
+                Save
+              </Button>
+            </InlineStack>
           </InlineStack>
 
           {/* Category Filter Pills using Polaris Buttons */}
@@ -1950,7 +1959,12 @@ function UnifiedConfigurator({
                 </BlockStack>
               </Card>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", paddingTop: "10px" }}>
+              {onCloseEditor && (
+                <Button onClick={onCloseEditor}>
+                  Close
+                </Button>
+              )}
               <Button
                 variant="primary"
                 onClick={handleSaveConfig}
@@ -2118,6 +2132,7 @@ export default function Index() {
 
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isEditingDesign, setIsEditingDesign] = useState(false);
   const [isHideMode, setIsHideMode] = useState(false);
   const [isTagMode, setIsTagMode] = useState(false);
   const [taggingPost, setTaggingPost] = useState(null);
@@ -2193,6 +2208,7 @@ export default function Index() {
     if (saveFetcher.data?.success) {
       shopify?.toast?.show("✓ Feed design saved successfully!");
       setHasUnsavedChanges(false);
+      setIsEditingDesign(false);
     } else if (saveFetcher.data?.error) {
       shopify?.toast?.show(saveFetcher.data.error, { isError: true });
     }
@@ -3322,47 +3338,57 @@ export default function Index() {
 
         {/* ── 3. Main Dashboard Layout (Configurator & Live Preview) ── */}
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(340px, 42%) minmax(480px, 58%)",
-            gap: "24px",
-            alignItems: "flex-start",
-            width: "100%",
-          }}
-          className="instafeed-main-dashboard-grid"
+          style={
+            isEditingDesign
+              ? {
+                  display: "grid",
+                  gridTemplateColumns: "minmax(340px, 42%) minmax(480px, 58%)",
+                  gap: "24px",
+                  alignItems: "flex-start",
+                  width: "100%",
+                }
+              : {
+                  width: "100%",
+                }
+          }
+          className={isEditingDesign ? "instafeed-main-dashboard-grid" : ""}
         >
-          {/* ── Left Column: Unified Single-Tab Configurator ── */}
-          <div id="unified-configurator-card" style={{ minWidth: 0 }}>
-            <UnifiedConfigurator
-              config={config}
-              updateConfig={updateConfig}
-              setConfig={setConfig}
-              isPaid={isPaid}
-              isConnected={isConnected}
-              isHideMode={isHideMode}
-              setIsHideMode={setIsHideMode}
-              isTagMode={isTagMode}
-              setIsTagMode={setIsTagMode}
-              showStorySection={showStorySection}
-              totalPostsCount={totalPostsCount}
-              shopify={shopify}
-              navigate={navigate}
-              onApplyTemplate={handleApplyTemplate}
-              handleSaveConfig={handleSaveConfig}
-              isSaving={isSaving}
-              hasUnsavedChanges={hasUnsavedChanges}
-              setIsSetupModalOpen={setIsSetupModalOpen}
-            />
-          </div>
+          {/* ── Left Column: Unified Single-Tab Configurator (Only in Edit Mode) ── */}
+          {isEditingDesign && (
+            <div id="unified-configurator-card" style={{ minWidth: 0 }}>
+              <UnifiedConfigurator
+                config={config}
+                updateConfig={updateConfig}
+                setConfig={setConfig}
+                isPaid={isPaid}
+                isConnected={isConnected}
+                isHideMode={isHideMode}
+                setIsHideMode={setIsHideMode}
+                isTagMode={isTagMode}
+                setIsTagMode={setIsTagMode}
+                showStorySection={showStorySection}
+                totalPostsCount={totalPostsCount}
+                shopify={shopify}
+                navigate={navigate}
+                onApplyTemplate={handleApplyTemplate}
+                handleSaveConfig={handleSaveConfig}
+                isSaving={isSaving}
+                hasUnsavedChanges={hasUnsavedChanges}
+                setIsSetupModalOpen={setIsSetupModalOpen}
+                onCloseEditor={() => setIsEditingDesign(false)}
+              />
+            </div>
+          )}
 
-          {/* ── Right Column: Live Storefront Preview (Expanded Width & Sticky) ── */}
+          {/* ── Live Storefront Preview (Expanded Width & Sticky when Editing, Full Width when Saved) ── */}
           <div
             id="feed-preview-container"
             style={{
-              position: "sticky",
-              top: "20px",
+              position: isEditingDesign ? "sticky" : "static",
+              top: isEditingDesign ? "20px" : undefined,
               zIndex: 25,
               minWidth: 0,
+              width: "100%",
             }}
           >
             <Card>
@@ -3419,10 +3445,20 @@ export default function Index() {
                 )}
 
                 <BlockStack gap="300">
-                  <InlineStack align="space-between" blockAlign="center">
-                    <Text variant="headingSm" as="h3">
-                      Live Preview
-                    </Text>
+                  <InlineStack align="space-between" blockAlign="center" wrap={false}>
+                    <InlineStack gap="200" blockAlign="center">
+                      <Text variant="headingSm" as="h3">
+                        {isEditingDesign ? "Live Preview" : "Live Storefront Preview"}
+                      </Text>
+                      {!isEditingDesign && (
+                        <Badge tone="success">Saved & Live</Badge>
+                      )}
+                      {isEditingDesign && (
+                        <Badge tone="info">Editing</Badge>
+                      )}
+                    </InlineStack>
+
+                    <InlineStack gap="200" blockAlign="center">
                       <ButtonGroup variant="segmented">
                         <Button
                           pressed={previewDevice === "mobile"}
@@ -3437,7 +3473,25 @@ export default function Index() {
                           accessibilityLabel="Desktop View"
                         />
                       </ButtonGroup>
+
+                      {isEditingDesign ? (
+                        <Button
+                          size="slim"
+                          onClick={() => setIsEditingDesign(false)}
+                        >
+                          Close Editor
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          icon={EditIcon}
+                          onClick={() => setIsEditingDesign(true)}
+                        >
+                          Edit Design
+                        </Button>
+                      )}
                     </InlineStack>
+                  </InlineStack>
 
                     {!isConnected && (
                       <Box padding="200" background="bg-surface-secondary" borderRadius="150">
