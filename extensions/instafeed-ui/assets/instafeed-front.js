@@ -89,38 +89,139 @@
     return '';
   }
 
-  // ── Placeholder images (same as dashboard fallbacks) ─────────────────────
-  const PLACEHOLDERS = [
-    "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1485230895905-ec17bd36b5cc?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1475184447565-30060953d611?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=600&h=600&fit=crop",
+  // ── Sample media (same as backend dashboard lookbook) ─────────────────────
+  const SAMPLE_MEDIA = [
+    {
+      id: "placeholder_1",
+      media_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Our signature Silk Slip Dress in Champagne Gold ✨ Designed for effortless day-to-night styling. #ootd #summerstyle #silkdress",
+      like_count: 342,
+      comments_count: 18,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_2",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=800&fit=crop",
+      media_type: "VIDEO",
+      caption: "Behind the scenes at our Autumn Lookbook shoot 🍂 Discover the collection online now. #behindthescenes #fashionfilm",
+      like_count: 812,
+      comments_count: 45,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_3",
+      media_url: "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Minimalist tailoring for every occasion. Styled with our handcrafted leather bucket bag 🤍 #streetstyle #minimalist",
+      like_count: 420,
+      comments_count: 24,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_4",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=800&h=800&fit=crop",
+      media_type: "VIDEO",
+      caption: "Sunset styling session in Los Angeles 🌅 Which look is your favorite? 1, 2, or 3? #reels #outfitinspo",
+      like_count: 1240,
+      comments_count: 89,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_5",
+      media_url: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Weekend essentials: Oversized Linen Shirt in crisp white. Breathable, relaxed, perfected 🌿 #linenlove #summercapsule",
+      like_count: 518,
+      comments_count: 31,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_6",
+      media_url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Monochrome moments. The tailored Wide-Leg Pant paired with our ribbed knit tank 🖤 #parisianstyle #capsulewardrobe",
+      like_count: 673,
+      comments_count: 40,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_7",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=800&fit=crop",
+      media_type: "VIDEO",
+      caption: "How our community wears the Cloud Soft Cardigan 🧶 Swipe for styling ideas! #community #lookbook",
+      like_count: 940,
+      comments_count: 67,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_8",
+      media_url: "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Sculptural accessories to elevate any outfit. Handcrafted brass earrings now online ✨ #jewelrylovers #statementjewelry",
+      like_count: 380,
+      comments_count: 22,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_9",
+      media_url: "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Clean lines, timeless palette. The Classic Trench in Sandstone 🍂 #autumnlayers #classicstyle",
+      like_count: 685,
+      comments_count: 28,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_10",
+      media_url: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Coffee runs in our Oversized Crewneck ☕️ Cozy season has officially arrived. #casualchic #cozyvibes",
+      like_count: 490,
+      comments_count: 17,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_11",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=800&h=800&fit=crop",
+      media_type: "VIDEO",
+      caption: "Morning skincare rituals with our antioxidant glow duo 🍊 Watch the texture melt in. #skincaretips #glowingskin",
+      like_count: 1120,
+      comments_count: 75,
+      permalink: "https://instagram.com",
+    },
+    {
+      id: "placeholder_12",
+      media_url: "https://images.unsplash.com/photo-1485230895905-ec17bd36b5cc?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1485230895905-ec17bd36b5cc?w=800&h=800&fit=crop",
+      media_type: "IMAGE",
+      caption: "Soft tailoring for modern living. Designed to transition from day to evening seamlessly 🌙 #effortlessstyle",
+      like_count: 560,
+      comments_count: 32,
+      permalink: "https://instagram.com",
+    },
   ];
 
   function getMedia(mediaData, count) {
+    let validItems = [];
     if (mediaData && mediaData.length > 0) {
-      return mediaData.slice(0, Math.min(count, MAX_FEED_ITEMS));
+      validItems = mediaData.filter(i => i && (i.media_url || i.thumbnail_url));
     }
-    const base = [];
-    for (let i = 0; i < count; i++) {
-      base.push({
-        id: 'placeholder_' + i,
-        media_url: '',
-        media_type: "IMAGE",
-        like_count: 0,
-        comments_count: 0,
-        permalink: "#"
-      });
+    if (validItems.length === 0) {
+      validItems = SAMPLE_MEDIA;
     }
-    return base.slice(0, Math.min(count, MAX_FEED_ITEMS));
+    return validItems.slice(0, Math.min(count, MAX_FEED_ITEMS));
   }
 
   function esc(str) {
@@ -368,7 +469,7 @@
       const isMobile   = window.innerWidth <= 768;
       const columns    = isMobile ? c.mobileColumns : c.desktopColumns;
       const baseLimit  = isMobile ? (c.mobileLimit || 4) : (c.desktopLimit || 8);
-      const layoutMode = c.layoutStyle || (c.carousel ? "carousel" : "grid");
+      const layoutMode = c.layoutMode || c.layoutStyle || (c.carousel ? "carousel" : "grid");
       const isCarousel = layoutMode === "carousel";
       // Infinite scroll only on carousel; all other layouts display strictly limited posts
       const limit      = isCarousel ? Math.max(baseLimit, this.currentDisplayLimit || baseLimit) : baseLimit;
@@ -382,33 +483,34 @@
       }
 
       // Smart Media Separation: Story media (images default) & Feed media (videos default)
-      const totalPosts = mediaData.length;
+      const feedSource = (mediaData && mediaData.length > 0) ? mediaData : SAMPLE_MEDIA;
+      const totalPosts = feedSource.length;
       const showStories = (totalPosts >= 6 || totalPosts === 0) && config.stories?.enable !== false;
       let storyMedia = [];
       if (showStories) {
-        storyMedia = mediaData.filter(i => {
+        storyMedia = feedSource.filter(i => {
           const t = (i.media_type || "").toUpperCase();
           return t === "IMAGE" || t === "CAROUSEL_ALBUM" || t === "ALBUM";
         });
-        if (storyMedia.length === 0) storyMedia = mediaData; // fallback
+        if (storyMedia.length === 0) storyMedia = feedSource; // fallback
         this.storyMedia = storyMedia;
       }
 
       // Feed Media: Filter for videos/reels by default with fallback to all media if 0 videos
-      const feedFilter = c.mediaTypeFilter || "videos";
-      let candidateFeed = mediaData;
+      const feedFilter = c.mediaTypeFilter || "all";
+      let candidateFeed = feedSource;
       if (feedFilter === "videos") {
-        const vids = mediaData.filter(i => {
+        const vids = feedSource.filter(i => {
           const t = (i.media_type || "").toUpperCase();
           return t === "VIDEO" || t === "REEL" || (i.media_url && i.media_url.toLowerCase().includes(".mp4"));
         });
-        candidateFeed = vids.length > 0 ? vids : mediaData;
+        candidateFeed = vids.length > 0 ? vids : feedSource;
       } else if (feedFilter === "images") {
-        const imgs = mediaData.filter(i => {
+        const imgs = feedSource.filter(i => {
           const t = (i.media_type || "").toUpperCase();
           return t === "IMAGE" || t === "CAROUSEL_ALBUM" || t === "ALBUM";
         });
-        candidateFeed = imgs.length > 0 ? imgs : mediaData;
+        candidateFeed = imgs.length > 0 ? imgs : feedSource;
       }
 
       const gap        = c.gap;
@@ -556,9 +658,13 @@
               + '<div class="ai-fw-nav ai-fw-next" data-track-id="' + trackId + '" role="button" tabindex="0" aria-label="Next" style="' + navBtnStyle + '"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M8 16l4-4-4-4"/></svg></div>'
               + '</div>';
       } else if (layoutMode === "masonry") {
+        const MASONRY_ASPECTS = ["4/5", "4/3", "4/3", "4/5", "3/4", "16/10", "1/1", "4/5"];
         html += '<div class="ai-layout-masonry" style="column-count:' + columns + ';--ai-gap:' + gap + 'px;">';
-        const masonryConfig = { ...c, aspectRatio: "auto" };
-        mediaItems.forEach((item, index) => { html += this.renderMediaCard(item, masonryConfig, '100%', '', index); });
+        mediaItems.forEach((item, index) => {
+          const masonryAspect = (c.aspectRatio && c.aspectRatio !== "auto") ? c.aspectRatio : MASONRY_ASPECTS[index % MASONRY_ASPECTS.length];
+          const masonryConfig = { ...c, aspectRatio: masonryAspect };
+          html += this.renderMediaCard(item, masonryConfig, '100%', 'ai-masonry-item', index);
+        });
         html += '</div>';
       } else if (layoutMode === "highlight") {
         const highlightCols = isMobile ? 2 : 4;
@@ -627,34 +733,29 @@
     }
 
     renderMediaCard(item, c, width, extraClass = "", index = 0) {
-      const rawType   = (item.media_type || "").toUpperCase();
-      const isVideo   = rawType === "VIDEO" || rawType === "REEL" || (item.media_url && item.media_url.toLowerCase().includes(".mp4"));
+      const fallbackItem = SAMPLE_MEDIA[index % SAMPLE_MEDIA.length] || SAMPLE_MEDIA[0];
+      const rawType   = (item.media_type || fallbackItem.media_type || "").toUpperCase();
+      const mediaUrl  = item.media_url || fallbackItem.media_url || "";
+      const thumbUrl  = item.thumbnail_url || fallbackItem.thumbnail_url || "";
+      const isVideo   = rawType === "VIDEO" || rawType === "REEL" || (mediaUrl && mediaUrl.toLowerCase().includes(".mp4"));
       const isAlbum   = rawType === "CAROUSEL_ALBUM" || rawType === "ALBUM";
-      const thumbUrl  = item.thumbnail_url || "";
       const posterAttr = thumbUrl ? ` poster="${esc(thumbUrl)}"` : "";
       const isPriority = index < 4;
       const loadAttr  = isPriority ? 'loading="eager" fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"';
 
       let inner = "";
-      if (isVideo && item.media_url) {
-        if (c.autoplay) {
-          inner = `<video src="${esc(item.media_url)}"${posterAttr} autoplay muted loop playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+      if (isVideo && mediaUrl) {
+        if (c.autoplay !== false) {
+          inner = `<video src="${esc(mediaUrl)}"${posterAttr} autoplay muted loop playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
         } else if (thumbUrl) {
           inner = `<img ${loadAttr} src="${esc(thumbUrl)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
         } else {
-          inner = `<video src="${esc(item.media_url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+          inner = `<video src="${esc(mediaUrl)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
         }
-      } else if (item.media_url) {
-        inner = `<img ${loadAttr} src="${esc(item.media_url)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      } else if (mediaUrl) {
+        inner = `<img ${loadAttr} src="${esc(mediaUrl)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
       } else {
-        inner = `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);color:#94a3b8;gap:6px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-          </svg>
-          <span style="font-size:10.5px;font-weight:600;color:#94a3b8;">Post #${(index || 0) + 1}</span>
-        </div>`;
+        inner = `<img ${loadAttr} src="${esc(fallbackItem.media_url)}" alt="Instagram post" style="width:100%;height:100%;object-fit:cover;display:block;">`;
       }
       const metrics = c.metrics ? `
         <div style="display:flex;align-items:center;gap:6px;">
@@ -693,7 +794,7 @@
       if (this.infiniteObserver) this.infiniteObserver.disconnect();
 
       const c = config.postFeed || {};
-      const layoutMode = c.layoutStyle || (c.carousel ? "carousel" : "grid");
+      const layoutMode = c.layoutMode || c.layoutStyle || (c.carousel ? "carousel" : "grid");
       if (layoutMode !== "carousel") return;
 
       const isMobile = window.innerWidth <= 768;
@@ -723,7 +824,7 @@
 
     appendMoreItems(config, mediaData, limit) {
       const c = config.postFeed || {};
-      const layoutMode = c.layoutStyle || (c.carousel ? "carousel" : "grid");
+      const layoutMode = c.layoutMode || c.layoutStyle || (c.carousel ? "carousel" : "grid");
       if (layoutMode !== "carousel") return;
 
       const isMobile = window.innerWidth <= 768;
@@ -1297,14 +1398,17 @@
           <div class="ai-hotspot-pin" style="position:absolute;left:${pin.x}%;top:${pin.y}%;transform:translate(-50%,-50%);z-index:30;" data-pin-id="${esc(pin.id)}">
             <div class="ai-pin-pulse"></div>
             <div class="ai-pin-dot">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3.8 6l1.5-2h13.4l1.5 2zm14.2 4a6 6 0 0 1-12 0v-2h2v2a4 4 0 0 0 8 0v-2h2z"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
             </div>
             <div class="ai-pin-tooltip">
-              ${pin.image ? `<img src="${esc(pin.image)}" class="ai-pin-tooltip-img" alt="${esc(pin.title)}" />` : ''}
+              ${pin.image ? `<img src="${esc(pin.image)}" class="ai-pin-tooltip-img" alt="${esc(pin.title)}" />` : `<div class="ai-pin-tooltip-img ai-pin-img-placeholder"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>`}
               <div class="ai-pin-tooltip-info">
                 <div class="ai-pin-tooltip-title">${esc(pin.title)}</div>
                 <div class="ai-pin-tooltip-price">$${esc(pin.price)}</div>
-                <button type="button" class="ai-pin-add-cart-btn" data-variant-id="${esc(pin.variantId)}" data-product-title="${esc(pin.title)}">Add to Cart</button>
+                <button type="button" class="ai-pin-add-cart-btn" data-variant-id="${esc(pin.variantId)}" data-product-title="${esc(pin.title)}">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                  <span>Add to Cart</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1314,23 +1418,27 @@
       let taggedProductsSectionHtml = '';
       if (postTags.length > 0) {
         taggedProductsSectionHtml = `
-          <div class="ai-tagged-products-wrap" style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f1f5f9;">
-            <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3.8 6l1.5-2h13.4l1.5 2zm14.2 4a6 6 0 0 1-12 0v-2h2v2a4 4 0 0 0 8 0v-2h2z"/></svg>
-              <span>Tagged Products (${postTags.length})</span>
+          <div class="ai-tagged-products-wrap">
+            <div class="ai-tagged-products-header">
+              <div class="ai-tagged-products-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <span>Shop The Look</span>
+              </div>
+              <span class="ai-tagged-count-pill">${postTags.length} ${postTags.length === 1 ? 'item' : 'items'}</span>
             </div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="ai-tagged-products-list">
               ${postTags.map((pin) => `
-                <div class="ai-tagged-product-item" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-                  <div style="display:flex;align-items:center;gap:8px;overflow:hidden;">
-                    ${pin.image ? `<img src="${esc(pin.image)}" style="width:32px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;" alt="${esc(pin.title)}" />` : ''}
-                    <div style="overflow:hidden;">
-                      <div style="font-size:12px;font-weight:700;color:#0f172a;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;max-width:140px;">${esc(pin.title)}</div>
-                      <div style="font-size:11px;color:#64748b;">$${esc(pin.price)}</div>
+                <div class="ai-tagged-product-item">
+                  <div class="ai-tagged-product-left">
+                    ${pin.image ? `<img src="${esc(pin.image)}" class="ai-tagged-product-img" alt="${esc(pin.title)}" />` : `<div class="ai-tagged-product-img ai-tagged-img-placeholder"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>`}
+                    <div class="ai-tagged-product-details">
+                      <div class="ai-tagged-product-name" title="${esc(pin.title)}">${esc(pin.title)}</div>
+                      <div class="ai-tagged-product-price">$${esc(pin.price)}</div>
                     </div>
                   </div>
-                  <button type="button" class="ai-product-add-cart-btn" data-variant-id="${esc(pin.variantId)}" data-product-title="${esc(pin.title)}" style="padding:5px 10px;background:#0f172a;color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">
-                    Add to Cart
+                  <button type="button" class="ai-product-add-cart-btn" data-variant-id="${esc(pin.variantId)}" data-product-title="${esc(pin.title)}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    <span>Add to Cart</span>
                   </button>
                 </div>
               `).join('')}
@@ -1670,6 +1778,9 @@
     setStoredCache(config, instaData);
 
     let mediaData = instaData?.media?.data || [];
+    if (mediaData.length === 0 || !mediaData.some(i => i && (i.media_url || i.thumbnail_url))) {
+      mediaData = SAMPLE_MEDIA;
+    }
     
     if (config.postFeed?.hiddenPostIds?.length > 0) {
       mediaData = mediaData.filter(item => !config.postFeed.hiddenPostIds.includes(item.id || item.media_url));

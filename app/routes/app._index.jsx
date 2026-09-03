@@ -45,7 +45,6 @@ import {
   DesktopIcon,
   MobileIcon,
   ViewIcon,
-  ShareIcon,
   ExternalIcon,
   PlayIcon,
   PlusIcon,
@@ -2010,62 +2009,62 @@ export default function Index() {
   const PLACEHOLDER_MEDIA = useMemo(() => [
     {
       id: "placeholder_1",
-      media_url: "",
-      thumbnail_url: "",
+      media_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=800&fit=crop",
       media_type: "IMAGE",
-      caption: "",
-      like_count: 0,
-      comments_count: 0,
+      caption: "Our signature Silk Slip Dress in Champagne Gold ✨ Designed for effortless day-to-night styling. #ootd #summerstyle #silkdress",
+      like_count: 342,
+      comments_count: 18,
       permalink: "https://instagram.com",
     },
     {
       id: "placeholder_2",
-      media_url: "",
-      thumbnail_url: "",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=800&fit=crop",
       media_type: "VIDEO",
-      caption: "",
-      like_count: 0,
-      comments_count: 0,
+      caption: "Behind the scenes at our Autumn Lookbook shoot 🍂 Discover the collection online now. #behindthescenes #fashionfilm",
+      like_count: 812,
+      comments_count: 45,
       permalink: "https://instagram.com",
     },
     {
       id: "placeholder_3",
-      media_url: "",
-      thumbnail_url: "",
+      media_url: "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1539106604-24283ef1677b?w=800&h=800&fit=crop",
       media_type: "IMAGE",
-      caption: "",
-      like_count: 0,
-      comments_count: 0,
+      caption: "Minimalist tailoring for every occasion. Styled with our handcrafted leather bucket bag 🤍 #streetstyle #minimalist",
+      like_count: 420,
+      comments_count: 24,
       permalink: "https://instagram.com",
     },
     {
       id: "placeholder_4",
-      media_url: "",
-      thumbnail_url: "",
+      media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+      thumbnail_url: "https://images.unsplash.com/photo-1529139513364-c4d1221e93c0?w=800&h=800&fit=crop",
       media_type: "VIDEO",
-      caption: "",
-      like_count: 0,
-      comments_count: 0,
+      caption: "Sunset styling session in Los Angeles 🌅 Which look is your favorite? 1, 2, or 3? #reels #outfitinspo",
+      like_count: 1240,
+      comments_count: 89,
       permalink: "https://instagram.com",
     },
     {
       id: "placeholder_5",
-      media_url: "",
-      thumbnail_url: "",
+      media_url: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=800&fit=crop",
       media_type: "IMAGE",
-      caption: "",
-      like_count: 0,
-      comments_count: 0,
+      caption: "Weekend essentials: Oversized Linen Shirt in crisp white. Breathable, relaxed, perfected 🌿 #linenlove #summercapsule",
+      like_count: 518,
+      comments_count: 31,
       permalink: "https://instagram.com",
     },
     {
       id: "placeholder_6",
-      media_url: "",
-      thumbnail_url: "",
+      media_url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&h=800&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&h=800&fit=crop",
       media_type: "IMAGE",
-      caption: "",
-      like_count: 0,
-      comments_count: 0,
+      caption: "Monochrome moments. The tailored Wide-Leg Pant paired with our ribbed knit tank 🖤 #parisianstyle #capsulewardrobe",
+      like_count: 673,
+      comments_count: 40,
       permalink: "https://instagram.com",
     },
     {
@@ -2136,6 +2135,7 @@ export default function Index() {
   const [isHideMode, setIsHideMode] = useState(false);
   const [isTagMode, setIsTagMode] = useState(false);
   const [taggingPost, setTaggingPost] = useState(null);
+  const [taggingPins, setTaggingPins] = useState([]);
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
   const [previewingTemplate, setPreviewingTemplate] = useState(null);
@@ -2475,7 +2475,7 @@ export default function Index() {
     return list;
   }, [baseMedia, config.postFeed.mediaTypeFilter, config.postFeed.sortBy, isPaid]);
 
-  const isCarouselLayout = config.postFeed.layoutStyle === "carousel" || config.postFeed.carousel === true;
+  const isCarouselLayout = config.postFeed.layoutMode === "carousel" || config.postFeed.layoutStyle === "carousel" || config.postFeed.carousel === true;
 
   const simulatedInfiniteMedia = useMemo(() => {
     // Only carousel displays all items for infinite horizontal swipe/scroll; all other layouts show strictly limited posts
@@ -2729,7 +2729,42 @@ export default function Index() {
             </span>
           </div>
         )}
-        {(!isConnected && item.id?.startsWith("placeholder_")) ? (
+        {isVideo && (item.media_url || item.thumbnail_url) ? (
+          config.postFeed.autoplay ? (
+            <video
+              src={item.media_url}
+              poster={item.thumbnail_url || undefined}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : item.thumbnail_url ? (
+            <img
+              loading="lazy"
+              src={item.thumbnail_url}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              alt="Instagram post"
+            />
+          ) : item.media_url ? (
+            <video
+              src={item.media_url}
+              muted
+              playsInline
+              preload="metadata"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : null
+        ) : item.media_url ? (
+          <img
+            loading="lazy"
+            src={item.media_url}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            alt="Instagram post"
+          />
+        ) : (
           <div
             style={{
               width: "100%",
@@ -2770,42 +2805,7 @@ export default function Index() {
               Post #{i + 1}
             </span>
           </div>
-        ) : isVideo ? (
-          config.postFeed.autoplay ? (
-            <video
-              src={item.media_url}
-              poster={item.thumbnail_url || undefined}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          ) : item.thumbnail_url ? (
-            <img
-              loading="lazy"
-              src={item.thumbnail_url}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              alt="Instagram post"
-            />
-          ) : item.media_url ? (
-            <video
-              src={item.media_url}
-              muted
-              playsInline
-              preload="metadata"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          ) : null
-        ) : item.media_url ? (
-          <img
-            loading="lazy"
-            src={item.media_url}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            alt="Instagram post"
-          />
-        ) : null}
+        )}
         {config.postFeed.metrics && (
           <div className="media-metrics">
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -2875,6 +2875,7 @@ export default function Index() {
     }
 
     if (layout === "masonry") {
+      const MASONRY_ASPECTS = ["4/5", "4/3", "4/3", "4/5", "3/4", "16/10", "1/1", "4/5"];
       return (
         <div
           style={{
@@ -2883,11 +2884,16 @@ export default function Index() {
             padding: isMobile ? `4px ${gap}px` : "0",
           }}
         >
-          {simulatedInfiniteMedia.map((item, i) => (
-            <div key={item.id || i} style={{ breakInside: "avoid", marginBottom: `${gap}px` }}>
-              {renderMediaCard(item, i, "auto")}
-            </div>
-          ))}
+          {simulatedInfiniteMedia.map((item, i) => {
+            const aspect = (config.postFeed.aspectRatio && config.postFeed.aspectRatio !== "auto")
+              ? config.postFeed.aspectRatio
+              : MASONRY_ASPECTS[i % MASONRY_ASPECTS.length];
+            return (
+              <div key={item.id || i} style={{ breakInside: "avoid", marginBottom: `${gap}px` }}>
+                {renderMediaCard(item, i, aspect)}
+              </div>
+            );
+          })}
         </div>
       );
     }
@@ -3939,30 +3945,80 @@ export default function Index() {
           </div>
         </div>
 
-        {/* ── High-Fidelity Instagram Modal Dialog with Shoppable Pins ── */}
+        {/* ── High-Fidelity Instagram Storefront Modal (Identical to Storefront) ── */}
         {selectedPost && (() => {
           const postTags = config.taggedProducts?.[selectedPost.id || selectedPost.media_url] || selectedPost.taggedProducts || [];
+          const currentMediaList = simulatedInfiniteMedia || [];
+          const currentPostIndex = currentMediaList.findIndex(
+            (p) => (p.id && p.id === selectedPost.id) || (p.media_url && p.media_url === selectedPost.media_url)
+          );
+          const hasPrev = currentPostIndex > 0;
+          const hasNext = currentPostIndex >= 0 && currentPostIndex < currentMediaList.length - 1;
+          const isVideo =
+            (selectedPost.media_type || "").toUpperCase() === "VIDEO" ||
+            (selectedPost.media_type || "").toUpperCase() === "REEL" ||
+            (selectedPost.media_url &&
+              (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov")));
+          const handle = (instaData?.username || config.instagramHandle || "account").replace("@", "").trim();
+          const promoLabel = config.stories?.promoLabel || "Get 10% Off";
+
+          const handlePrevPost = (e) => {
+            e.stopPropagation();
+            if (hasPrev) setSelectedPost(currentMediaList[currentPostIndex - 1]);
+          };
+          const handleNextPost = (e) => {
+            e.stopPropagation();
+            if (hasNext) setSelectedPost(currentMediaList[currentPostIndex + 1]);
+          };
+
           return (
-            <Modal
-              open={Boolean(selectedPost)}
-              onClose={() => setSelectedPost(null)}
-              title={selectedPost.isPromo ? "Special Offer" : `@${instaData?.username || config.instagramHandle || "instagram"}`}
-              size="large"
-              primaryAction={{
-                content: "Close",
-                onAction: () => setSelectedPost(null),
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: "100vw",
+                height: "100vh",
+                background: "rgba(0, 0, 0, 0.85)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+                zIndex: 2147483647,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px",
+                boxSizing: "border-box",
+                animation: "fadeIn 0.2s ease-out",
               }}
+              onClick={() => setSelectedPost(null)}
             >
-              <Modal.Section flush>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  width: "100%",
+                  maxWidth: "960px",
+                  maxHeight: "85vh",
+                  height: "600px",
+                  background: "#ffffff",
+                  borderRadius: "16px",
+                  overflow: "hidden",
+                  boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+                  position: "relative",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
                 {selectedPost.isPromo ? (
-                  /* Promo Modal */
-                  <div style={{ display: "flex", flexDirection: "row", minHeight: "260px", background: "white", borderRadius: "8px", overflow: "hidden" }}>
+                  /* Special Offer Promo Story Modal */
+                  <div style={{ display: "flex", flexDirection: "row", width: "100%", height: "100%" }}>
                     <div
                       style={{
                         flex: 1,
                         background: "linear-gradient(135deg, #e1306c 0%, #c13584 50%, #f77737 100%)",
                         color: "white",
-                        padding: "32px",
+                        padding: "40px",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
@@ -3970,67 +4026,80 @@ export default function Index() {
                         textAlign: "center",
                       }}
                     >
-                      <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: "50%", padding: "14px", marginBottom: "12px" }}>
+                      <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: "50%", padding: "16px", marginBottom: "16px" }}>
                         <Icon source={StarIcon} tone="inherit" />
                       </div>
-                      <Text variant="headingLg" as="h3" tone="inherit">
-                        SPECIAL OFFER
-                      </Text>
-                      <Text variant="bodySm" tone="inherit">
-                        Exclusive Store Reward
-                      </Text>
+                      <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#ffffff", margin: "0 0 8px" }}>SPECIAL OFFER</h2>
+                      <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.9)", margin: 0 }}>Exclusive Store Reward</p>
                     </div>
-                    <div style={{ flex: 1.2, padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                      <Text variant="headingMd" as="h3">
+                    <div style={{ flex: 1.2, padding: "36px 40px", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative" }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPost(null)}
+                        style={{
+                          position: "absolute",
+                          top: "16px",
+                          right: "16px",
+                          background: "#f1f5f9",
+                          border: "none",
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "50%",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#64748b",
+                          fontSize: "14px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        ✕
+                      </button>
+                      <h3 style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a", margin: "0 0 12px" }}>
                         {config.stories.promoLabel || "Get 10% Off"}
-                      </Text>
-                      <Box paddingBlockStart="200" paddingBlockEnd="400">
-                        <Text variant="bodyMd" tone="subdued">
-                          {formatDynamicAccountText(
-                            config.stories.promoDesc ||
-                              "Take a screenshot of a product you wish to buy and tag us on Instagram for a 10% discount coupon code!"
-                          )}
-                        </Text>
-                      </Box>
-                      <Button
-                        variant="primary"
-                        fullWidth
-                        url={`https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`}
+                      </h3>
+                      <p style={{ fontSize: "14px", color: "#475569", lineHeight: "1.6", margin: "0 0 24px" }}>
+                        {formatDynamicAccountText(
+                          config.stories.promoDesc ||
+                            "Take a screenshot of a product you wish to buy and tag us on Instagram for a 10% discount coupon code!"
+                        )}
+                      </p>
+                      <a
+                        href={`https://instagram.com/${handle}`}
                         target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          background: "linear-gradient(135deg, #e1306c 0%, #f77737 100%)",
+                          color: "#ffffff",
+                          textDecoration: "none",
+                          textAlign: "center",
+                          padding: "12px 20px",
+                          borderRadius: "8px",
+                          fontWeight: "700",
+                          fontSize: "14px",
+                          boxShadow: "0 4px 12px rgba(225, 48, 108, 0.3)",
+                        }}
                       >
                         Open Instagram
-                      </Button>
+                      </a>
                     </div>
                   </div>
                 ) : (
-                  /* Authentic Instagram Lightbox Modal with Shoppable Hotspots */
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      minHeight: "420px",
-                      maxHeight: "80vh",
-                      background: "white",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {/* Left Column: Media Viewport with Pulse Pins */}
+                  <>
+                    {/* Left Column: Media Pane */}
                     <div
                       style={{
                         flex: 1.3,
-                        background: "#000",
+                        background: "#000000",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        overflow: "hidden",
-                        minHeight: "360px",
                         position: "relative",
+                        overflow: "hidden",
                       }}
                     >
-                      {(selectedPost.media_type || "").toUpperCase() === "VIDEO" ||
-                      (selectedPost.media_type || "").toUpperCase() === "REEL" ||
-                      (selectedPost.media_url &&
-                        (selectedPost.media_url.toLowerCase().includes(".mp4") || selectedPost.media_url.toLowerCase().includes(".mov"))) ? (
+                      {isVideo ? (
                         <video
                           src={selectedPost.media_url}
                           poster={selectedPost.thumbnail_url || undefined}
@@ -4038,13 +4107,13 @@ export default function Index() {
                           loop
                           controls
                           playsInline
-                          style={{ width: "100%", height: "100%", maxHeight: "500px", objectFit: "contain" }}
+                          style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
                         />
                       ) : (
                         <img
                           src={selectedPost.media_url}
                           alt="Instagram post"
-                          style={{ width: "100%", height: "100%", maxHeight: "500px", objectFit: "contain" }}
+                          style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
                         />
                       )}
 
@@ -4057,43 +4126,156 @@ export default function Index() {
                             left: `${pin.x}%`,
                             top: `${pin.y}%`,
                             transform: "translate(-50%, -50%)",
-                            zIndex: 20,
+                            zIndex: 30,
                             pointerEvents: "auto",
                           }}
                         >
                           <div
                             style={{
-                              width: "24px",
-                              height: "24px",
-                              borderRadius: "50%",
-                              background: "#6366f1",
-                              border: "2px solid white",
-                              color: "white",
+                              position: "relative",
+                              width: "28px",
+                              height: "28px",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              fontSize: "11px",
-                              fontWeight: "bold",
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
                               cursor: "pointer",
                             }}
                             title={`${pin.title} - $${pin.price}`}
                           >
-                            🛍️
+                            <div
+                              style={{
+                                position: "absolute",
+                                inset: "-6px",
+                                borderRadius: "50%",
+                                background: "rgba(255, 255, 255, 0.45)",
+                                animation: "aiPinPulse 2.2s infinite ease-out",
+                              }}
+                            />
+                            <div
+                              style={{
+                                width: "26px",
+                                height: "26px",
+                                borderRadius: "50%",
+                                background: "#ffffff",
+                                color: "#0f172a",
+                                border: "1.5px solid rgba(15, 23, 42, 0.12)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                boxShadow: "0 4px 14px rgba(0, 0, 0, 0.22)",
+                                position: "relative",
+                                zIndex: 2,
+                              }}
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                                <line x1="3" y1="6" x2="21" y2="6" />
+                                <path d="M16 10a4 4 0 0 1-8 0" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
                       ))}
+
+                      {/* Previous Post Nav Button */}
+                      {hasPrev && (
+                        <button
+                          type="button"
+                          onClick={handlePrevPost}
+                          style={{
+                            position: "absolute",
+                            left: "12px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: "38px",
+                            height: "38px",
+                            borderRadius: "50%",
+                            background: "rgba(255, 255, 255, 0.2)",
+                            backdropFilter: "blur(8px)",
+                            WebkitBackdropFilter: "blur(8px)",
+                            border: "1px solid rgba(255,255,255,0.3)",
+                            color: "white",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            zIndex: 20,
+                            transition: "background 0.15s ease",
+                          }}
+                          aria-label="Previous post"
+                        >
+                          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M13 16l-5-5 5-5" />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Next Post Nav Button */}
+                      {hasNext && (
+                        <button
+                          type="button"
+                          onClick={handleNextPost}
+                          style={{
+                            position: "absolute",
+                            right: "12px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: "38px",
+                            height: "38px",
+                            borderRadius: "50%",
+                            background: "rgba(255, 255, 255, 0.2)",
+                            backdropFilter: "blur(8px)",
+                            WebkitBackdropFilter: "blur(8px)",
+                            border: "1px solid rgba(255,255,255,0.3)",
+                            color: "white",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            zIndex: 20,
+                            transition: "background 0.15s ease",
+                          }}
+                          aria-label="Next post"
+                        >
+                          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M7 16l5-5-5-5" />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Counter Badge */}
+                      {currentMediaList.length > 1 && currentPostIndex >= 0 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "14px",
+                            left: "14px",
+                            background: "rgba(0,0,0,0.55)",
+                            backdropFilter: "blur(6px)",
+                            color: "rgba(255,255,255,0.9)",
+                            fontSize: "12px",
+                            fontWeight: "700",
+                            padding: "4px 12px",
+                            borderRadius: "20px",
+                            border: "1px solid rgba(255,255,255,0.15)",
+                            whiteSpace: "nowrap",
+                            zIndex: 15,
+                          }}
+                        >
+                          {currentPostIndex + 1} / {currentMediaList.length}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Right Column: Instagram Profile, Caption & Tagged Products */}
+                    {/* Right Column: Info Pane */}
                     <div
                       style={{
                         flex: 1,
                         display: "flex",
                         flexDirection: "column",
-                        background: "#fff",
-                        borderLeft: "1px solid #e2e8f0",
-                        maxHeight: "500px",
+                        background: "#ffffff",
+                        position: "relative",
+                        overflow: "hidden",
                       }}
                     >
                       {/* Header */}
@@ -4101,8 +4283,8 @@ export default function Index() {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: "10px",
-                          padding: "14px 16px",
+                          gap: "12px",
+                          padding: "16px 20px",
                           borderBottom: "1px solid #f1f5f9",
                         }}
                       >
@@ -4115,29 +4297,64 @@ export default function Index() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            flexShrink: 0,
                           }}
                         >
-                          <InstagramIcon />
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                          </svg>
                         </div>
-                        <div style={{ flex: 1 }}>
-                          <Text variant="bodyMd" fontWeight="bold">
-                            @{instaData?.username || config.instagramHandle || "account"}
-                          </Text>
-                          <Text variant="bodyXs" tone="subdued">
-                            Instagram Post
-                          </Text>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: "14px", fontWeight: "700", color: "#0f172a", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                            @{handle}
+                          </div>
+                          <div style={{ fontSize: "11px", color: "#64748b" }}>Instagram Feed</div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPost(null)}
+                          style={{
+                            background: "#f1f5f9",
+                            border: "none",
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "50%",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            color: "#64748b",
+                          }}
+                          aria-label="Close modal"
+                        >
+                          ✕
+                        </button>
                       </div>
 
-                      {/* Scrollable Content (Tagged Products + Caption) */}
-                      <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+                      {/* Body */}
+                      <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
                         {/* Tagged Products in this photo */}
                         {postTags.length > 0 && (
-                          <div style={{ marginBottom: "16px", paddingBottom: "16px", borderBottom: "1px solid #f1f5f9" }}>
-                            <Text variant="headingSm" as="h4">
-                              🛍️ Tagged Products ({postTags.length})
-                            </Text>
-                            <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                          <div style={{ marginBottom: "20px", paddingBottom: "16px", borderBottom: "1px solid #f1f5f9" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                  <line x1="3" y1="6" x2="21" y2="6"/>
+                                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                                </svg>
+                                <span style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em", color: "#334155" }}>
+                                  Shop The Look
+                                </span>
+                              </div>
+                              <span style={{ fontSize: "11px", fontWeight: "600", color: "#64748b", background: "#f1f5f9", padding: "2px 8px", borderRadius: "12px" }}>
+                                {postTags.length} {postTags.length === 1 ? "item" : "items"}
+                              </span>
+                            </div>
+
+                            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                               {postTags.map((pin, idx) => (
                                 <div
                                   key={pin.id || idx}
@@ -4145,65 +4362,129 @@ export default function Index() {
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "space-between",
-                                    padding: "8px 10px",
-                                    background: "#f8fafc",
-                                    borderRadius: "8px",
+                                    padding: "10px 12px",
+                                    background: "#ffffff",
+                                    borderRadius: "10px",
                                     border: "1px solid #e2e8f0",
+                                    boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                                    gap: "12px",
                                   }}
                                 >
-                                  <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
-                                    {pin.image && (
+                                  <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden", minWidth: 0, flex: 1 }}>
+                                    {pin.image ? (
                                       <img
                                         src={pin.image}
                                         alt={pin.title}
-                                        style={{ width: "32px", height: "32px", borderRadius: "4px", objectFit: "cover", flexShrink: 0 }}
+                                        style={{ width: "44px", height: "44px", borderRadius: "8px", objectFit: "cover", flexShrink: 0, border: "1px solid #f1f5f9" }}
                                       />
+                                    ) : (
+                                      <div
+                                        style={{
+                                          width: "44px",
+                                          height: "44px",
+                                          borderRadius: "8px",
+                                          background: "#f8fafc",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          flexShrink: 0,
+                                          border: "1px solid #e2e8f0",
+                                        }}
+                                      >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                      </div>
                                     )}
-                                    <div style={{ overflow: "hidden" }}>
-                                      <div style={{ fontSize: "12px", fontWeight: "700", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                                    <div style={{ overflow: "hidden", minWidth: 0, flex: 1 }}>
+                                      <div style={{ fontSize: "13px", fontWeight: "600", color: "#0f172a", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
                                         {pin.title}
                                       </div>
-                                      <div style={{ fontSize: "11px", color: "#64748b" }}>${pin.price}</div>
+                                      <div style={{ fontSize: "12.5px", fontWeight: "700", color: "#0f172a", marginTop: "2px" }}>
+                                        ${pin.price}
+                                      </div>
                                     </div>
                                   </div>
-                                  <Button
-                                    size="micro"
-                                    variant="primary"
+
+                                  <button
+                                    type="button"
                                     onClick={() => {
                                       shopify?.toast?.show(`✓ Added "${pin.title}" to cart!`);
                                     }}
+                                    style={{
+                                      background: "#0f172a",
+                                      color: "#ffffff",
+                                      border: "none",
+                                      borderRadius: "6px",
+                                      padding: "7px 12px",
+                                      fontSize: "12px",
+                                      fontWeight: "600",
+                                      cursor: "pointer",
+                                      whiteSpace: "nowrap",
+                                      flexShrink: 0,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "5px",
+                                      transition: "background 0.15s ease",
+                                    }}
                                   >
-                                    Add to Cart
-                                  </Button>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                      <line x1="3" y1="6" x2="21" y2="6"/>
+                                      <path d="M16 10a4 4 0 0 1-8 0"/>
+                                    </svg>
+                                    <span>Add to Cart</span>
+                                  </button>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
 
-                        <Text variant="bodyMd">{selectedPost.caption || "Shop our featured Instagram style!"}</Text>
-
-                        <div style={{ marginTop: "12px" }}>
-                          <Text variant="bodyXs" tone="subdued">
-                            POSTED ON INSTAGRAM
-                          </Text>
-                        </div>
+                        <p style={{ fontSize: "14px", lineHeight: "1.5", color: "#334155", margin: 0 }}>
+                          <strong style={{ fontWeight: "700", color: "#0f172a", marginRight: "6px" }}>@{handle}</strong>
+                          <span>{selectedPost.caption || "Shop our featured Instagram style!"}</span>
+                        </p>
                       </div>
 
-                      {/* Action Bar & Footer */}
-                      <div style={{ padding: "12px 16px", borderTop: "1px solid #f1f5f9" }}>
-                        <InlineStack align="space-between" blockAlign="center">
-                          <InlineStack gap="300">
-                            <Text variant="bodySm" fontWeight="bold">
-                              ❤️ {selectedPost.like_count || 0} Likes
-                            </Text>
-                            <Text variant="bodySm" fontWeight="bold">
-                              💬 {selectedPost.comments_count || 0} Comments
-                            </Text>
-                          </InlineStack>
-                          <InlineStack gap="200">
+                      {/* Footer */}
+                      <div style={{ padding: "16px 20px", borderTop: "1px solid #f1f5f9", background: "#fafafa" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                            {/* Heart Icon */}
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="#e1306c" stroke="#e1306c" strokeWidth="2" style={{ cursor: "pointer" }}>
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                            {/* Comment Icon */}
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#262626" strokeWidth="2" style={{ cursor: "pointer" }}>
+                              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                            </svg>
+                            {/* Share Icon */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const url =
+                                  selectedPost.permalink ||
+                                  `https://instagram.com/${handle}`;
+                                if (navigator.clipboard?.writeText) {
+                                  navigator.clipboard.writeText(url);
+                                  shopify?.toast?.show("Post link copied to clipboard!");
+                                }
+                              }}
+                              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}
+                              title="Share Post"
+                            >
+                              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#262626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="18" cy="5" r="3" />
+                                <circle cx="6" cy="12" r="3" />
+                                <circle cx="18" cy="19" r="3" />
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                             <Button
-                              size="slim"
+                              size="micro"
                               icon={ShoppableTagIcon}
                               onClick={() => {
                                 const current = selectedPost;
@@ -4213,43 +4494,61 @@ export default function Index() {
                             >
                               Tag Products
                             </Button>
-                            <Button
-                              size="slim"
-                              icon={ShareIcon}
-                              onClick={() => {
-                                const url =
-                                  selectedPost.permalink ||
-                                  `https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`;
-                                if (navigator.clipboard?.writeText) {
-                                  navigator.clipboard.writeText(url);
-                                  shopify?.toast?.show("Post link copied to clipboard!");
-                                }
-                              }}
-                            >
-                              Share
-                            </Button>
-                          </InlineStack>
-                        </InlineStack>
+                          </div>
+                        </div>
 
-                        <Box paddingBlockStart="200">
-                          <Button
-                            variant="primary"
-                            fullWidth
-                            url={
-                              selectedPost.permalink ||
-                              `https://instagram.com/${(instaData?.username || config.instagramHandle || "").replace("@", "")}`
-                            }
-                            target="_blank"
-                          >
-                            View on Instagram
-                          </Button>
-                        </Box>
+                        <div style={{ fontSize: "13px", fontWeight: "700", color: "#0f172a", marginBottom: "4px" }}>
+                          {selectedPost.like_count || 128} likes
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "12px" }}>
+                          {selectedPost.timestamp
+                            ? new Date(selectedPost.timestamp).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })
+                            : "Recently"}
+                        </div>
+
+                        {/* Promo / Action Button */}
+                        <a
+                          href={selectedPost.permalink || `https://instagram.com/${handle}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            width: "100%",
+                            padding: "10px 16px",
+                            background: "linear-gradient(135deg, #e1306c 0%, #f77737 100%)",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            fontSize: "13px",
+                            fontWeight: "700",
+                            textDecoration: "none",
+                            boxShadow: "0 4px 12px rgba(225, 48, 108, 0.3)",
+                            boxSizing: "border-box",
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 12 20 22 4 22 4 12" />
+                            <rect x="2" y="7" width="20" height="5" />
+                            <line x1="12" y1="22" x2="12" y2="7" />
+                            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+                          </svg>
+                          <span>{promoLabel}</span>
+                        </a>
+
+                        {/* Watermark */}
+                        <div style={{ textAlign: "center", padding: "10px 0 0", fontSize: "11px", color: "#9ca3af" }}>
+                          Powered by BOOST STAR Experts
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
-              </Modal.Section>
-            </Modal>
+              </div>
+            </div>
           );
         })()}
 
@@ -4321,15 +4620,15 @@ export default function Index() {
                             width: "28px",
                             height: "28px",
                             borderRadius: "50%",
-                            background: "#6366f1",
-                            border: "2px solid white",
-                            color: "white",
+                            background: "#ffffff",
+                            border: "2px solid #0f172a",
+                            color: "#0f172a",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             fontSize: "12px",
-                            fontWeight: "bold",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
+                            fontWeight: "800",
+                            boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
                             cursor: "pointer",
                           }}
                           title={`${pin.title} ($${pin.price})`}

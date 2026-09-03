@@ -1152,64 +1152,73 @@
   100% { transform: scale(1); opacity: 0.9; box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
 }
 
+/* ── Professional Shoppable Hotspot Pins & Tooltips ── */
+@keyframes aiPinPulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.35); opacity: 0; }
+  100% { transform: scale(0.9); opacity: 0; }
+}
+
 .ai-hotspot-pin {
   position: absolute !important;
   cursor: pointer !important;
   user-select: none !important;
+  z-index: 30 !important;
 }
 
 .ai-pin-pulse {
   position: absolute !important;
-  top: -4px !important;
-  left: -4px !important;
-  width: 32px !important;
-  height: 32px !important;
+  top: -6px !important;
+  left: -6px !important;
+  width: 38px !important;
+  height: 38px !important;
   border-radius: 50% !important;
-  background: rgba(99, 102, 241, 0.4) !important;
-  animation: aiPinPulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1) !important;
+  background: rgba(255, 255, 255, 0.45) !important;
+  animation: aiPinPulse 2.2s infinite ease-out !important;
   pointer-events: none !important;
 }
 
 .ai-pin-dot {
-  width: 24px !important;
-  height: 24px !important;
+  width: 26px !important;
+  height: 26px !important;
   border-radius: 50% !important;
-  background: #6366f1 !important;
-  border: 2px solid #ffffff !important;
+  background: #ffffff !important;
+  border: 1.5px solid rgba(15, 23, 42, 0.12) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22) !important;
   position: relative !important;
   z-index: 2 !important;
-  transition: transform 0.2s ease !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
 }
 
 .ai-hotspot-pin:hover .ai-pin-dot {
   transform: scale(1.15) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3) !important;
 }
 
 .ai-pin-tooltip {
   position: absolute !important;
-  bottom: calc(100% + 10px) !important;
+  bottom: calc(100% + 12px) !important;
   left: 50% !important;
   transform: translateX(-50%) translateY(6px) !important;
-  background: rgba(255, 255, 255, 0.96) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(226, 232, 240, 0.8) !important;
-  border-radius: 10px !important;
-  padding: 10px !important;
-  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  box-shadow: 0 16px 32px -6px rgba(0, 0, 0, 0.18), 0 4px 12px -2px rgba(0, 0, 0, 0.08) !important;
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
-  min-width: 180px !important;
-  max-width: 240px !important;
+  min-width: 190px !important;
+  max-width: 250px !important;
   opacity: 0 !important;
   pointer-events: none !important;
-  transition: opacity 0.2s ease, transform 0.2s ease !important;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   z-index: 50 !important;
 }
 
@@ -1221,11 +1230,19 @@
 }
 
 .ai-pin-tooltip-img {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 6px !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
   object-fit: cover !important;
   flex-shrink: 0 !important;
+  border: 1px solid #f1f5f9 !important;
+}
+
+.ai-pin-img-placeholder {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #f8fafc !important;
 }
 
 .ai-pin-tooltip-info {
@@ -1234,36 +1251,178 @@
 }
 
 .ai-pin-tooltip-title {
-  font-size: 12px !important;
-  font-weight: 700 !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
   color: #0f172a !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  line-height: 1.3 !important;
 }
 
 .ai-pin-tooltip-price {
-  font-size: 11px !important;
-  color: #64748b !important;
-  margin-top: 1px !important;
-  margin-bottom: 4px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin-top: 2px !important;
+  margin-bottom: 6px !important;
 }
 
 .ai-pin-add-cart-btn {
   background: #0f172a !important;
-  color: white !important;
+  color: #ffffff !important;
   border: none !important;
-  padding: 4px 8px !important;
-  border-radius: 4px !important;
-  font-size: 10px !important;
-  font-weight: 700 !important;
+  padding: 5px 10px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
   cursor: pointer !important;
-  transition: background 0.15s !important;
+  transition: background 0.15s ease, transform 0.1s ease !important;
   width: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
 }
 
 .ai-pin-add-cart-btn:hover {
-  background: #334155 !important;
+  background: #1e293b !important;
+}
+
+.ai-pin-add-cart-btn:active {
+  transform: scale(0.97) !important;
+}
+
+/* ── Modal Tagged Products Drawer / Section ── */
+.ai-tagged-products-wrap {
+  margin-bottom: 20px !important;
+  padding-bottom: 16px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.ai-tagged-products-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 12px !important;
+}
+
+.ai-tagged-products-title {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #334155 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.ai-tagged-count-pill {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  background: #f1f5f9 !important;
+  padding: 2px 8px !important;
+  border-radius: 12px !important;
+}
+
+.ai-tagged-products-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.ai-tagged-product-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 10px 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  gap: 12px !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.ai-tagged-product-item:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.ai-tagged-product-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  overflow: hidden !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.ai-tagged-product-img {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+  border: 1px solid #f1f5f9 !important;
+}
+
+.ai-tagged-img-placeholder {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.ai-tagged-product-details {
+  overflow: hidden !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.ai-tagged-product-name {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+  text-overflow: ellipsis !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  line-height: 1.3 !important;
+}
+
+.ai-tagged-product-price {
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin-top: 2px !important;
+}
+
+.ai-product-add-cart-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 7px 12px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  transition: background 0.15s ease, transform 0.1s ease !important;
+}
+
+.ai-product-add-cart-btn:hover {
+  background: #1e293b !important;
+}
+
+.ai-product-add-cart-btn:active {
+  transform: scale(0.97) !important;
 }
 
 /* ── Extended Layouts: Masonry, Highlight, Reels, Marquee ── */
@@ -1273,22 +1432,24 @@
   column-gap: var(--ai-gap, 16px);
   width: 100%;
 }
-.ai-layout-masonry .ai-grid-wrapper,
-.ai-layout-masonry .ai-grid-item {
+.ai-layout-masonry .ai-grid-wrapper {
   break-inside: avoid !important;
   page-break-inside: avoid !important;
   margin-bottom: var(--ai-gap, 16px) !important;
   display: inline-block !important;
   width: 100% !important;
 }
-.ai-layout-masonry .ai-grid-item,
-.ai-layout-masonry .ai-grid-item-inner {
-  height: auto !important;
-  aspect-ratio: unset !important;
+.ai-layout-masonry .ai-grid-item {
+  width: 100% !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  position: relative !important;
 }
 .ai-layout-masonry img,
 .ai-layout-masonry video {
-  height: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
   display: block !important;
 }
 
