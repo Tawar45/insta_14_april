@@ -522,6 +522,16 @@
         candidateFeed = imgs.length > 0 ? imgs : feedSource;
       }
 
+      const gap        = c.gap;
+      const mediaItems = getMedia(candidateFeed, limit);
+      const trackId    = 'ai-fw-grid-track-' + Date.now();
+
+      // 1. Header: Title & Description & Contextual Follow Button
+      const igHandle = (config.instagramHandle || (this.instaData && this.instaData.username) || "").replace("@", "").trim();
+      const followPosition = c.followButtonPosition || (config.appliedTemplateId?.includes("profile") ? "header" : (c.heading?.startsWith("@") ? "header" : "bottom"));
+      const showFollowInHeader = igHandle && c.showFollowButton !== false && followPosition === "header";
+      const showFollowAtBottom = igHandle && c.showFollowButton !== false && followPosition === "bottom";
+
       const isProfileLayout = Boolean(
         config.appliedTemplateId?.includes("profile") ||
         (followPosition === "header" && (
@@ -533,9 +543,6 @@
         ))
       );
 
-      const gap        = c.gap;
-      const mediaItems = getMedia(candidateFeed, limit);
-      const trackId    = 'ai-fw-grid-track-' + Date.now();
       const hSize      = isMobile 
         ? (isProfileLayout ? Math.min(c.typography?.heading?.size || 14, 13) : Math.min(c.typography?.heading?.size || 18, 16))
         : (isProfileLayout ? (c.typography?.heading?.size || 16) : (c.typography?.heading?.size || 18));
@@ -550,12 +557,6 @@
       }
 
       let html = styleLink + '<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;padding-top:' + (c.paddingTop ?? 32) + 'px;padding-bottom:' + (c.paddingBottom ?? 32) + 'px;">';
-
-      // 1. Header: Title & Description & Contextual Follow Button
-      const igHandle = (config.instagramHandle || (this.instaData && this.instaData.username) || "").replace("@", "").trim();
-      const followPosition = c.followButtonPosition || (config.appliedTemplateId?.includes("profile") ? "header" : (c.heading?.startsWith("@") ? "header" : "bottom"));
-      const showFollowInHeader = igHandle && c.showFollowButton !== false && followPosition === "header";
-      const showFollowAtBottom = igHandle && c.showFollowButton !== false && followPosition === "bottom";
 
       if (isProfileLayout && ((c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) || showFollowInHeader)) {
         const profilePic = (this.instaData && (this.instaData.profile_picture_url || (this.instaData.user && this.instaData.user.profile_picture_url))) || "";
