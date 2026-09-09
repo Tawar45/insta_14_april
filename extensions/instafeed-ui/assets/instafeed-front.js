@@ -244,9 +244,9 @@
 
     // Prevent flexbox left-clipping on overflowing tracks
     if (maxScroll > 5) {
-      track.style.justifyContent = "flex-start";
+      track.style.setProperty("justify-content", "flex-start", "important");
     } else {
-      track.style.justifyContent = "center";
+      track.style.setProperty("justify-content", "center", "important");
     }
 
     if (maxScroll <= 5) {
@@ -625,7 +625,7 @@
         const displayStories = getMedia(storyMedia, 10);
         
         html += '<div class="ai-fw-carousel-wrapper" style="position:relative;width:100%;margin-bottom:20px;">'
-              + '<div id="' + sTrackId + '" class="ai-fw-track" style="display:flex;width:100%;justify-content:center;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:4px 4px 16px;">';
+              + '<div id="' + sTrackId + '" class="ai-fw-track" style="display:flex;width:100%;justify-content:flex-start;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;gap:12px;padding:4px 6px 16px;">';
         
         if (s.promoEnable !== false) {
           html += '<div class="ai-story-item ai-promo-item" style="flex-shrink:0;width:64px;min-width:64px;text-align:center;cursor:pointer;overflow:visible;">'
@@ -934,7 +934,8 @@
     }
 
     render(config, mediaData) {
-      const renderKey = JSON.stringify({ c: config.stories, m: (mediaData || []).map(x => x.id || x.media_url) });
+      const isMobile   = window.innerWidth <= 768;
+      const renderKey = JSON.stringify({ isMobile, c: config.stories, m: (mediaData || []).map(x => x.id || x.media_url) });
       if (this.lastRenderKey === renderKey) return;
       this.lastRenderKey = renderKey;
 
@@ -953,7 +954,6 @@
         styleLink = `<link rel="stylesheet" href="${cssUrl}">`;
       }
 
-      const isMobile   = window.innerWidth <= 768;
       const sHeadingSize = s.typography?.heading?.size ? (isMobile ? Math.min(s.typography.heading.size, 18) : s.typography.heading.size) : (isMobile ? 18 : 28);
       const sSubSize     = s.typography?.subheading?.size ? (isMobile ? Math.min(s.typography.subheading.size, 12) : s.typography.subheading.size) : (isMobile ? 12 : 14);
 
@@ -981,7 +981,7 @@
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1e293b" stroke-width="2"><path d="M12 16l-4-4 4-4"/></svg>
               </div>
             ` : ''}
-            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:center;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;gap:16px;padding:8px 4px 28px;">`;
+            <div id="${trackId}" class="ai-fw-track" style="display:flex;width:100%;justify-content:flex-start;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;gap:12px;padding:8px 6px 24px;">`;
 
         // Prepend promo story if enabled
         if (s.promoEnable !== false) {

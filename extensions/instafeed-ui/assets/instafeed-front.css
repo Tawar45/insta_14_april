@@ -415,7 +415,11 @@
 }
 
 /* ── Enhanced Story Slider Action & Interaction Micro-Effects ────────────── */
-.ai-fw-track,
+.ai-fw-track {
+  cursor: grab;
+  user-select: none;
+}
+
 #ai-grid-body,
 .ai-grid-body {
   justify-content: center !important;
@@ -543,12 +547,27 @@
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .ai-fw-carousel-wrapper {
-    padding: 0 8px !important;
+    padding: 0 4px !important;
     overflow: hidden !important;
   }
   :host(instafeed-story) .ai-fw-carousel-wrapper {
-    padding: 0 12px !important;
+    padding: 0 4px !important;
     overflow: hidden !important;
+  }
+  .ai-fw-track {
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+  .ai-story-item {
+    flex-shrink: 0 !important;
+    width: 60px !important;
+    min-width: 60px !important;
+  }
+  .ai-story-ring-wrapper {
+    width: 60px !important;
+    height: 60px !important;
   }
   .ai-fw-prev { left: -2px; }
   .ai-fw-next { right: -2px; }
