@@ -242,6 +242,13 @@
     const prevBtn = wrapper.querySelector(".ai-fw-prev");
     const nextBtn = wrapper.querySelector(".ai-fw-next");
 
+    // Prevent flexbox left-clipping on overflowing tracks
+    if (maxScroll > 5) {
+      track.style.justifyContent = "flex-start";
+    } else {
+      track.style.justifyContent = "center";
+    }
+
     if (maxScroll <= 5) {
       if (prevBtn) prevBtn.style.setProperty("display", "none", "important");
       if (nextBtn) nextBtn.style.setProperty("display", "none", "important");
@@ -312,6 +319,8 @@
 
         track.addEventListener("pointerdown", (e) => {
           if (e.target.closest(".ai-fw-nav")) return;
+          // For touch screens, let native momentum scrolling work seamlessly without blocking vertical scroll
+          if (e.pointerType === "touch") return;
           isDown = true;
           track.style.cursor = "grabbing";
           track.style.userSelect = "none";
@@ -467,8 +476,8 @@
 
       const c          = config.postFeed || {};
       const isMobile   = window.innerWidth <= 768;
-      const columns    = isMobile ? c.mobileColumns : c.desktopColumns;
-      const baseLimit  = isMobile ? (c.mobileLimit || 4) : (c.desktopLimit || 8);
+      const columns    = isMobile ? (Number(c.mobileColumns) || 2) : (Number(c.desktopColumns) || 4);
+      const baseLimit  = isMobile ? (Number(c.mobileLimit) || 4) : (Number(c.desktopLimit) || 8);
       const layoutMode = c.layoutMode || c.layoutStyle || (c.carousel ? "carousel" : "grid");
       const isCarousel = layoutMode === "carousel";
       // Infinite scroll only on carousel; all other layouts display strictly limited posts
@@ -513,11 +522,26 @@
         candidateFeed = imgs.length > 0 ? imgs : feedSource;
       }
 
+      const isProfileLayout = Boolean(
+        config.appliedTemplateId?.includes("profile") ||
+        (followPosition === "header" && (
+          c.heading?.startsWith("@") ||
+          c.heading?.toLowerCase().includes("@account") ||
+          c.heading?.toLowerCase().includes("follow @") ||
+          c.heading?.toLowerCase().includes("connect with @") ||
+          c.heading?.toLowerCase().includes("welcome to @")
+        ))
+      );
+
       const gap        = c.gap;
       const mediaItems = getMedia(candidateFeed, limit);
       const trackId    = 'ai-fw-grid-track-' + Date.now();
-      const hSize      = c.typography?.heading?.size ? (c.typography.heading.size + (isMobile ? 0 : 2)) : 18;
-      const subSize    = c.typography?.subheading?.size ? (c.typography.subheading.size + (isMobile ? 0 : 1)) : 12;
+      const hSize      = isMobile 
+        ? (isProfileLayout ? Math.min(c.typography?.heading?.size || 14, 13) : Math.min(c.typography?.heading?.size || 18, 16))
+        : (isProfileLayout ? (c.typography?.heading?.size || 16) : (c.typography?.heading?.size || 18));
+      const subSize    = isMobile 
+        ? (isProfileLayout ? Math.min(c.typography?.subheading?.size || 11, 10.5) : Math.min(c.typography?.subheading?.size || 12, 11.5))
+        : (isProfileLayout ? (c.typography?.subheading?.size || 12) : (c.typography?.subheading?.size || 12));
       const cssUrl     = this.getAttribute("css-url") || getCssUrl();
 
       let styleLink = "";
@@ -532,17 +556,6 @@
       const followPosition = c.followButtonPosition || (config.appliedTemplateId?.includes("profile") ? "header" : (c.heading?.startsWith("@") ? "header" : "bottom"));
       const showFollowInHeader = igHandle && c.showFollowButton !== false && followPosition === "header";
       const showFollowAtBottom = igHandle && c.showFollowButton !== false && followPosition === "bottom";
-
-      const isProfileLayout = Boolean(
-        config.appliedTemplateId?.includes("profile") ||
-        (followPosition === "header" && (
-          c.heading?.startsWith("@") ||
-          c.heading?.toLowerCase().includes("@account") ||
-          c.heading?.toLowerCase().includes("follow @") ||
-          c.heading?.toLowerCase().includes("connect with @") ||
-          c.heading?.toLowerCase().includes("welcome to @")
-        ))
-      );
 
       if (isProfileLayout && ((c.header && ((c.heading && c.heading.trim()) || (c.subheading && c.subheading.trim()))) || showFollowInHeader)) {
         const profilePic = (this.instaData && (this.instaData.profile_picture_url || (this.instaData.user && this.instaData.user.profile_picture_url))) || "";
@@ -566,10 +579,10 @@
         // Content on Left
         html += '<div class="ai-profile-header-text" style="text-align:left;min-width:0;flex:1;">';
         if (c.header && c.heading && c.heading.trim()) {
-          html += '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 2px 0;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(formatDynamicAccountText(c.heading, config.instagramHandle || (this.instaData && this.instaData.username))) + '</h2>';
+          html += '<h2 style="font-size:' + hSize + 'px;font-weight:' + (c.typography?.heading?.weight || '800') + ';color:' + (c.typography?.heading?.color || '#000') + ';margin:0 0 2px 0;line-height:1.25;word-break:break-word;">' + esc(formatDynamicAccountText(c.heading, config.instagramHandle || (this.instaData && this.instaData.username))) + '</h2>';
         }
         if (c.header && c.subheading && c.subheading.trim()) {
-          html += '<p style="font-size:' + subSize + 'px;font-weight:' + (c.typography?.subheading?.weight || '500') + ';color:' + (c.typography?.subheading?.color || '#666') + ';margin:0;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(formatDynamicAccountText(c.subheading, config.instagramHandle || (this.instaData && this.instaData.username))) + '</p>';
+          html += '<p style="font-size:' + subSize + 'px;font-weight:' + (c.typography?.subheading?.weight || '500') + ';color:' + (c.typography?.subheading?.color || '#666') + ';margin:0;line-height:1.3;word-break:break-word;">' + esc(formatDynamicAccountText(c.subheading, config.instagramHandle || (this.instaData && this.instaData.username))) + '</p>';
         }
         html += '</div>';
         html += '</div>'; // End Left side
@@ -577,9 +590,9 @@
         // Right side: Follow Button
         if (showFollowInHeader) {
           html += '<div class="ai-profile-header-right" style="flex-shrink:0;margin-left:auto;">'
-                + '<a href="https://instagram.com/' + esc(igHandle) + '" target="_blank" rel="noopener noreferrer" class="ai-follow-btn" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:18px;background:linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);color:#ffffff;font-weight:700;font-size:11.5px;text-decoration:none;box-shadow:0 2px 4px rgba(0,0,0,0.1);white-space:nowrap;">'
-                + '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
-                + '<span>Follow on Instagram</span>'
+                + '<a href="https://instagram.com/' + esc(igHandle) + '" target="_blank" rel="noopener noreferrer" class="ai-follow-btn" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:18px;background:linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);color:#ffffff;font-weight:700;font-size:11.5px;text-decoration:none;box-shadow:0 2px 4px rgba(0,0,0,0.1);white-space:nowrap;">'
+                + '<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
+                + '<span>Follow</span>'
                 + '</a></div>';
         }
 
@@ -828,8 +841,8 @@
       if (layoutMode !== "carousel") return;
 
       const isMobile = window.innerWidth <= 768;
-      const columns = isMobile ? c.mobileColumns : c.desktopColumns;
-      const gap = c.gap;
+      const columns = isMobile ? (Number(c.mobileColumns) || 2) : (Number(c.desktopColumns) || 4);
+      const gap = Number(c.gap) >= 0 ? Number(c.gap) : 16;
       const batchSize = isMobile ? 6 : 12;
       const prevLimit = Math.max(0, limit - batchSize);
       const newItems = mediaData.slice(prevLimit, limit);
@@ -939,16 +952,20 @@
         styleLink = `<link rel="stylesheet" href="${cssUrl}">`;
       }
 
+      const isMobile   = window.innerWidth <= 768;
+      const sHeadingSize = s.typography?.heading?.size ? (isMobile ? Math.min(s.typography.heading.size, 18) : s.typography.heading.size) : (isMobile ? 18 : 28);
+      const sSubSize     = s.typography?.subheading?.size ? (isMobile ? Math.min(s.typography.subheading.size, 12) : s.typography.subheading.size) : (isMobile ? 12 : 14);
+
       let html = styleLink + `<div class="ai-instafeed-root" style="font-family:inherit;width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;overflow:hidden;padding-top:${s.paddingTop ?? 24}px;padding-bottom:${s.paddingBottom ?? 24}px;">`;
 
       if (s.showHeader && ((s.heading && s.heading.trim()) || (s.subheading && s.subheading.trim()))) {
         html += `
           <div style="text-align:${s.alignment};margin-bottom:24px;">`;
         if (s.heading && s.heading.trim()) {
-          html += `<h4 style="font-size:${s.typography?.heading?.size || 28}px;font-weight:${s.typography?.heading?.weight || '800'};color:${s.typography?.heading?.color || '#000'};margin:0 0 8px 0;line-height:1.2;">${esc(formatDynamicAccountText(s.heading, config.instagramHandle))}</h4>`;
+          html += `<h4 style="font-size:${sHeadingSize}px;font-weight:${s.typography?.heading?.weight || '800'};color:${s.typography?.heading?.color || '#000'};margin:0 0 8px 0;line-height:1.2;word-break:break-word;">${esc(formatDynamicAccountText(s.heading, config.instagramHandle))}</h4>`;
         }
         if (s.subheading && s.subheading.trim()) {
-          html += `<p style="font-size:${s.typography?.subheading?.size || 14}px;font-weight:${s.typography?.subheading?.weight || '400'};color:${s.typography?.subheading?.color || '#666'};margin:0;">${esc(formatDynamicAccountText(s.subheading, config.instagramHandle))}</p>`;
+          html += `<p style="font-size:${sSubSize}px;font-weight:${s.typography?.subheading?.weight || '400'};color:${s.typography?.subheading?.color || '#666'};margin:0;word-break:break-word;">${esc(formatDynamicAccountText(s.subheading, config.instagramHandle))}</p>`;
         }
         html += `</div>`;
       }
@@ -1073,6 +1090,16 @@
     }
 
     _handleClick(e) {
+      const hotspotPin = e.target.closest(".ai-hotspot-pin");
+      if (hotspotPin) {
+        const isActive = hotspotPin.classList.contains("ai-pin-active");
+        this.shadowRoot.querySelectorAll(".ai-hotspot-pin").forEach(p => p.classList.remove("ai-pin-active"));
+        if (!isActive) {
+          hotspotPin.classList.add("ai-pin-active");
+        }
+        return;
+      }
+
       if (e.target.closest(".ai-modal-header-close") || e.target.closest(".ai-modal-float-close")) {
         this.close();
       } else if (e.target.closest(".ai-modal-promo-link-btn")) {

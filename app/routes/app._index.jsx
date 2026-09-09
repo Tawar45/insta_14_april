@@ -3647,9 +3647,7 @@ export default function Index() {
                                               color: config.postFeed.typography.heading.color,
                                               margin: 0,
                                               lineHeight: 1.25,
-                                              whiteSpace: "nowrap",
-                                              overflow: "hidden",
-                                              textOverflow: "ellipsis",
+                                              wordBreak: "break-word",
                                             }}
                                           >
                                             {formatDynamicAccountText(config.postFeed.heading)}
@@ -3662,9 +3660,7 @@ export default function Index() {
                                               color: config.postFeed.typography.subheading.color,
                                               margin: "2px 0 0 0",
                                               lineHeight: 1.3,
-                                              whiteSpace: "nowrap",
-                                              overflow: "hidden",
-                                              textOverflow: "ellipsis",
+                                              wordBreak: "break-word",
                                             }}
                                           >
                                             {formatDynamicAccountText(config.postFeed.subheading)}
@@ -3832,9 +3828,7 @@ export default function Index() {
                                           color: config.postFeed.typography.heading.color,
                                           margin: "0 0 2px 0",
                                           lineHeight: 1.25,
-                                          whiteSpace: "nowrap",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
+                                          wordBreak: "break-word",
                                         }}
                                       >
                                         {formatDynamicAccountText(config.postFeed.heading)}
@@ -3847,9 +3841,7 @@ export default function Index() {
                                           color: config.postFeed.typography.subheading.color,
                                           margin: 0,
                                           lineHeight: 1.3,
-                                          whiteSpace: "nowrap",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
+                                          wordBreak: "break-word",
                                         }}
                                       >
                                         {formatDynamicAccountText(config.postFeed.subheading)}

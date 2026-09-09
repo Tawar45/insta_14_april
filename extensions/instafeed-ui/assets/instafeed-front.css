@@ -387,17 +387,30 @@
 
 @media (max-width: 640px) {
   .ai-profile-header-wrap {
-    gap: 10px !important;
-    margin-bottom: 14px !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
   }
   .ai-profile-header-left {
-    gap: 10px !important;
+    gap: 8px !important;
   }
   .ai-profile-avatar-wrap {
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
-    min-height: 38px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+  .ai-profile-header-text h2,
+  .ai-profile-header-text h4 {
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+  }
+  .ai-profile-header-text p {
+    font-size: 10.5px !important;
+    line-height: 1.3 !important;
+  }
+  .ai-follow-btn {
+    padding: 4px 10px !important;
+    font-size: 10.5px !important;
   }
 }
 
@@ -1223,7 +1236,8 @@
 }
 
 .ai-hotspot-pin:hover .ai-pin-tooltip,
-.ai-hotspot-pin:focus-within .ai-pin-tooltip {
+.ai-hotspot-pin:focus-within .ai-pin-tooltip,
+.ai-hotspot-pin.ai-pin-active .ai-pin-tooltip {
   opacity: 1 !important;
   pointer-events: auto !important;
   transform: translateX(-50%) translateY(0) !important;
